@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="uk">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
+  <meta name="theme-color" content="#0b0c11">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Warrior Hub">
+  <title>Warrior Hub Mobile</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="icons/icon192.png">
+  <link rel="stylesheet" href="app.css">
+</head>
+<body>
+  <div id="appShell">
+    <header class="topbar">
+      <div><div class="eyebrow" id="todayLabel">WARRIOR HUB MOBILE</div><h1>Warrior Hub</h1></div>
+      <button id="syncNowBtn" class="sync-btn" type="button">↻ Sync</button>
+    </header>
+    <div id="statusBanner" class="status-banner">Not connected</div>
+
+    <nav class="tabs" aria-label="Main navigation">
+      <button class="tab active" data-view="today">Today</button>
+      <button class="tab" data-view="assignments">Assignments</button>
+      <button class="tab" data-view="calendar">Calendar</button>
+      <button class="tab" data-view="schedule">Schedule</button>
+      <button class="tab" data-view="news">News</button>
+      <button class="tab" data-view="mail">Mail</button>
+      <button class="tab" data-view="notes">✍ Notes</button>
+      <button class="tab" data-view="setup">Setup</button>
+    </nav>
+
+    <main>
+      <section class="view active" id="view-today">
+        <div id="nextClass"></div>
+        <div class="section-head"><h2>Due soon</h2><span id="dueSoonCount"></span></div>
+        <div id="dueSoon"></div>
+        <div class="section-head"><h2>Today</h2><span id="todayClassCount"></span></div>
+        <div id="todayClasses"></div>
+        <div class="timer-card">
+          <div><div class="eyebrow">STUDY TIMER</div><div id="timerText" class="timer-text">50:00</div></div>
+          <div class="timer-actions"><button id="timerToggle">Start</button><button id="timerReset">Reset</button></div>
+        </div>
+      </section>
+
+      <section class="view" id="view-assignments">
+        <div class="filter-row">
+          <select id="assignmentFilter"><option value="open">Open</option><option value="week">Next 7 days</option><option value="overdue">Overdue</option><option value="all">All</option></select>
+          <input id="assignmentSearch" type="search" placeholder="Search assignments">
+        </div>
+        <div id="assignmentList"></div>
+      </section>
+
+      <section class="view" id="view-calendar">
+        <div class="calendar-head"><button id="calPrev">‹</button><h2 id="calMonth"></h2><button id="calNext">›</button></div>
+        <div class="weekdays"><span>S</span><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span></div>
+        <div id="calendarGrid" class="calendar-grid"></div>
+        <div class="section-head"><h2 id="agendaDate">Agenda</h2></div>
+        <div id="calendarAgenda"></div>
+      </section>
+
+      <section class="view" id="view-schedule">
+        <div id="dayTabs" class="day-tabs"></div>
+        <div id="scheduleList"></div>
+      </section>
+
+      <section class="view" id="view-news"><div class="section-head"><h2>Announcements</h2></div><div id="newsList"></div></section>
+      <section class="view" id="view-mail"><div class="section-head"><h2>Mail</h2></div><div id="mailList"></div></section>
+
+      <section class="view notes-view" id="view-notes">
+        <div class="notes-sticky-head">
+          <div class="course-switcher">
+            <button id="prevCourseBtn" aria-label="Previous course">‹</button>
+            <select id="notesCourse" aria-label="Course"></select>
+            <button id="nextCourseBtn" aria-label="Next course">›</button>
+          </div>
+          <div class="day-switcher">
+            <button id="prevNoteDayBtn" aria-label="Previous day">‹</button>
+            <input id="notesDate" type="date" aria-label="Note date">
+            <button id="nextNoteDayBtn" aria-label="Next day">›</button>
+            <button id="todayNoteBtn" class="soft">Today</button>
+          </div>
+          <div id="noteDayChips" class="note-day-chips" aria-label="Days with notes"></div>
+        </div>
+
+        <div class="notebook-shell">
+          <div class="notebook-topline">
+            <div>
+              <div class="eyebrow">DRAWING NOTEBOOK</div>
+              <div id="notebookContext" class="notebook-context">Course · Today</div>
+            </div>
+            <div id="drawingSaveState" class="save-state">Local safe</div>
+          </div>
+
+          <div class="drawing-toolbar" role="toolbar" aria-label="Drawing tools">
+            <button class="draw-tool" data-tool="select">↖ Select</button>
+            <button class="draw-tool active" data-tool="pen">✎ Pen</button>
+            <button class="draw-tool" data-tool="highlighter">▰ Highlighter</button>
+            <button class="draw-tool" data-tool="eraser">⌫ Eraser</button>
+            <button id="undoDrawBtn" title="Undo">↶</button>
+            <button id="redoDrawBtn" title="Redo">↷</button>
+            <label class="compact-control">Color<input id="drawColor" type="color" value="#11151d"></label>
+            <label class="compact-control width-control">Size<input id="drawWidth" type="range" min="1" max="18" step="1" value="4"></label>
+            <select id="paperStyle" aria-label="Paper style"><option value="ruled">Ruled</option><option value="grid">Grid</option><option value="blank">Blank</option></select>
+            <button id="fingerDrawBtn" class="soft" aria-pressed="false">☝ Pan</button>
+            <button id="insertNoteItemBtn" class="insert-btn">＋ Insert</button>
+            <button id="fitItemBtn" class="soft" disabled>Fit width</button>
+            <button id="openItemBtn" class="soft" disabled>Open</button>
+            <button id="deleteItemBtn" class="danger-soft" disabled>Delete</button>
+          </div>
+
+          <div id="drawingViewport" class="drawing-viewport" aria-label="Infinite drawing notebook">
+            <div id="infinitePaper" class="infinite-paper"></div>
+          </div>
+          <div class="infinite-note-hint"><span>∞ Continuous notebook</span><span>Scroll down forever · photos and screenshots stay exactly where you place them.</span></div>
+
+          <div id="insertSheet" class="insert-sheet" hidden>
+            <button class="insert-sheet-backdrop" id="closeInsertBackdrop" aria-label="Close insert menu"></button>
+            <div class="insert-sheet-card" role="dialog" aria-modal="true" aria-label="Insert into notes">
+              <div class="insert-sheet-handle"></div>
+              <div class="insert-sheet-title">Insert into notebook</div>
+              <div class="insert-grid">
+                <button id="pickPhotosBtn"><b>🖼</b><span>Photos / screenshots</span><small>Pick one or many</small></button>
+                <button id="takePhotoBtn"><b>📷</b><span>Camera</span><small>Take a photo now</small></button>
+                <button id="pickFilesBtn"><b>📁</b><span>Files</span><small>Images, PDF, documents</small></button>
+                <button id="pasteImageBtn"><b>📋</b><span>Paste</span><small>Screenshot from clipboard</small></button>
+              </div>
+              <div class="insert-sheet-tip">You can also drag files onto the notebook. After inserting, use <b>Select</b> to move or resize them.</div>
+              <button id="closeInsertBtn" class="soft full-width">Done</button>
+            </div>
+            <input id="photoPickerInput" type="file" accept="image/*" multiple hidden>
+            <input id="cameraPickerInput" type="file" accept="image/*" capture="environment" hidden>
+            <input id="noteFilePickerInput" type="file" accept="image/*,application/pdf,.pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt" multiple hidden>
+          </div>
+
+          <details class="text-note-box">
+            <summary>Text notes for this day</summary>
+            <textarea id="notesText" placeholder="Optional typed notes…"></textarea>
+            <div class="notes-actions"><span id="notesState">Saved locally</span><button id="saveNotesBtn">Save text + Sync</button></div>
+          </details>
+        </div>
+      </section>
+
+      <section class="view" id="view-setup">
+        <div class="setup-card">
+          <h2>OneDrive connection</h2>
+          <p>Mobile reads the same <code>warrior-hub-sync.json</code> as the desktop extension. Drawing notes are backed up separately as immutable revisions so a state-sync bug cannot overwrite the only copy.</p>
+          <label>Microsoft Application (client) ID<input id="clientIdInput" autocomplete="off" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"></label>
+          <label>OneDrive folder path<input id="folderInput" value="WARRIOR HUB" placeholder="WARRIOR HUB"></label>
+          <label>Tenant<input id="tenantInput" value="common" placeholder="common"></label>
+          <div class="redirect-box"><small>Register this exact SPA Redirect URI:</small><code id="redirectUriText"></code><button id="copyRedirectBtn">Copy</button></div>
+          <div class="setup-actions"><button id="saveSetupBtn">Save settings</button><button id="loginBtn" class="primary">Sign in with Microsoft</button><button id="logoutBtn">Sign out</button></div>
+          <div id="accountInfo" class="account-info"></div>
+        </div>
+        <div class="setup-card">
+          <h2>Drawing-note safety</h2>
+          <p><b>Primary copy:</b> local IndexedDB on this device. <b>Backup:</b> append-only OneDrive snapshots. The notebook is continuous: scroll down and new local paper segments appear automatically. Photos/screenshots/files are stored in the same local notebook database and backed up separately before page snapshots. App/cache updates never clear the note database.</p>
+          <div class="setup-actions"><button id="backupNotesNowBtn">Back up notes now</button><button id="restoreCloudNotesBtn">Restore/merge from OneDrive</button><button id="exportNotesBackupBtn">Export local backup</button><label class="file-button">Import backup<input id="importNotesBackupInput" type="file" accept="application/json" hidden></label></div>
+          <div id="noteSafetyStatus" class="account-info">Checking local storage…</div>
+        </div>
+        <div class="setup-card">
+          <h2>Install on iPhone / iPad</h2>
+          <p>Safari → Share → <b>Add to Home Screen</b>. Open that Home Screen icon afterward. On iPad, Apple Pencil draws while your finger pans the page by default.</p>
+        </div>
+        <div class="setup-card danger-zone"><h2>Diagnostics</h2><button id="exportMobileDebug">Export mobile debug</button></div>
+      </section>
+    </main>
+  </div>
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,22 @@
+{
+  "name": "Warrior Hub Mobile",
+  "short_name": "Warrior Hub",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#090a0f",
+  "theme_color": "#090a0f",
+  "icons": [
+    {
+      "src": "icons/icon192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/icon512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "description": "Warrior Hub for assignments, study notes, handwriting, screenshots and OneDrive sync."
+}
