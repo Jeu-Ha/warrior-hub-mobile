@@ -1,4 +1,12 @@
-# Warrior Hub Mobile v0.4.0 — установка без нервів
+# Warrior Hub Mobile v0.6.0 — установка без нервів
+
+## Що нового у v0.6
+
+- **Study Remote:** живий Focus/Break з ПК + Start/Pause/Skip/Reset.
+- **Spotify Remote:** Previous / Play-Pause / Next / Shuffle керують desktop Spotify.
+- **Phone alerts:** після одноразового дозволу Home Screen app може отримати Focus/Break push навіть коли Mobile закритий, поки desktop Warrior Hub працює і OneDrive підключений.
+- **Notes UI:** Apple Notes / Markup-inspired layout без destructive migration; IndexedDB `warrior-mobile-drawing-notes-v2` лишається тією самою.
+- Microsoft Application (client) ID попередньо підставляється тільки якщо свій ще не збережений.
 
 Це PWA для iPhone/iPad. Після **Add to Home Screen** вона поводиться як окрема програма. Assignments, schedule, calendar і text notes синкаються через conflict-safe OneDrive device shards (`warrior-hub-sync-devices/`), а **drawing notes/media мають окремий захищений storage**.
 
@@ -135,4 +143,4 @@ Media-assets лежать у:
 4. На Mobile folder path має бути точно `WARRIOR HUB`.
 
 ## Course shortcuts у Mobile
-У assignment cards автоматично з'являються відповідні shortcuts: Calculus book, Being Good PDF, а для **General Chemistry II Laboratory / course 244636** — **🧪 Chem 2 Lab** на Catalyst course 6760.
+У assignment cards автоматично з'являються відповідні shortcuts: Calculus book, Being Good PDF, а для **General Chemistry II Laboratory / course 244636** — **🧪 Chem 2 Lab** на the current Canvas LabFlow module item.
