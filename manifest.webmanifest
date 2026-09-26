@@ -18,5 +18,6 @@
       "type": "image/png"
     }
   ],
-  "description": "Warrior Hub for assignments, study notes, handwriting, screenshots and OneDrive sync."
+  "description": "Warrior Hub Mobile v0.6 — assignments, Apple Notes-style handwriting, desktop Focus/Break + Spotify remote, OneDrive sync and phone alerts.",
+  "id": "./"
 }
