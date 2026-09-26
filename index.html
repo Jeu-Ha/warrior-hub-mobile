@@ -27,6 +27,7 @@
       <button class="tab" data-view="schedule">Schedule</button>
       <button class="tab" data-view="news">News</button>
       <button class="tab" data-view="mail">Mail</button>
+      <button class="tab" data-view="study">Study</button>
       <button class="tab" data-view="notes">✍ Notes</button>
       <button class="tab" data-view="setup">Setup</button>
     </nav>
@@ -68,8 +69,15 @@
       <section class="view" id="view-news"><div class="section-head"><h2>Announcements</h2></div><div id="newsList"></div></section>
       <section class="view" id="view-mail"><div class="section-head"><h2>Mail</h2></div><div id="mailList"></div></section>
 
-      <section class="view notes-view" id="view-notes">
-        <div class="notes-sticky-head">
+      <section class="view" id="view-study">
+        <div class="mobile-study-head"><div><div class="eyebrow">LIVE FROM YOUR PC</div><h2>Study Remote</h2></div><div id="remoteDesktopStatus" class="remote-status offline">Waiting for desktop…</div></div>
+        <div class="remote-focus-card"><div id="remotePhase" class="remote-phase">FOCUS</div><div id="remoteTimerText" class="remote-timer">--:--</div><div id="remoteCycle" class="remote-cycle">Open Warrior Hub on your PC and keep OneDrive connected.</div><div class="remote-actions"><button id="remoteTimerToggle" class="primary">Start</button><button id="remoteTimerSkip">Skip</button><button id="remoteTimerReset">Reset</button></div></div>
+        <div class="remote-player-card"><div id="remoteSpotifyArt" class="remote-art">♫</div><div class="remote-player-copy"><div class="eyebrow">NOW PLAYING</div><div id="remoteSpotifyTitle" class="remote-track-title">Spotify on desktop</div><div id="remoteSpotifyArtist" class="remote-track-artist">Waiting for desktop…</div></div><div class="remote-progress"><div id="remoteSpotifyProgressFill"></div></div><div id="remoteSpotifyTime" class="remote-time"></div><div class="remote-player-actions"><button id="remoteSpotifyPrev" aria-label="Previous">◀◀</button><button id="remoteSpotifyToggle" class="primary" aria-label="Play">▶</button><button id="remoteSpotifyNext" aria-label="Next">▶▶</button><button id="remoteSpotifyShuffle">Shuffle</button></div></div>
+        <div class="remote-help">These controls command the Spotify + Focus/Break session running on your desktop Warrior Hub through your OneDrive folder.</div>
+      </section>
+
+      <section class="view notes-view apple-notes-view" id="view-notes">
+        <div class="notes-sticky-head apple-notes-head">
           <div class="course-switcher">
             <button id="prevCourseBtn" aria-label="Previous course">‹</button>
             <select id="notesCourse" aria-label="Course"></select>
@@ -84,7 +92,7 @@
           <div id="noteDayChips" class="note-day-chips" aria-label="Days with notes"></div>
         </div>
 
-        <div class="notebook-shell">
+        <div class="notebook-shell apple-notebook-shell">
           <div class="notebook-topline">
             <div>
               <div class="eyebrow">DRAWING NOTEBOOK</div>
@@ -93,9 +101,10 @@
             <div id="drawingSaveState" class="save-state">Local safe</div>
           </div>
 
-          <div class="drawing-toolbar" role="toolbar" aria-label="Drawing tools">
+          <div class="drawing-toolbar apple-markup-toolbar" role="toolbar" aria-label="Drawing tools">
             <button class="draw-tool" data-tool="select">↖ Select</button>
-            <button class="draw-tool active" data-tool="pen">✎ Pen</button>
+            <button class="draw-tool active" data-tool="pen">✒ Pen</button>
+            <button class="draw-tool" data-tool="pencil">✎ Pencil</button>
             <button class="draw-tool" data-tool="highlighter">▰ Highlighter</button>
             <button class="draw-tool" data-tool="eraser">⌫ Eraser</button>
             <button id="undoDrawBtn" title="Undo">↶</button>
@@ -110,7 +119,7 @@
             <button id="deleteItemBtn" class="danger-soft" disabled>Delete</button>
           </div>
 
-          <div id="drawingViewport" class="drawing-viewport" aria-label="Infinite drawing notebook">
+          <div id="drawingViewport" class="drawing-viewport apple-paper-viewport" aria-label="Infinite drawing notebook">
             <div id="infinitePaper" class="infinite-paper"></div>
           </div>
           <div class="infinite-note-hint"><span>∞ Continuous notebook</span><span>Scroll down forever · photos and screenshots stay exactly where you place them.</span></div>
@@ -152,6 +161,12 @@
           <div class="redirect-box"><small>Register this exact SPA Redirect URI:</small><code id="redirectUriText"></code><button id="copyRedirectBtn">Copy</button></div>
           <div class="setup-actions"><button id="saveSetupBtn">Save settings</button><button id="loginBtn" class="primary">Sign in with Microsoft</button><button id="logoutBtn">Sign out</button></div>
           <div id="accountInfo" class="account-info"></div>
+        </div>
+        <div class="setup-card phone-alert-card">
+          <h2>Phone alerts</h2>
+          <p>Enable once from the installed Home Screen app. Your PC can then notify this iPhone/iPad when Focus or Break ends even while Warrior Hub Mobile is closed.</p>
+          <div class="setup-actions"><button id="enablePhoneAlertsBtn" class="primary">Enable phone alerts</button></div>
+          <div id="phoneAlertsStatus" class="account-info">Checking notification permission…</div>
         </div>
         <div class="setup-card">
           <h2>Drawing-note safety</h2>
