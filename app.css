@@ -49,3 +49,10 @@
 
 /* v0.7.3 — PWA refresh marker */
 :root{--warrior-mobile-version:"0.7.3"}
+
+/* v0.7.4 — harden Study/Spotify touch controls on iOS PWA */
+.remote-player-actions{position:relative;z-index:6;pointer-events:auto!important}
+.remote-player-actions button{position:relative;z-index:7;pointer-events:auto!important;touch-action:manipulation!important;-webkit-tap-highlight-color:rgba(255,255,255,.12);user-select:none;-webkit-user-select:none;cursor:pointer;min-height:52px!important}
+.remote-player-actions button:disabled{pointer-events:auto!important;opacity:.62}
+.remote-player-actions button.tap-now,.remote-player-actions button:active{transform:scale(.96);filter:brightness(1.18)}
+.remote-progress,.remote-time,.remote-art,.remote-player-copy{pointer-events:none}
