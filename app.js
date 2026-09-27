@@ -6,7 +6,7 @@ const CALCULUS_URL='https://archive.org/details/stewart-j.-clegg-d.-watson-s.-ca
 const ETHICS_URL='./resources/being-good-simon-blackburn.pdf';
 const CHEM2_LAB_URL='https://canvas.wayne.edu/courses/244636/modules/items/6576907';
 const AUTH_SCOPES='openid profile offline_access User.Read Files.ReadWrite';
-const DEFAULT_MS_CLIENT_ID='f8cdef31-a31e-4b4a-93e4-5f571e91255a';
+const DEFAULT_MS_CLIENT_ID='098158b9-35ee-497c-97c2-3490353cb745';
 const REMOTE_LIVE_FILE='warrior-mobile-live.json', REMOTE_COMMAND_DIR='warrior-mobile-commands', REMOTE_PUSH_FILE='warrior-mobile-push.json';
 const REMOTE_POLL_MS=1800, REMOTE_STALE_MS=15000;
 const MOBILE_VAPID_PUBLIC_KEY='BNRHZhm7ACH99DcUwvQAYJfx9p1QAzoyUnqjk3nFs8NlR2NF4XzB6iwh8mY__649Tcav1FywFojPVpBQBug9I6Y';
