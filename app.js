@@ -1,7 +1,7 @@
 (() => {
 'use strict';
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
-const FILE_NAME='warrior-hub-sync.json', DEVICE_DIR='warrior-hub-sync-devices', SCHEMA=1, APP_VERSION='0.6.0';
+const FILE_NAME='warrior-hub-sync.json', DEVICE_DIR='warrior-hub-sync-devices', SCHEMA=1, APP_VERSION='0.6.1';
 const CALCULUS_URL='https://archive.org/details/stewart-j.-clegg-d.-watson-s.-calculus.-early-transcendentals-9ed-2020/page/425/mode/2up';
 const ETHICS_URL='./resources/being-good-simon-blackburn.pdf';
 const CHEM2_LAB_URL='https://canvas.wayne.edu/courses/244636/modules/items/6576907';
@@ -16,6 +16,8 @@ const DRAW_DB='warrior-mobile-drawing-notes-v2', DRAW_DB_VERSION=2, NOTES_FOLDER
 const CANVAS_W=1400, CANVAS_H=1980;
 const debug=[]; const log=(event,data={})=>{debug.push({at:Date.now(),event,data});if(debug.length>600)debug.splice(0,debug.length-600)};
 let cfg=loadJson(CFG_KEY,{clientId:'',folder:'WARRIOR HUB',tenant:'common'}), cloud=loadJson(CACHE_KEY,null), meta=loadJson(META_KEY,{clocks:{},deviceId:crypto.randomUUID?.()||`${Date.now()}-${Math.random()}`,lastSyncAt:0});
+// Migrate the mistaken Microsoft Services tenant ID that was saved by v0.6.0.
+if(cfg.clientId==='f8cdef31-a31e-4b4a-93e4-5f571e91255a'){cfg={...cfg,clientId:DEFAULT_MS_CLIENT_ID};saveJson(CFG_KEY,cfg)}
 let state=cloud?.warriorState||{}, currentView='today', selectedDay=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][new Date().getDay()], calCursor=new Date(new Date().getFullYear(),new Date().getMonth(),1), calSelected=localDateKey(new Date());
 let timer=loadJson(TIMER_KEY,{remainingMs:50*60*1000,running:false,endAt:0}), timerHandle=null, pushTimer=null, noteCloudTimer=null;
 let remoteLive=null, remotePollTimer=null, remoteFetchBusy=false, remoteLastError='', remoteCommandBusy=false;
