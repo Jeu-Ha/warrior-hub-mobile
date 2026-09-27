@@ -22,7 +22,8 @@
 
     <nav class="tabs" aria-label="Main navigation">
       <button class="tab active" data-view="today">Today</button>
-      <button class="tab" data-view="assignments">Assignments</button>
+      <button class="tab" data-view="assignments">Due</button>
+      <button class="tab" data-view="todos">✓ Todo</button>
       <button class="tab" data-view="calendar">Calendar</button>
       <button class="tab" data-view="schedule">Schedule</button>
       <button class="tab" data-view="news">News</button>
@@ -35,6 +36,8 @@
     <main>
       <section class="view active" id="view-today">
         <div id="nextClass"></div>
+        <div class="section-head"><h2>Checklist</h2><button id="todayTodoAdd" class="mini-add" type="button">＋</button></div>
+        <div id="todayTodos"></div>
         <div class="section-head"><h2>Due soon</h2><span id="dueSoonCount"></span></div>
         <div id="dueSoon"></div>
         <div class="section-head"><h2>Today</h2><span id="todayClassCount"></span></div>
@@ -51,6 +54,19 @@
           <input id="assignmentSearch" type="search" placeholder="Search assignments">
         </div>
         <div id="assignmentList"></div>
+      </section>
+
+      <section class="view" id="view-todos">
+        <div class="todo-mobile-head">
+          <div><div class="eyebrow">SYNCED WITH WARRIOR HUB</div><h2>Checklist</h2></div>
+          <button id="todoAddBtn" class="primary" type="button">＋ Add</button>
+        </div>
+        <div id="todoComposer" class="todo-mobile-composer" hidden>
+          <input id="todoText" maxlength="240" placeholder="What do you need to do?" autocomplete="off">
+          <input id="todoDate" type="date" aria-label="Optional due date">
+          <div class="todo-compose-actions"><button id="todoCancelBtn" class="soft" type="button">Cancel</button><button id="todoSaveBtn" class="primary" type="button">Add task</button></div>
+        </div>
+        <div id="todoListMobile"></div>
       </section>
 
       <section class="view" id="view-calendar">
