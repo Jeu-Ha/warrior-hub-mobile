@@ -60,3 +60,6 @@
 /* v0.7.5 — optimistic Study player UI while OneDrive round-trip catches up */
 .remote-player-card.optimistic .remote-track-title{opacity:.92}
 .remote-player-card.optimistic .remote-art{filter:saturate(.8)}
+
+/* v0.7.6 — Focus/Break stays responsive while OneDrive catches up */
+.remote-status.online{transition:opacity .15s ease}
