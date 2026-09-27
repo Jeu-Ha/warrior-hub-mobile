@@ -46,3 +46,6 @@
 .tab{min-height:48px!important;padding:10px 6px!important;font-size:13px!important;font-weight:650!important;border:1px solid transparent!important;display:flex!important;align-items:center!important;justify-content:center!important;text-overflow:clip!important;overflow:visible!important;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 .tab.active{border-color:#343a4d!important;background:#202538!important}
 @media(max-width:430px){.tabs{grid-template-columns:repeat(4,minmax(0,1fr))!important}.tab{font-size:12px!important;min-height:46px!important}}
+
+/* v0.7.3 — PWA refresh marker */
+:root{--warrior-mobile-version:"0.7.3"}
