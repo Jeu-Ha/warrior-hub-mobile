@@ -8,14 +8,14 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Warrior Hub">
   <title>Warrior Hub Mobile</title>
-  <link rel="manifest" href="manifest.webmanifest?v=0.7.3">
+  <link rel="manifest" href="manifest.webmanifest?v=0.7.4">
   <link rel="apple-touch-icon" href="icons/icon192.png">
-  <link rel="stylesheet" href="app.css?v=0.7.3">
+  <link rel="stylesheet" href="app.css?v=0.7.4">
 </head>
 <body>
   <div id="appShell">
     <header class="topbar">
-      <div><div class="eyebrow" id="todayLabel">WARRIOR HUB MOBILE · v0.7.3</div><h1>Warrior Hub</h1></div>
+      <div><div class="eyebrow" id="todayLabel">WARRIOR HUB MOBILE · v0.7.4</div><h1>Warrior Hub</h1></div>
       <button id="syncNowBtn" class="sync-btn" type="button">↻ Sync</button>
     </header>
     <div id="statusBanner" class="status-banner">Not connected</div>
@@ -87,8 +87,8 @@
 
       <section class="view" id="view-study">
         <div class="mobile-study-head"><div><div class="eyebrow">LIVE FROM YOUR PC</div><h2>Study Remote</h2></div><div id="remoteDesktopStatus" class="remote-status offline">Waiting for desktop…</div></div>
-        <div class="remote-focus-card"><div id="remotePhase" class="remote-phase">FOCUS</div><div id="remoteTimerText" class="remote-timer">--:--</div><div id="remoteCycle" class="remote-cycle">Open Warrior Hub on your PC and keep OneDrive connected.</div><div class="remote-actions"><button id="remoteTimerToggle" class="primary">Start</button><button id="remoteTimerSkip">Skip</button><button id="remoteTimerReset">Reset</button></div></div>
-        <div class="remote-player-card"><div id="remoteSpotifyArt" class="remote-art">♫</div><div class="remote-player-copy"><div class="eyebrow">NOW PLAYING</div><div id="remoteSpotifyTitle" class="remote-track-title">Spotify on desktop</div><div id="remoteSpotifyArtist" class="remote-track-artist">Waiting for desktop…</div></div><div class="remote-progress"><div id="remoteSpotifyProgressFill"></div></div><div id="remoteSpotifyTime" class="remote-time"></div><div class="remote-player-actions"><button id="remoteSpotifyPrev" aria-label="Previous">◀◀</button><button id="remoteSpotifyToggle" class="primary" aria-label="Play">▶</button><button id="remoteSpotifyNext" aria-label="Next">▶▶</button><button id="remoteSpotifyShuffle">Shuffle</button></div></div>
+        <div class="remote-focus-card"><div id="remotePhase" class="remote-phase">FOCUS</div><div id="remoteTimerText" class="remote-timer">--:--</div><div id="remoteCycle" class="remote-cycle">Open Warrior Hub on your PC and keep OneDrive connected.</div><div class="remote-actions"><button type="button" id="remoteTimerToggle" class="primary">Start</button><button type="button" id="remoteTimerSkip">Skip</button><button type="button" id="remoteTimerReset">Reset</button></div></div>
+        <div class="remote-player-card"><div id="remoteSpotifyArt" class="remote-art">♫</div><div class="remote-player-copy"><div class="eyebrow">NOW PLAYING</div><div id="remoteSpotifyTitle" class="remote-track-title">Spotify on desktop</div><div id="remoteSpotifyArtist" class="remote-track-artist">Waiting for desktop…</div></div><div class="remote-progress"><div id="remoteSpotifyProgressFill"></div></div><div id="remoteSpotifyTime" class="remote-time"></div><div class="remote-player-actions"><button type="button" id="remoteSpotifyPrev" aria-label="Previous">◀◀</button><button type="button" id="remoteSpotifyToggle" class="primary" aria-label="Play">▶</button><button type="button" id="remoteSpotifyNext" aria-label="Next">▶▶</button><button type="button" id="remoteSpotifyShuffle">Shuffle</button></div></div>
         <div class="remote-help">These controls command the Spotify + Focus/Break session running on your desktop Warrior Hub through your OneDrive folder.</div>
       </section>
 
@@ -198,6 +198,6 @@
       </section>
     </main>
   </div>
-  <script src="app.js?v=0.7.3"></script>
+  <script src="app.js?v=0.7.4"></script>
 </body>
 </html>
