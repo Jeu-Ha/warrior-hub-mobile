@@ -63,3 +63,68 @@
 
 /* v0.7.6 — Focus/Break stays responsive while OneDrive catches up */
 .remote-status.online{transition:opacity .15s ease}
+
+/* v0.8.0 — Warrior Notes: standalone tablet-first workspace */
+body.notes-workspace-mode{padding:0!important;overflow:hidden!important;background:#d8d9df!important}
+body.notes-workspace-mode .topbar,
+body.notes-workspace-mode #statusBanner,
+body.notes-workspace-mode>.tabs,
+body.notes-workspace-mode #appShell>.tabs{display:none!important}
+body.notes-workspace-mode #appShell{max-width:none!important;width:100%!important;height:100dvh!important;margin:0!important}
+body.notes-workspace-mode main{height:100dvh!important}
+body.notes-workspace-mode #view-notes{display:flex!important}
+
+#view-notes.notes-view{position:fixed!important;inset:0!important;z-index:500!important;padding:0!important;margin:0!important;border:0!important;border-radius:0!important;background:#ececf0!important;color:#1c1c1e!important;overflow:hidden!important;flex-direction:column!important}
+.notes-appbar{flex:0 0 auto;min-height:calc(62px + env(safe-area-inset-top));padding:calc(8px + env(safe-area-inset-top)) 14px 8px;display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:12px;background:rgba(250,250,252,.94);backdrop-filter:blur(24px) saturate(1.8);border-bottom:1px solid rgba(60,60,67,.16);z-index:40}
+.notes-back-btn,.notes-sync-btn{height:42px;min-width:42px;border:1px solid rgba(60,60,67,.14);border-radius:12px;background:#fff;color:#2f5cff;padding:0 12px;font-weight:750}
+.notes-sync-btn{font-size:21px;padding:0}
+.notes-app-titlebox{min-width:0}.notes-app-title{font-size:19px;font-weight:850;letter-spacing:-.025em;color:#151518}.notes-app-subtitle{font-size:11px;color:#74747b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
+.notes-app-actions{display:flex;align-items:center;gap:8px}.notes-app-actions .save-state{margin:0;background:#f0f1f5!important;color:#6e6e73!important;border:0!important;max-width:150px;overflow:hidden;text-overflow:ellipsis}
+
+.notes-workspace{flex:1;min-height:0;display:grid;grid-template-columns:270px minmax(0,1fr);overflow:hidden}
+.notes-sidebar{min-width:0;background:#f7f7f9;border-right:1px solid rgba(60,60,67,.14);overflow-y:auto;padding:12px}
+.notes-sidebar-label{font-size:11px;font-weight:850;letter-spacing:.12em;text-transform:uppercase;color:#8e8e93;margin:3px 4px 10px}
+#view-notes .notes-sticky-head{position:static!important;top:auto!important;padding:0!important;background:transparent!important;backdrop-filter:none!important;border:0!important}
+#view-notes .apple-notes-head .course-switcher{display:grid!important;grid-template-columns:40px minmax(0,1fr) 40px!important}
+#view-notes .apple-notes-head .day-switcher{display:grid!important;grid-template-columns:40px minmax(0,1fr) 40px!important;margin-top:8px!important}
+#view-notes .apple-notes-head .day-switcher #todayNoteBtn{grid-column:1/-1!important;height:38px!important}
+#view-notes .note-day-chips{display:flex;flex-wrap:wrap;overflow:visible!important;gap:6px;padding:10px 0 4px!important}
+#view-notes .notes-side-text{margin:14px 0 0!important;background:#fff!important}
+#view-notes .notes-side-text textarea{min-height:140px!important;max-height:32vh!important}
+
+.notes-canvas-column{min-width:0;min-height:0;display:flex;background:#c8c9ce;overflow:hidden}
+#view-notes .apple-notebook-shell{display:flex!important;flex-direction:column!important;flex:1!important;min-width:0!important;min-height:0!important;margin:0!important;overflow:hidden!important;background:#c8c9ce!important}
+#view-notes .notebook-topline{flex:0 0 auto;padding:8px 14px!important;background:#fff!important;border-bottom:1px solid rgba(60,60,67,.12)!important;display:flex!important;align-items:center!important;min-height:48px}
+#view-notes .notebook-context{font-size:15px!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+#view-notes .apple-markup-toolbar{position:relative!important;top:auto!important;z-index:20!important;flex:0 0 auto!important;margin:0!important;padding:7px 10px!important;border-radius:0!important;border:0!important;border-bottom:1px solid rgba(60,60,67,.16)!important;background:rgba(250,250,252,.96)!important;box-shadow:none!important;overflow-x:auto!important;min-height:56px}
+#view-notes .apple-markup-toolbar button,
+#view-notes .apple-markup-toolbar select,
+#view-notes .apple-markup-toolbar .compact-control{min-height:40px!important;border-radius:11px!important}
+#view-notes .apple-markup-toolbar .draw-tool.active{background:#1c1c1e!important;color:#fff!important}
+#view-notes .stylus-toggle.active{background:#e7f6eb!important;color:#167a39!important;border-color:#b9e7c5!important}
+#view-notes .tool-separator{width:1px;height:28px;background:rgba(60,60,67,.18);align-self:center;flex:0 0 1px}
+#view-notes .compact-control span{font-size:10px;font-weight:700;color:#686870}
+
+#view-notes .apple-paper-viewport{flex:1!important;min-height:0!important;height:auto!important;max-height:none!important;overflow:auto!important;padding:20px 22px 42vh!important;background:#c8c9ce!important;overscroll-behavior:contain}
+#view-notes .infinite-paper{width:min(100%,980px)!important;margin:0 auto!important;padding-bottom:18vh!important}
+#view-notes .paper-segment{filter:drop-shadow(0 3px 12px rgba(0,0,0,.12))}
+#view-notes .paper-segment canvas{touch-action:pan-x pan-y;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+#view-notes .paper-segment canvas.finger-draw,
+#view-notes .paper-segment canvas.select-mode{touch-action:none!important}
+#view-notes .paper-segment canvas.hand-mode{touch-action:pan-x pan-y!important;cursor:grab}
+#view-notes .infinite-note-hint{flex:0 0 auto!important;padding:7px 12px!important;background:#f7f7f9!important;color:#7b7b82!important;border-top:1px solid rgba(60,60,67,.12)!important}
+#view-notes .insert-sheet{z-index:900!important}
+
+@media(max-width:780px){
+  .notes-workspace{grid-template-columns:1fr;grid-template-rows:auto minmax(0,1fr)}
+  .notes-sidebar{border-right:0;border-bottom:1px solid rgba(60,60,67,.14);padding:8px 10px;max-height:178px;overflow:auto}
+  .notes-sidebar-label{display:none}
+  #view-notes .apple-notes-head .course-switcher{grid-template-columns:38px minmax(0,1fr) 38px!important}
+  #view-notes .apple-notes-head .day-switcher{grid-template-columns:38px minmax(0,1fr) 38px auto!important}
+  #view-notes .apple-notes-head .day-switcher #todayNoteBtn{grid-column:auto!important;height:40px!important}
+  #view-notes .note-day-chips{flex-wrap:nowrap;overflow-x:auto!important;padding:6px 0 0!important}
+  #view-notes .notes-side-text{display:none}
+  #view-notes .apple-paper-viewport{padding:12px 6px 38vh!important}
+  .notes-app-actions .save-state{display:none}
+}
