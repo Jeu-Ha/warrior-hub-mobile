@@ -8,14 +8,14 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Warrior Hub">
   <title>Warrior Hub Mobile</title>
-  <link rel="manifest" href="manifest.webmanifest?v=0.7.6">
+  <link rel="manifest" href="manifest.webmanifest?v=0.8.0">
   <link rel="apple-touch-icon" href="icons/icon192.png">
-  <link rel="stylesheet" href="app.css?v=0.7.6">
+  <link rel="stylesheet" href="app.css?v=0.8.0">
 </head>
 <body>
   <div id="appShell">
     <header class="topbar">
-      <div><div class="eyebrow" id="todayLabel">WARRIOR HUB MOBILE · v0.7.6</div><h1>Warrior Hub</h1></div>
+      <div><div class="eyebrow" id="todayLabel">WARRIOR HUB MOBILE · v0.8.0</div><h1>Warrior Hub</h1></div>
       <button id="syncNowBtn" class="sync-btn" type="button">↻ Sync</button>
     </header>
     <div id="statusBanner" class="status-banner">Not connected</div>
@@ -93,77 +93,97 @@
       </section>
 
       <section class="view notes-view apple-notes-view" id="view-notes">
-        <div class="notes-sticky-head apple-notes-head">
-          <div class="course-switcher">
-            <button id="prevCourseBtn" aria-label="Previous course">‹</button>
-            <select id="notesCourse" aria-label="Course"></select>
-            <button id="nextCourseBtn" aria-label="Next course">›</button>
+        <div class="notes-appbar">
+          <button type="button" id="exitNotesBtn" class="notes-back-btn" aria-label="Back to Warrior Hub">‹ Hub</button>
+          <div class="notes-app-titlebox">
+            <div class="notes-app-title">Warrior Notes</div>
+            <div id="notesAppSubtitle" class="notes-app-subtitle">Notebook</div>
           </div>
-          <div class="day-switcher">
-            <button id="prevNoteDayBtn" aria-label="Previous day">‹</button>
-            <input id="notesDate" type="date" aria-label="Note date">
-            <button id="nextNoteDayBtn" aria-label="Next day">›</button>
-            <button id="todayNoteBtn" class="soft">Today</button>
-          </div>
-          <div id="noteDayChips" class="note-day-chips" aria-label="Days with notes"></div>
-        </div>
-
-        <div class="notebook-shell apple-notebook-shell">
-          <div class="notebook-topline">
-            <div>
-              <div class="eyebrow">DRAWING NOTEBOOK</div>
-              <div id="notebookContext" class="notebook-context">Course · Today</div>
-            </div>
+          <div class="notes-app-actions">
+            <button type="button" id="quickSyncNotesBtn" class="notes-sync-btn" title="Back up notes">↻</button>
             <div id="drawingSaveState" class="save-state">Local safe</div>
           </div>
+        </div>
 
-          <div class="drawing-toolbar apple-markup-toolbar" role="toolbar" aria-label="Drawing tools">
-            <button class="draw-tool" data-tool="select">↖ Select</button>
-            <button class="draw-tool active" data-tool="pen">✒ Pen</button>
-            <button class="draw-tool" data-tool="pencil">✎ Pencil</button>
-            <button class="draw-tool" data-tool="highlighter">▰ Highlighter</button>
-            <button class="draw-tool" data-tool="eraser">⌫ Eraser</button>
-            <button id="undoDrawBtn" title="Undo">↶</button>
-            <button id="redoDrawBtn" title="Redo">↷</button>
-            <label class="compact-control">Color<input id="drawColor" type="color" value="#11151d"></label>
-            <label class="compact-control width-control">Size<input id="drawWidth" type="range" min="1" max="18" step="1" value="4"></label>
-            <select id="paperStyle" aria-label="Paper style"><option value="ruled">Ruled</option><option value="grid">Grid</option><option value="blank">Blank</option></select>
-            <button id="fingerDrawBtn" class="soft" aria-pressed="false">☝ Pan</button>
-            <button id="insertNoteItemBtn" class="insert-btn">＋ Insert</button>
-            <button id="fitItemBtn" class="soft" disabled>Fit width</button>
-            <button id="openItemBtn" class="soft" disabled>Open</button>
-            <button id="deleteItemBtn" class="danger-soft" disabled>Delete</button>
-          </div>
-
-          <div id="drawingViewport" class="drawing-viewport apple-paper-viewport" aria-label="Infinite drawing notebook">
-            <div id="infinitePaper" class="infinite-paper"></div>
-          </div>
-          <div class="infinite-note-hint"><span>∞ Continuous notebook</span><span>Scroll down forever · photos and screenshots stay exactly where you place them.</span></div>
-
-          <div id="insertSheet" class="insert-sheet" hidden>
-            <button class="insert-sheet-backdrop" id="closeInsertBackdrop" aria-label="Close insert menu"></button>
-            <div class="insert-sheet-card" role="dialog" aria-modal="true" aria-label="Insert into notes">
-              <div class="insert-sheet-handle"></div>
-              <div class="insert-sheet-title">Insert into notebook</div>
-              <div class="insert-grid">
-                <button id="pickPhotosBtn"><b>🖼</b><span>Photos / screenshots</span><small>Pick one or many</small></button>
-                <button id="takePhotoBtn"><b>📷</b><span>Camera</span><small>Take a photo now</small></button>
-                <button id="pickFilesBtn"><b>📁</b><span>Files</span><small>Images, PDF, documents</small></button>
-                <button id="pasteImageBtn"><b>📋</b><span>Paste</span><small>Screenshot from clipboard</small></button>
+        <div class="notes-workspace">
+          <aside class="notes-sidebar">
+            <div class="notes-sidebar-label">Notebook</div>
+            <div class="notes-sticky-head apple-notes-head">
+              <div class="course-switcher">
+                <button id="prevCourseBtn" aria-label="Previous course">‹</button>
+                <select id="notesCourse" aria-label="Course"></select>
+                <button id="nextCourseBtn" aria-label="Next course">›</button>
               </div>
-              <div class="insert-sheet-tip">You can also drag files onto the notebook. After inserting, use <b>Select</b> to move or resize them.</div>
-              <button id="closeInsertBtn" class="soft full-width">Done</button>
+              <div class="day-switcher">
+                <button id="prevNoteDayBtn" aria-label="Previous day">‹</button>
+                <input id="notesDate" type="date" aria-label="Note date">
+                <button id="nextNoteDayBtn" aria-label="Next day">›</button>
+                <button id="todayNoteBtn" class="soft">Today</button>
+              </div>
+              <div id="noteDayChips" class="note-day-chips" aria-label="Days with notes"></div>
             </div>
-            <input id="photoPickerInput" type="file" accept="image/*" multiple hidden>
-            <input id="cameraPickerInput" type="file" accept="image/*" capture="environment" hidden>
-            <input id="noteFilePickerInput" type="file" accept="image/*,application/pdf,.pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt" multiple hidden>
-          </div>
 
-          <details class="text-note-box">
-            <summary>Text notes for this day</summary>
-            <textarea id="notesText" placeholder="Optional typed notes…"></textarea>
-            <div class="notes-actions"><span id="notesState">Saved locally</span><button id="saveNotesBtn">Save text + Sync</button></div>
-          </details>
+            <details class="text-note-box notes-side-text">
+              <summary>Typed note</summary>
+              <textarea id="notesText" placeholder="Optional typed notes…"></textarea>
+              <div class="notes-actions"><span id="notesState">Saved locally</span><button id="saveNotesBtn">Save + Sync</button></div>
+            </details>
+          </aside>
+
+          <main class="notes-canvas-column">
+            <div class="notebook-shell apple-notebook-shell">
+              <div class="notebook-topline">
+                <div>
+                  <div class="eyebrow">NOTEBOOK</div>
+                  <div id="notebookContext" class="notebook-context">Course · Today</div>
+                </div>
+              </div>
+
+              <div class="drawing-toolbar apple-markup-toolbar" role="toolbar" aria-label="Drawing tools">
+                <button class="draw-tool" data-tool="hand" title="Pan canvas">✋ Hand</button>
+                <button class="draw-tool active" data-tool="pen">✒ Pen</button>
+                <button class="draw-tool" data-tool="pencil">✎ Pencil</button>
+                <button class="draw-tool" data-tool="highlighter">▰ Highlight</button>
+                <button class="draw-tool" data-tool="eraser">⌫ Eraser</button>
+                <button class="draw-tool" data-tool="select">↖ Select</button>
+                <span class="tool-separator"></span>
+                <button id="undoDrawBtn" title="Undo">↶</button>
+                <button id="redoDrawBtn" title="Redo">↷</button>
+                <label class="compact-control color-control"><span>Color</span><input id="drawColor" type="color" value="#11151d"></label>
+                <label class="compact-control width-control"><span>Size</span><input id="drawWidth" type="range" min="1" max="18" step="1" value="4"></label>
+                <select id="paperStyle" aria-label="Paper style"><option value="ruled">Ruled</option><option value="grid">Grid</option><option value="blank">Blank</option></select>
+                <button id="fingerDrawBtn" class="stylus-toggle active" aria-pressed="true" title="For capacitive styluses that iPad reports as a finger">✎ Stylus ON</button>
+                <button id="insertNoteItemBtn" class="insert-btn">＋ Insert</button>
+                <button id="fitItemBtn" class="soft" disabled>Fit width</button>
+                <button id="openItemBtn" class="soft" disabled>Open</button>
+                <button id="deleteItemBtn" class="danger-soft" disabled>Delete</button>
+              </div>
+
+              <div id="drawingViewport" class="drawing-viewport apple-paper-viewport" aria-label="Infinite drawing notebook">
+                <div id="infinitePaper" class="infinite-paper"></div>
+              </div>
+              <div class="infinite-note-hint"><span>∞ Continuous paper</span><span>Pen/stylus draws · Hand pans · notes save locally automatically</span></div>
+
+              <div id="insertSheet" class="insert-sheet" hidden>
+                <button class="insert-sheet-backdrop" id="closeInsertBackdrop" aria-label="Close insert menu"></button>
+                <div class="insert-sheet-card" role="dialog" aria-modal="true" aria-label="Insert into notes">
+                  <div class="insert-sheet-handle"></div>
+                  <div class="insert-sheet-title">Insert into notebook</div>
+                  <div class="insert-grid">
+                    <button id="pickPhotosBtn"><b>🖼</b><span>Photos / screenshots</span><small>Pick one or many</small></button>
+                    <button id="takePhotoBtn"><b>📷</b><span>Camera</span><small>Take a photo now</small></button>
+                    <button id="pickFilesBtn"><b>📁</b><span>Files</span><small>Images, PDF, documents</small></button>
+                    <button id="pasteImageBtn"><b>📋</b><span>Paste</span><small>Screenshot from clipboard</small></button>
+                  </div>
+                  <div class="insert-sheet-tip">After inserting, choose <b>Select</b> to move/resize it. Choose <b>Hand</b> to move around the page.</div>
+                  <button id="closeInsertBtn" class="soft full-width">Done</button>
+                </div>
+                <input id="photoPickerInput" type="file" accept="image/*" multiple hidden>
+                <input id="cameraPickerInput" type="file" accept="image/*" capture="environment" hidden>
+                <input id="noteFilePickerInput" type="file" accept="image/*,application/pdf,.pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt" multiple hidden>
+              </div>
+            </div>
+          </main>
         </div>
       </section>
 
@@ -198,6 +218,6 @@
       </section>
     </main>
   </div>
-  <script src="app.js?v=0.7.6"></script>
+  <script src="app.js?v=0.8.0"></script>
 </body>
 </html>
