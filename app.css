@@ -128,3 +128,9 @@ body.notes-workspace-mode #view-notes{display:flex!important}
   #view-notes .apple-paper-viewport{padding:12px 6px 38vh!important}
   .notes-app-actions .save-state{display:none}
 }
+
+/* v0.8.3 — Canvas grades on assignment cards and calendar */
+.assignment-badges{display:flex;gap:5px;align-items:center;flex-wrap:wrap}
+.badge.grade-badge{color:#ffe795;border-color:#756225;background:rgba(255,216,89,.08);font-weight:800}
+.graded-card{border-color:rgba(255,216,89,.16)}
+.calendar-day .calendar-grade-mark{position:absolute;right:5px;top:4px;font-size:8px;line-height:1;color:#f4ce58}
