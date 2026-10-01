@@ -8,14 +8,14 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Warrior Hub">
   <title>Warrior Hub Mobile</title>
-  <link rel="manifest" href="manifest.webmanifest?v=0.8.2">
+  <link rel="manifest" href="manifest.webmanifest?v=0.8.3">
   <link rel="apple-touch-icon" href="icons/icon192.png">
-  <link rel="stylesheet" href="app.css?v=0.8.2">
+  <link rel="stylesheet" href="app.css?v=0.8.3">
 </head>
 <body>
   <div id="appShell">
     <header class="topbar">
-      <div><div class="eyebrow" id="todayLabel">WARRIOR HUB MOBILE · v0.8.2</div><h1>Warrior Hub</h1></div>
+      <div><div class="eyebrow" id="todayLabel">WARRIOR HUB MOBILE · v0.8.3</div><h1>Warrior Hub</h1></div>
       <button id="syncNowBtn" class="sync-btn" type="button">↻ Sync</button>
     </header>
     <div id="statusBanner" class="status-banner">Not connected</div>
@@ -50,7 +50,7 @@
 
       <section class="view" id="view-assignments">
         <div class="filter-row">
-          <select id="assignmentFilter"><option value="open">Open</option><option value="week">Next 7 days</option><option value="overdue">Overdue</option><option value="all">All</option></select>
+          <select id="assignmentFilter"><option value="open">Open</option><option value="week">Next 7 days</option><option value="overdue">Overdue</option><option value="graded">Graded</option><option value="all">All</option></select>
           <input id="assignmentSearch" type="search" placeholder="Search assignments">
         </div>
         <div id="assignmentList"></div>
@@ -218,6 +218,6 @@
       </section>
     </main>
   </div>
-  <script src="app.js?v=0.8.2"></script>
+  <script src="app.js?v=0.8.3"></script>
 </body>
 </html>
