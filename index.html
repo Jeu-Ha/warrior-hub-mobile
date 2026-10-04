@@ -8,20 +8,22 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Warrior Hub">
   <title>Warrior Hub Mobile</title>
-  <link rel="manifest" href="manifest.webmanifest?v=0.8.3">
+  <link rel="manifest" href="manifest.webmanifest?v=0.9.0">
   <link rel="apple-touch-icon" href="icons/icon192.png">
-  <link rel="stylesheet" href="app.css?v=0.8.3">
+  <link rel="stylesheet" href="app.css?v=0.9.0">
+  <link rel="stylesheet" href="notes.css?v=0.9.0">
 </head>
 <body>
   <div id="appShell">
     <header class="topbar">
-      <div><div class="eyebrow" id="todayLabel">WARRIOR HUB MOBILE · v0.8.3</div><h1>Warrior Hub</h1></div>
+      <div><div class="eyebrow" id="todayLabel">WARRIOR HUB MOBILE · v0.9.0</div><h1>Warrior Hub</h1></div>
       <button id="syncNowBtn" class="sync-btn" type="button">↻ Sync</button>
     </header>
     <div id="statusBanner" class="status-banner">Not connected</div>
 
     <nav class="tabs" aria-label="Main navigation">
       <button class="tab active" data-view="today">Today</button>
+      <button class="tab notes-menu-entry" data-view="notes">✎ Notes</button>
       <button class="tab" data-view="assignments">Due</button>
       <button class="tab" data-view="todos">✓ Todo</button>
       <button class="tab" data-view="calendar">Calendar</button>
@@ -29,12 +31,12 @@
       <button class="tab" data-view="news">News</button>
       <button class="tab" data-view="mail">Mail</button>
       <button class="tab" data-view="study">Study</button>
-      <button class="tab" data-view="notes">✍ Notes</button>
       <button class="tab" data-view="setup">Setup</button>
     </nav>
 
     <main>
       <section class="view active" id="view-today">
+        <button id="launchNotesBtn" class="notes-launch" type="button"><span class="notes-launch-icon">✎</span><span><b>Warrior Notes</b><small>Open your notebooks</small></span><span>↗</span></button>
         <div id="nextClass"></div>
         <div class="section-head"><h2>Checklist</h2><button id="todayTodoAdd" class="mini-add" type="button">＋</button></div>
         <div id="todayTodos"></div>
@@ -96,16 +98,24 @@
         <div class="notes-appbar">
           <button type="button" id="exitNotesBtn" class="notes-back-btn" aria-label="Back to Warrior Hub">‹ Hub</button>
           <div class="notes-app-titlebox">
-            <div class="notes-app-title">Warrior Notes</div>
+            <div id="notesAppTitle" class="notes-app-title">Warrior Notes</div>
             <div id="notesAppSubtitle" class="notes-app-subtitle">Notebook</div>
           </div>
           <div class="notes-app-actions">
+            <button type="button" id="noteFileActionsBtn" class="notes-back-btn" hidden>⋯</button>
             <button type="button" id="quickSyncNotesBtn" class="notes-sync-btn" title="Back up notes">↻</button>
             <div id="drawingSaveState" class="save-state">Local safe</div>
           </div>
         </div>
 
-        <div class="notes-workspace">
+        <div id="notesLibrary" class="notes-library">
+          <div class="notes-library-heading"><div><div class="eyebrow">YOUR WORKSPACE</div><h2>Notebooks</h2><p>Choose a file and start writing.</p></div><button id="newNotebookBtn" type="button" class="notes-primary">＋ New notebook</button></div>
+          <div class="notes-library-filters"><input id="notebookSearch" type="search" placeholder="Search notebooks" aria-label="Search notebooks"><select id="notebookFilter" aria-label="Filter by subject"><option value="">All subjects</option></select></div>
+          <div id="notebookGrid" class="notebook-grid"></div>
+          <div class="notes-library-safety"><div><b>Saved on this device</b><p id="librarySafetyStatus" role="status">Checking backups…</p></div><button id="libraryRestoreBtn" type="button">↻ Restore OneDrive</button><button id="libraryExportBtn" type="button">↓ Back up all</button><button id="libraryImportBtn" type="button">↑ Import backup</button></div>
+        </div>
+
+        <div id="notesEditor" class="notes-workspace" hidden>
           <aside class="notes-sidebar">
             <div class="notes-sidebar-label">Notebook</div>
             <div class="notes-sticky-head apple-notes-head">
@@ -133,6 +143,7 @@
           <main class="notes-canvas-column">
             <div class="notebook-shell apple-notebook-shell">
               <div class="notebook-topline">
+                <button id="toggleNoteSidebarBtn" class="note-small-button" type="button" aria-expanded="false">☷ Details</button>
                 <div>
                   <div class="eyebrow">NOTEBOOK</div>
                   <div id="notebookContext" class="notebook-context">Course · Today</div>
@@ -146,23 +157,30 @@
                 <button class="draw-tool" data-tool="highlighter">▰ Highlight</button>
                 <button class="draw-tool" data-tool="eraser">⌫ Eraser</button>
                 <button class="draw-tool" data-tool="select">↖ Select</button>
+                <button class="draw-tool" data-tool="lasso" title="Circle handwriting to select and move it">◌ Lasso</button>
+                <button class="draw-tool" data-tool="text">T Text</button>
+                <button class="draw-tool" data-tool="line">╱ Line</button>
+                <button class="draw-tool" data-tool="rectangle">▭ Box</button>
+                <button class="draw-tool" data-tool="ellipse">○ Circle</button>
                 <span class="tool-separator"></span>
                 <button id="undoDrawBtn" title="Undo">↶</button>
                 <button id="redoDrawBtn" title="Redo">↷</button>
                 <label class="compact-control color-control"><span>Color</span><input id="drawColor" type="color" value="#11151d"></label>
                 <label class="compact-control width-control"><span>Size</span><input id="drawWidth" type="range" min="1" max="18" step="1" value="4"></label>
                 <select id="paperStyle" aria-label="Paper style"><option value="ruled">Ruled</option><option value="grid">Grid</option><option value="blank">Blank</option></select>
-                <button id="fingerDrawBtn" class="stylus-toggle active" aria-pressed="true" title="For capacitive styluses that iPad reports as a finger">✎ Stylus ON</button>
+                <button id="fingerDrawBtn" class="stylus-toggle active" aria-pressed="true" title="A capacitive stylus is reported as touch, the same as a finger">✎ Touch: write</button>
                 <button id="insertNoteItemBtn" class="insert-btn">＋ Insert</button>
                 <button id="fitItemBtn" class="soft" disabled>Fit width</button>
                 <button id="openItemBtn" class="soft" disabled>Open</button>
                 <button id="deleteItemBtn" class="danger-soft" disabled>Delete</button>
               </div>
 
+              <div class="notes-quickbar"><div class="ink-presets" aria-label="Quick colors"><button data-ink="#11151d" style="--ink:#11151d" aria-label="Black ink"></button><button data-ink="#2855c5" style="--ink:#2855c5" aria-label="Blue ink"></button><button data-ink="#c53e3e" style="--ink:#c53e3e" aria-label="Red ink"></button><button data-ink="#298256" style="--ink:#298256" aria-label="Green ink"></button></div><span id="penDetectionState">Universal stylus: touch mode</span><div class="notes-zoom"><button id="zoomOutBtn" aria-label="Zoom out">−</button><button id="zoomResetBtn" title="Fit to width">100%</button><button id="zoomInBtn" aria-label="Zoom in">＋</button></div></div>
+
               <div id="drawingViewport" class="drawing-viewport apple-paper-viewport" aria-label="Infinite drawing notebook">
                 <div id="infinitePaper" class="infinite-paper"></div>
               </div>
-              <div class="infinite-note-hint"><span>∞ Continuous paper</span><span>Pen/stylus draws · Hand pans · notes save locally automatically</span></div>
+              <div class="infinite-note-hint"><span>∞ Continuous paper</span><span>Two fingers: zoom / pan · H: hand · P: pen · ⌘Z: undo</span></div>
 
               <div id="insertSheet" class="insert-sheet" hidden>
                 <button class="insert-sheet-backdrop" id="closeInsertBackdrop" aria-label="Close insert menu"></button>
@@ -185,6 +203,8 @@
             </div>
           </main>
         </div>
+        <div id="newNotebookDialog" class="notes-modal" role="dialog" aria-modal="true" aria-labelledby="newNotebookHeading" hidden><form id="newNotebookForm" class="notes-modal-card"><h2 id="newNotebookHeading">New notebook</h2><label>Name<input id="newNotebookName" required maxlength="100" placeholder="e.g. Calculus — Chapter 7"></label><label>Subject<select id="newNotebookSubject"></select></label><label>Paper<select id="newNotebookPaper"><option value="ruled">Ruled</option><option value="grid">Grid</option><option value="blank">Blank</option></select></label><div><button id="cancelNotebookBtn" type="button">Cancel</button><button class="notes-primary" type="submit">Create notebook</button></div></form></div>
+        <div id="noteActionsDialog" class="notes-modal" role="dialog" aria-modal="true" aria-labelledby="noteActionsHeading" hidden><div class="notes-modal-card"><h2 id="noteActionsHeading">Notebook</h2><button id="renameNotebookBtn" type="button">Rename notebook</button><button id="exportNotebookBtn" type="button">↓ Export editable file</button><button id="shareNotebookBtn" type="button">↗ Save / share to Files</button><button id="printNotebookBtn" type="button">Print / save PDF</button><button id="exportAllNotebooksBtn" type="button">↓ Back up all notebooks</button><button id="restoreNotebookRevisionsBtn" type="button">↶ Recover a local checkpoint</button><p id="noteActionsStatus" role="status"></p><p class="notes-modal-help">P pen · E eraser · H hand · L lasso · T text<br>⌘/Ctrl Z undo · ⇧⌘/Ctrl Z redo · ⌘/Ctrl S backup<br>Your universal stylus acts as touch. Use Hand to scroll; two fingers always zoom. A detected active pen disables finger writing automatically.</p><button id="closeNoteActionsBtn" type="button">Done</button></div></div>
       </section>
 
       <section class="view" id="view-setup">
@@ -218,6 +238,6 @@
       </section>
     </main>
   </div>
-  <script src="app.js?v=0.8.3"></script>
+  <script src="app.js?v=0.9.0"></script>
 </body>
 </html>

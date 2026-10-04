@@ -1,7 +1,7 @@
 const fs=require('node:fs'),assert=require('node:assert/strict'),path=require('node:path');
 const root=path.join(__dirname,'..');const read=f=>fs.readFileSync(path.join(root,f),'utf8');
 const app=read('app.js'),html=read('index.html'),css=read('app.css'),sw=read('service-worker.js'),manifest=read('manifest.webmanifest');
-assert(app.includes("APP_VERSION='0.8.3'"));
+assert(app.includes("APP_VERSION='0.9.0'"));
 assert(app.includes("DRAW_DB='warrior-mobile-drawing-notes-v2'"));
 assert(app.includes('DRAW_DB_VERSION=2'));
 assert(app.includes("objectStoreNames.contains('assets')"));
@@ -33,13 +33,13 @@ assert(html.includes('data-tool="select"'));
 assert(html.includes('id="insertNoteItemBtn"'));
 assert(css.includes('.insert-sheet'));
 assert(css.includes('.drawing-viewport.drag-over'));
-assert(sw.includes("warrior-mobile-v0.8.3"));
-assert(manifest.includes('screenshots'));
+assert(sw.includes("warrior-mobile-v0.9.0"));
+assert(JSON.parse(manifest).display==='standalone');
 assert(app.includes("REMOTE_LIVE_FILE='warrior-mobile-live.json'"));assert(app.includes("REMOTE_COMMAND_DIR='warrior-mobile-commands'"));assert(app.includes("MOBILE_VAPID_PUBLIC_KEY="));assert(app.includes("sendRemoteCommand"));assert(app.includes("enablePhoneAlerts"));assert(html.includes('id="view-study"'));assert(html.includes('id="enablePhoneAlertsBtn"'));assert(html.includes('data-tool="pencil"'));assert(css.includes('.apple-notes-view'));assert(css.includes('.apple-markup-toolbar'));assert(sw.includes("self.addEventListener('push'"));assert(sw.includes("self.addEventListener('notificationclick'"));assert(html.includes('id="view-todos"'));assert(app.includes('toggleTodoMobile'));assert(app.includes('manualAssignmentStatus'));assert(css.includes('grid-template-columns:repeat(5'));console.log('PASS Mobile v0.7 checklist + compact nav + Apple-style notes + remote + Web Push');
 
 assert(app.includes("const nav=$('.tabs')"));assert(!app.includes("\n  $('.tab').forEach"));assert(app.includes("prompt:'none'"));assert(css.includes('large reliable mobile navigation'));
 
-assert(html.includes('app.css?v=0.8.3'));assert(html.includes('app.js?v=0.8.3'));assert(app.includes("updateViaCache:'none'"));assert(app.includes('controllerchange'));assert(sw.includes("cache:'no-store'"));
+assert(html.includes('app.css?v=0.9.0'));assert(html.includes('app.js?v=0.9.0'));assert(app.includes("updateViaCache:'none'"));assert(app.includes('controllerchange'));assert(sw.includes("cache:'no-store'"));
 
 assert(app.includes("studyView?.addEventListener('pointerup'"));assert(app.includes("'study-remote-tap'"));assert(css.includes('harden Study/Spotify touch controls'));assert(html.includes('type="button" id="remoteSpotifyNext"'));
 
@@ -59,9 +59,9 @@ assert(css.includes('body.notes-workspace-mode .topbar'));
 
 assert(app.includes("CHEM2_LAB_KRITIK_URL='https://us.kritik.io/course/cms9aaapu00040pn934f1gbnc/assignments'"));assert(app.includes('🧪 Kritik'));
 
-assert(!app.includes("$('.tab').forEach"));
-assert(!app.includes("$('.view').forEach"));
-assert(!app.includes("$('.draw-tool').forEach"));
+assert(!/(?<!\$)\$\('\.tab'\)\.forEach/.test(app));
+assert(!/(?<!\$)\$\('\.view'\)\.forEach/.test(app));
+assert(!/(?<!\$)\$\('\.draw-tool'\)\.forEach/.test(app));
 assert(app.includes("$$('.tab').forEach"));
 assert(app.includes("$$('.view').forEach"));
 assert(app.includes("$$('.draw-tool').forEach"));
@@ -71,3 +71,4 @@ assert(app.includes("if(f==='graded')"));
 assert(app.includes('calendar-grade-mark'));
 assert(html.includes('<option value="graded">Graded</option>'));
 assert(css.includes('Canvas grades on assignment cards and calendar'));
+
