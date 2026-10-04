@@ -24,4 +24,4 @@ jobs:
         if: always()
         with:
           name: notes-screenshots
-          path: ../notes-*-test.png
+          path: test-output/
