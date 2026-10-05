@@ -8,15 +8,15 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Warrior Hub">
   <title>Warrior Hub Mobile</title>
-  <link rel="manifest" href="manifest.webmanifest?v=0.9.0">
+  <link rel="manifest" href="manifest.webmanifest?v=0.9.1">
   <link rel="apple-touch-icon" href="icons/icon192.png">
-  <link rel="stylesheet" href="app.css?v=0.9.0">
-  <link rel="stylesheet" href="notes.css?v=0.9.0">
+  <link rel="stylesheet" href="app.css?v=0.9.1">
+  <link rel="stylesheet" href="notes.css?v=0.9.1">
 </head>
 <body>
   <div id="appShell">
     <header class="topbar">
-      <div><div class="eyebrow" id="todayLabel">WARRIOR HUB MOBILE · v0.9.0</div><h1>Warrior Hub</h1></div>
+      <div><div class="eyebrow" id="todayLabel">WARRIOR HUB MOBILE · v0.9.1</div><h1>Warrior Hub</h1></div>
       <button id="syncNowBtn" class="sync-btn" type="button">↻ Sync</button>
     </header>
     <div id="statusBanner" class="status-banner">Not connected</div>
@@ -52,7 +52,7 @@
 
       <section class="view" id="view-assignments">
         <div class="filter-row">
-          <select id="assignmentFilter"><option value="open">Open</option><option value="week">Next 7 days</option><option value="overdue">Overdue</option><option value="graded">Graded</option><option value="all">All</option></select>
+          <select id="assignmentFilter"><option value="open">Open</option><option value="week">Next 7 days</option><option value="overdue">Overdue</option><option value="past">Past assignments</option><option value="graded">Graded</option><option value="all">All</option></select>
           <input id="assignmentSearch" type="search" placeholder="Search assignments">
         </div>
         <div id="assignmentList"></div>
@@ -96,7 +96,7 @@
 
       <section class="view notes-view apple-notes-view" id="view-notes">
         <div class="notes-appbar">
-          <button type="button" id="exitNotesBtn" class="notes-back-btn" aria-label="Back to Warrior Hub">‹ Hub</button>
+          <button type="button" id="exitNotesBtn" class="notes-back-btn" aria-label="Back to Warrior Hub" title="Back to Warrior Hub">←</button>
           <div class="notes-app-titlebox">
             <div id="notesAppTitle" class="notes-app-title">Warrior Notes</div>
             <div id="notesAppSubtitle" class="notes-app-subtitle">Notebook</div>
@@ -238,6 +238,6 @@
       </section>
     </main>
   </div>
-  <script src="app.js?v=0.9.0"></script>
+  <script src="app.js?v=0.9.1"></script>
 </body>
 </html>
