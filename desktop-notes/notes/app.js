@@ -565,7 +565,7 @@ async function migrateDesktopNotes(){
       const p=makePage(course,date,i,{dirty:true});p.pageId=id;p.key=key;p.paper='blank';p.rev=1;
       p.notebookSubject=courseOptions().find(([k])=>k===course)?.[1]||course;p.notebookTitle=`${p.notebookSubject} · ${fmtDate(`${date}T12:00:00`)}`;
       p.legacyDesktopSource=digest;if(i===0&&record.text)p.typedText=record.text;
-      if(images[i]){const blob=dataUrlToBlob(images[i]),assetId=`a-${id}`;let asset=await noteGet('assets',assetId);if(!asset){const bitmap=await createImageBitmap(blob);asset={id:assetId,blob,type:blob.type,name:`Desktop page ${i+1}.webp`,width:bitmap.width,height:bitmap.height,size:blob.size,createdAt:new Date().toISOString(),dirty:true};bitmap.close();await notePut('assets',asset)}const scale=Math.min(CANVAS_W/asset.width,CANVAS_H/asset.height);p.images=[{id:`i-${id}`,assetId,name:asset.name,type:asset.type,x:0,y:0,w:asset.width*scale,h:asset.height*scale,rotation:0,opacity:1,z:0}]}
+      if(images[i]){const blob=dataUrlToBlob(images[i]),assetId=`a-${id}`;let asset=await noteGet('assets',assetId);if(!asset){let width=1600,height=1000;try{const bitmap=await createImageBitmap(blob);width=bitmap.width;height=bitmap.height;bitmap.close()}catch(e){log('legacy-image-decode-error',{error:String(e)})}asset={id:assetId,blob,type:blob.type,name:`Desktop page ${i+1}.webp`,width,height,size:blob.size,createdAt:new Date().toISOString(),dirty:true};await notePut('assets',asset)}const scale=Math.min(CANVAS_W/asset.width,CANVAS_H/asset.height);p.images=[{id:`i-${id}`,assetId,name:asset.name,type:asset.type,x:0,y:0,w:asset.width*scale,h:asset.height*scale,rotation:0,opacity:1,z:0}]}
       journalDrawing(p);await notePut('pages',p);await mirrorNoteToDisk(p);clearDrawingJournal(p);
     }
   }
