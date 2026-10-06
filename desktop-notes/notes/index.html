@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="uk">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
+  <meta name="theme-color" content="#0b0c11">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Warrior Hub">
+  <title>Warrior Notes</title>
+  <link rel="stylesheet" href="app.css?v=0.10.0">
+  <link rel="stylesheet" href="notes.css?v=0.10.0">
+  <link rel="stylesheet" href="desktop.css">
+</head>
+<body>
+  <div id="appShell">
+    <header class="topbar">
+      <div><div class="eyebrow" id="todayLabel">WARRIOR HUB MOBILE · v0.10.0</div><h1>Warrior Hub</h1></div>
+      <button id="syncNowBtn" class="sync-btn" type="button">↻ Sync</button>
+    </header>
+    <div id="statusBanner" class="status-banner">Not connected</div>
+
+    <nav class="tabs" aria-label="Main navigation">
+      <button class="tab active" data-view="today">Today</button>
+      <button class="tab notes-menu-entry" data-view="notes">✎ Notes</button>
+      <button class="tab" data-view="assignments">Due</button>
+      <button class="tab" data-view="todos">✓ Todo</button>
+      <button class="tab" data-view="calendar">Calendar</button>
+      <button class="tab" data-view="schedule">Schedule</button>
+      <button class="tab" data-view="news">News</button>
+      <button class="tab" data-view="mail">Mail</button>
+      <button class="tab" data-view="study">Study</button>
+      <button class="tab" data-view="setup">Setup</button>
+    </nav>
+
+    <main>
+      <section class="view active" id="view-today">
+        <button id="launchNotesBtn" class="notes-launch" type="button"><span class="notes-launch-icon">✎</span><span><b>Warrior Notes</b><small>Open your notebooks</small></span><span>↗</span></button>
+        <div id="nextClass"></div>
+        <div class="section-head"><h2>Checklist</h2><button id="todayTodoAdd" class="mini-add" type="button">＋</button></div>
+        <div id="todayTodos"></div>
+        <div class="section-head"><h2>Due soon</h2><span id="dueSoonCount"></span></div>
+        <div id="dueSoon"></div>
+        <div class="section-head"><h2>Today</h2><span id="todayClassCount"></span></div>
+        <div id="todayClasses"></div>
+        <div class="timer-card">
+          <div><div class="eyebrow">STUDY TIMER</div><div id="timerText" class="timer-text">50:00</div></div>
+          <div class="timer-actions"><button id="timerToggle">Start</button><button id="timerReset">Reset</button></div>
+        </div>
+      </section>
+
+      <section class="view" id="view-assignments">
+        <div class="filter-row">
+          <select id="assignmentFilter"><option value="open">Open</option><option value="week">Next 7 days</option><option value="overdue">Overdue</option><option value="past">Past assignments</option><option value="graded">Graded</option><option value="all">All</option></select>
+          <input id="assignmentSearch" type="search" placeholder="Search assignments">
+        </div>
+        <div id="assignmentList"></div>
+      </section>
+
+      <section class="view" id="view-todos">
+        <div class="todo-mobile-head">
+          <div><div class="eyebrow">SYNCED WITH WARRIOR HUB</div><h2>Checklist</h2></div>
+          <button id="todoAddBtn" class="primary" type="button">＋ Add</button>
+        </div>
+        <div id="todoComposer" class="todo-mobile-composer" hidden>
+          <input id="todoText" maxlength="240" placeholder="What do you need to do?" autocomplete="off">
+          <input id="todoDate" type="date" aria-label="Optional due date">
+          <div class="todo-compose-actions"><button id="todoCancelBtn" class="soft" type="button">Cancel</button><button id="todoSaveBtn" class="primary" type="button">Add task</button></div>
+        </div>
+        <div id="todoListMobile"></div>
+      </section>
+
+      <section class="view" id="view-calendar">
+        <div class="calendar-head"><button id="calPrev">‹</button><h2 id="calMonth"></h2><button id="calNext">›</button></div>
+        <div class="weekdays"><span>S</span><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span></div>
+        <div id="calendarGrid" class="calendar-grid"></div>
+        <div class="section-head"><h2 id="agendaDate">Agenda</h2></div>
+        <div id="calendarAgenda"></div>
+      </section>
+
+      <section class="view" id="view-schedule">
+        <div id="dayTabs" class="day-tabs"></div>
+        <div id="scheduleList"></div>
+      </section>
+
+      <section class="view" id="view-news"><div class="section-head"><h2>Announcements</h2></div><div id="newsList"></div></section>
+      <section class="view" id="view-mail"><div class="section-head"><h2>Mail</h2></div><div id="mailList"></div></section>
+
+      <section class="view" id="view-study">
+        <div class="mobile-study-head"><div><div class="eyebrow">LIVE FROM YOUR PC</div><h2>Study Remote</h2></div><div id="remoteDesktopStatus" class="remote-status offline">Waiting for desktop…</div></div>
+        <div class="remote-focus-card"><div id="remotePhase" class="remote-phase">FOCUS</div><div id="remoteTimerText" class="remote-timer">--:--</div><div id="remoteCycle" class="remote-cycle">Open Warrior Hub on your PC and keep OneDrive connected.</div><div class="remote-actions"><button type="button" id="remoteTimerToggle" class="primary">Start</button><button type="button" id="remoteTimerSkip">Skip</button><button type="button" id="remoteTimerReset">Reset</button></div></div>
+        <div class="remote-player-card"><div id="remoteSpotifyArt" class="remote-art">♫</div><div class="remote-player-copy"><div class="eyebrow">NOW PLAYING</div><div id="remoteSpotifyTitle" class="remote-track-title">Spotify on desktop</div><div id="remoteSpotifyArtist" class="remote-track-artist">Waiting for desktop…</div></div><div class="remote-progress"><div id="remoteSpotifyProgressFill"></div></div><div id="remoteSpotifyTime" class="remote-time"></div><div class="remote-player-actions"><button type="button" id="remoteSpotifyPrev" aria-label="Previous">◀◀</button><button type="button" id="remoteSpotifyToggle" class="primary" aria-label="Play">▶</button><button type="button" id="remoteSpotifyNext" aria-label="Next">▶▶</button><button type="button" id="remoteSpotifyShuffle">Shuffle</button></div></div>
+        <div class="remote-help">These controls command the Spotify + Focus/Break session running on your desktop Warrior Hub through your OneDrive folder.</div>
+      </section>
+
+      <section class="view notes-view apple-notes-view" id="view-notes">
+        <div class="notes-appbar">
+          <button type="button" id="exitNotesBtn" class="notes-back-btn" aria-label="Back to Warrior Hub" title="Back to Warrior Hub">←</button>
+          <div class="notes-app-titlebox">
+            <div id="notesAppTitle" class="notes-app-title">Warrior Notes</div>
+            <div id="notesAppSubtitle" class="notes-app-subtitle">Notebook</div>
+          </div>
+          <div class="notes-app-actions">
+            <button type="button" id="noteFileActionsBtn" class="notes-back-btn" hidden>⋯</button>
+            <button type="button" id="quickSyncNotesBtn" class="notes-sync-btn" title="Back up notes">↻</button>
+            <div id="drawingSaveState" class="save-state">Local safe</div>
+          </div>
+        </div>
+
+        <div id="notesLibrary" class="notes-library">
+          <div class="notes-library-heading"><div><div class="eyebrow">YOUR WORKSPACE</div><h2>Notebooks</h2><p>Choose a file and start writing.</p></div><button id="newNotebookBtn" type="button" class="notes-primary">＋ New notebook</button></div>
+          <div class="notes-library-filters"><input id="notebookSearch" type="search" placeholder="Search notebooks" aria-label="Search notebooks"><select id="notebookFilter" aria-label="Filter by subject"><option value="">All subjects</option></select></div>
+          <button id="toggleNotebookTrashBtn" type="button" aria-pressed="false">Trash</button>
+          <div id="notebookGrid" class="notebook-grid"></div>
+          <div class="notes-library-safety"><div><b>Saved on this device</b><p id="librarySafetyStatus" role="status">Checking backups…</p></div><button id="libraryRestoreBtn" type="button">↻ Restore OneDrive</button><button id="libraryExportBtn" type="button">↓ Back up all</button><button id="libraryImportBtn" type="button">↑ Import backup</button></div>
+        </div>
+
+        <div id="notesEditor" class="notes-workspace" hidden>
+          <aside class="notes-sidebar">
+            <div class="notes-sidebar-label">Notebook</div>
+            <div class="notes-sticky-head apple-notes-head">
+              <div class="course-switcher">
+                <button id="prevCourseBtn" aria-label="Previous course">‹</button>
+                <select id="notesCourse" aria-label="Course"></select>
+                <button id="nextCourseBtn" aria-label="Next course">›</button>
+              </div>
+              <div class="day-switcher">
+                <button id="prevNoteDayBtn" aria-label="Previous day">‹</button>
+                <input id="notesDate" type="date" aria-label="Note date">
+                <button id="nextNoteDayBtn" aria-label="Next day">›</button>
+                <button id="todayNoteBtn" class="soft">Today</button>
+              </div>
+              <div id="noteDayChips" class="note-day-chips" aria-label="Days with notes"></div>
+            </div>
+
+            <details class="text-note-box notes-side-text">
+              <summary>Typed note</summary>
+              <textarea id="notesText" placeholder="Optional typed notes…"></textarea>
+              <div class="notes-actions"><span id="notesState">Saved locally</span><button id="saveNotesBtn">Save + Sync</button></div>
+            </details>
+          </aside>
+
+          <main class="notes-canvas-column">
+            <div class="notebook-shell apple-notebook-shell">
+              <div class="notebook-topline">
+                <button id="toggleNoteSidebarBtn" class="note-small-button" type="button" aria-expanded="false">☷ Details</button>
+                <div>
+                  <div class="eyebrow">NOTEBOOK</div>
+                  <div id="notebookContext" class="notebook-context">Course · Today</div>
+                </div>
+              </div>
+
+              <div class="drawing-toolbar apple-markup-toolbar" role="toolbar" aria-label="Drawing tools">
+                <button class="draw-tool" data-tool="hand" title="Pan canvas">✋ Hand</button>
+                <button class="draw-tool active" data-tool="pen">✒ Pen</button>
+                <button class="draw-tool" data-tool="pencil">✎ Pencil</button>
+                <button class="draw-tool" data-tool="highlighter">▰ Highlight</button>
+                <button class="draw-tool" data-tool="eraser">⌫ Eraser</button>
+                <button class="draw-tool" data-tool="select">↖ Select</button>
+                <button class="draw-tool" data-tool="lasso" title="Circle handwriting to select and move it">◌ Lasso</button>
+                <button class="draw-tool" data-tool="text">T Text</button>
+                <button class="draw-tool" data-tool="line">╱ Line</button>
+                <button class="draw-tool" data-tool="rectangle">▭ Box</button>
+                <button class="draw-tool" data-tool="ellipse">○ Circle</button>
+                <span class="tool-separator"></span>
+                <button id="undoDrawBtn" title="Undo">↶</button>
+                <button id="redoDrawBtn" title="Redo">↷</button>
+                <label class="compact-control color-control"><span>Color</span><input id="drawColor" type="color" value="#11151d"></label>
+                <label class="compact-control width-control"><span>Size</span><input id="drawWidth" type="range" min="1" max="18" step="1" value="4"></label>
+                <select id="paperStyle" aria-label="Paper style"><option value="ruled">Ruled</option><option value="blank">Blank</option></select>
+                <button id="fingerDrawBtn" class="stylus-toggle active" aria-pressed="true" title="A capacitive stylus is reported as touch, the same as a finger">✎ Touch: write</button>
+                <button id="insertNoteItemBtn" class="insert-btn">＋ Insert</button>
+                <button id="fitItemBtn" class="soft" disabled>Fit width</button>
+                <button id="openItemBtn" class="soft" disabled>Open</button>
+                <button id="deleteItemBtn" class="danger-soft" disabled>Delete</button>
+              </div>
+
+              <div class="notes-quickbar"><div class="ink-presets" aria-label="Quick colors"><button data-ink="#11151d" style="--ink:#11151d" aria-label="Black ink"></button><button data-ink="#2855c5" style="--ink:#2855c5" aria-label="Blue ink"></button><button data-ink="#c53e3e" style="--ink:#c53e3e" aria-label="Red ink"></button><button data-ink="#298256" style="--ink:#298256" aria-label="Green ink"></button></div><span id="penDetectionState">Universal stylus: touch mode</span><div class="notes-zoom"><button id="zoomOutBtn" aria-label="Zoom out">−</button><button id="zoomResetBtn" title="Fit to width">100%</button><button id="zoomInBtn" aria-label="Zoom in">＋</button></div></div>
+
+              <div id="drawingViewport" class="drawing-viewport apple-paper-viewport" aria-label="Infinite drawing notebook">
+                <div id="infinitePaper" class="infinite-paper"></div>
+              </div>
+              <div class="infinite-note-hint"><span>∞ Continuous paper</span><span>Drag outside paper: pan · Two fingers: zoom · H: hand · P: pen · ⌘Z: undo</span></div>
+
+              <div id="insertSheet" class="insert-sheet" hidden>
+                <button class="insert-sheet-backdrop" id="closeInsertBackdrop" aria-label="Close insert menu"></button>
+                <div class="insert-sheet-card" role="dialog" aria-modal="true" aria-label="Insert into notes">
+                  <div class="insert-sheet-handle"></div>
+                  <div class="insert-sheet-title">Insert into notebook</div>
+                  <div class="insert-grid">
+                    <button id="pickPhotosBtn"><b>🖼</b><span>Photos / screenshots</span><small>Pick one or many</small></button>
+                    <button id="takePhotoBtn"><b>📷</b><span>Camera</span><small>Take a photo now</small></button>
+                    <button id="pickFilesBtn"><b>📁</b><span>Files</span><small>Images, PDF, documents</small></button>
+                    <button id="pasteImageBtn"><b>📋</b><span>Paste</span><small>Screenshot from clipboard</small></button>
+                  </div>
+                  <div class="insert-sheet-tip">After inserting, choose <b>Select</b> to move/resize it. Choose <b>Hand</b> to move around the page.</div>
+                  <button id="closeInsertBtn" class="soft full-width">Done</button>
+                </div>
+                <input id="photoPickerInput" type="file" accept="image/*" multiple hidden>
+                <input id="cameraPickerInput" type="file" accept="image/*" capture="environment" hidden>
+                <input id="noteFilePickerInput" type="file" accept="image/*,application/pdf,.pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt" multiple hidden>
+              </div>
+            </div>
+          </main>
+        </div>
+        <div id="newNotebookDialog" class="notes-modal" role="dialog" aria-modal="true" aria-labelledby="newNotebookHeading" hidden><form id="newNotebookForm" class="notes-modal-card"><h2 id="newNotebookHeading">New notebook</h2><label>Name<input id="newNotebookName" required maxlength="100" placeholder="e.g. Calculus — Chapter 7"></label><label>Subject<select id="newNotebookSubject"></select></label><label>Paper<select id="newNotebookPaper"><option value="ruled">Ruled</option><option value="blank">Blank</option></select></label><div><button id="cancelNotebookBtn" type="button">Cancel</button><button class="notes-primary" type="submit">Create notebook</button></div></form></div>
+        <div id="noteActionsDialog" class="notes-modal" role="dialog" aria-modal="true" aria-labelledby="noteActionsHeading" hidden><div class="notes-modal-card"><h2 id="noteActionsHeading">Notebook</h2><button id="editNotebookBtn" type="button">Open / edit notebook</button><button id="renameNotebookBtn" type="button">Rename notebook</button><button id="exportNotebookBtn" type="button">↓ Export editable file</button><button id="shareNotebookBtn" type="button">↗ Save / share to Files</button><button id="exportNotebookPdfBtn" type="button">Save PDF</button><button id="shareNotebookPdfBtn" type="button">Share PDF / save to Files</button><button id="printNotebookBtn" type="button">Print</button><button id="deleteNotebookBtn" type="button" class="notes-danger">Move to Trash</button><button id="restoreDeletedNotebookBtn" type="button" hidden>Restore notebook</button><button id="exportAllNotebooksBtn" type="button">↓ Back up all notebooks</button><button id="restoreNotebookRevisionsBtn" type="button">↶ Recover a local checkpoint</button><p id="noteActionsStatus" role="status"></p><p class="notes-modal-help">P pen · E eraser · H hand · L lasso · T text<br>⌘/Ctrl Z undo · ⇧⌘/Ctrl Z redo · ⌘/Ctrl S backup<br>Your universal stylus acts as touch. Use Hand to scroll; two fingers always zoom. A detected active pen disables finger writing automatically.</p><button id="closeNoteActionsBtn" type="button">Done</button></div></div>
+      <div id="notesConnectionBar" class="notes-connection-bar" role="status" hidden><span id="notesConnectionMessage">Connecting OneDrive…</span><button id="notesReconnectBtn" type="button">Connect OneDrive</button></div>
+      </section>
+
+      <section class="view" id="view-setup">
+        <div class="setup-card">
+          <h2>OneDrive connection</h2>
+          <p>Mobile reads the same <code>warrior-hub-sync.json</code> as the desktop extension. Drawing notes are backed up separately as immutable revisions so a state-sync bug cannot overwrite the only copy.</p>
+          <label>Microsoft Application (client) ID<input id="clientIdInput" autocomplete="off" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"></label>
+          <label>OneDrive folder path<input id="folderInput" value="WARRIOR HUB" placeholder="WARRIOR HUB"></label>
+          <label>Tenant<input id="tenantInput" value="common" placeholder="common"></label>
+          <div class="redirect-box"><small>Register this exact SPA Redirect URI:</small><code id="redirectUriText"></code><button id="copyRedirectBtn">Copy</button></div>
+          <div class="setup-actions"><button id="saveSetupBtn">Save settings</button><button id="loginBtn" class="primary">Sign in with Microsoft</button><button id="logoutBtn">Sign out</button></div>
+          <div id="accountInfo" class="account-info"></div>
+        </div>
+        <div class="setup-card phone-alert-card">
+          <h2>Phone alerts</h2>
+          <p>Enable once from the installed Home Screen app. Your PC can then notify this iPhone/iPad when Focus or Break ends even while Warrior Hub Mobile is closed.</p>
+          <div class="setup-actions"><button id="enablePhoneAlertsBtn" class="primary">Enable phone alerts</button></div>
+          <div id="phoneAlertsStatus" class="account-info">Checking notification permission…</div>
+        </div>
+        <div class="setup-card">
+          <h2>Drawing-note safety</h2>
+          <p><b>Primary copy:</b> local IndexedDB on this device. <b>Backup:</b> append-only OneDrive snapshots. The notebook is continuous: scroll down and new local paper segments appear automatically. Photos/screenshots/files are stored in the same local notebook database and backed up separately before page snapshots. App/cache updates never clear the note database.</p>
+          <div class="setup-actions"><button id="backupNotesNowBtn">Back up notes now</button><button id="restoreCloudNotesBtn">Restore/merge from OneDrive</button><button id="exportNotesBackupBtn">Export local backup</button><label class="file-button">Import backup<input id="importNotesBackupInput" type="file" accept="application/json" hidden></label></div>
+          <div id="noteSafetyStatus" class="account-info">Checking local storage…</div>
+        </div>
+        <div class="setup-card">
+          <h2>Install on iPhone / iPad</h2>
+          <p>Safari → Share → <b>Add to Home Screen</b>. Open that Home Screen icon afterward. On iPad, Apple Pencil draws while your finger pans the page by default.</p>
+        </div>
+        <div class="setup-card danger-zone"><h2>Diagnostics</h2><button id="exportMobileDebug">Export mobile debug</button></div>
+      </section>
+    </main>
+  </div>
+  <div id="desktopLoginDialog" hidden role="dialog" aria-modal="true" aria-labelledby="desktopLoginTitle"><div class="desktop-login-card"><h2 id="desktopLoginTitle">Connect OneDrive</h2><p id="desktopLoginStatus"></p><output id="desktopLoginCode"></output><a id="desktopLoginLink" hidden target="_blank" rel="noopener noreferrer">Open Microsoft sign-in</a><button id="desktopLoginClose" type="button">Close</button></div></div>
+  <script src="desktop.js"></script>
+  <script src="notes-pdf.js?v=0.10.0"></script>
+  <script src="app.js?v=0.10.0"></script>
+</body>
+</html>

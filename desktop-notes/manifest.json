@@ -1,0 +1,57 @@
+{
+  "manifest_version": 3,
+  "name": "Warrior Hub",
+  "version": "5.19.59",
+  "permissions": [
+    "storage",
+    "tabs",
+    "alarms",
+    "notifications",
+    "sidePanel",
+    "scripting",
+    "unlimitedStorage"
+  ],
+  "host_permissions": [
+    "https://canvas.wayne.edu/*",
+    "https://*.instructure.com/*",
+    "https://registration.wayne.edu/*",
+    "https://a.wayne.edu/*",
+    "https://academica.wayne.edu/*",
+    "https://academica.aws.wayne.edu/*",
+    "https://login.wayne.edu/*",
+    "https://connect.wayne.edu/*",
+    "https://outlook.office.com/*",
+    "https://outlook.office365.com/*",
+    "https://*.office.com/*",
+    "https://login.microsoftonline.com/*",
+    "https://outlook.live.com/*",
+    "https://*.office365.com/*",
+    "https://*.office.net/*",
+    "https://*.microsoft.com/*",
+    "https://*.microsoftonline.com/*",
+    "https://outlook.cloud.microsoft/*",
+    "https://*.cloud.microsoft/*",
+    "https://videos.pexels.com/*",
+    "https://www.pexels.com/*",
+    "https://mixkit.co/*",
+    "https://assets.mixkit.co/*",
+    "https://commons.wikimedia.org/*",
+    "https://upload.wikimedia.org/*",
+    "https://open.spotify.com/*",
+    "https://api-partner.spotify.com/*",
+    "https://api.spotify.com/*",
+    "https://spclient.wg.spotify.com/*",
+    "https://chatgpt.com/*",
+    "https://chat.openai.com/*",
+    "https://archive.org/*",
+    "https://svs.gsfc.nasa.gov/*",
+    "https://web.push.apple.com/*",
+    "https://graph.microsoft.com/*"
+  ],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'; frame-src 'self' https://open.spotify.com; connect-src 'self' https://canvas.wayne.edu https://*.instructure.com https://commons.wikimedia.org https://mixkit.co https://assets.mixkit.co https://svs.gsfc.nasa.gov https://archive.org https://open.spotify.com https://api-partner.spotify.com https://api.spotify.com https://spclient.wg.spotify.com https://login.microsoftonline.com https://graph.microsoft.com; media-src 'self' https://videos.pexels.com https://upload.wikimedia.org https://assets.mixkit.co https://svs.gsfc.nasa.gov https://archive.org;"
+  },
+  "background": {
+    "service_worker": "test-background.js"
+  }
+}

@@ -1,0 +1,8 @@
+.topbar,.tabs,#statusBanner { display:none !important; }
+#desktopLoginDialog[hidden] { display:none; }
+#desktopLoginDialog { position:fixed;inset:0;z-index:1000;background:rgba(18,24,35,.35);display:grid;place-items:center;padding:24px; }
+.desktop-login-card { width:min(440px,100%);padding:28px;border-radius:18px;background:#fff;color:#171a21;box-shadow:0 16px 60px #0003; }
+.desktop-login-card h2 { margin:0 0 16px; }
+#desktopLoginCode { display:block;font:700 30px monospace;letter-spacing:4px;margin:20px 0;user-select:all; }
+#desktopLoginLink { display:inline-block;margin:0 12px 18px 0;color:#2855c5; }
+#desktopLoginClose { padding:10px 18px;border:1px solid #ddd;border-radius:10px;background:#fff;cursor:pointer; }
