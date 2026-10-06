@@ -15,7 +15,7 @@
   }
   async function accessToken() {
     if (refreshPromise) return refreshPromise;
-    refreshPromise = (async () => {
+    const refresh = async () => {
       const tokens = await getTokens();
       if (tokens?.access_token && Date.now() < Number(tokens.expires_at || 0)) return tokens.access_token;
       if (!tokens?.refresh_token) return null;
@@ -30,7 +30,8 @@
         return null;
       }
       throw new Error(result.error_description || result.error || 'Microsoft token refresh failed');
-    })();
+    };
+    refreshPromise = navigator.locks?.request ? navigator.locks.request('warrior-ms-graph-token-refresh', refresh) : refresh();
     try { return await refreshPromise; } finally { refreshPromise = null; }
   }
   function closeLogin() { cancelled = true; document.querySelector('#desktopLoginDialog').hidden = true; }
