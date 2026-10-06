@@ -1,0 +1,192 @@
+{
+  "manifest_version": 3,
+  "name": "Warrior Hub",
+  "version": "5.19.60",
+  "description": "Warrior Hub v5.19.60: Notes only in Study Room, automatic verified desktop updates, shared OneDrive notebooks and PC music controls.",
+  "permissions": [
+    "storage",
+    "tabs",
+    "alarms",
+    "notifications",
+    "sidePanel",
+    "scripting",
+    "unlimitedStorage"
+  ],
+  "host_permissions": [
+    "https://canvas.wayne.edu/*",
+    "https://*.instructure.com/*",
+    "https://registration.wayne.edu/*",
+    "https://a.wayne.edu/*",
+    "https://academica.wayne.edu/*",
+    "https://academica.aws.wayne.edu/*",
+    "https://login.wayne.edu/*",
+    "https://connect.wayne.edu/*",
+    "https://outlook.office.com/*",
+    "https://outlook.office365.com/*",
+    "https://*.office.com/*",
+    "https://login.microsoftonline.com/*",
+    "https://outlook.live.com/*",
+    "https://*.office365.com/*",
+    "https://*.office.net/*",
+    "https://*.microsoft.com/*",
+    "https://*.microsoftonline.com/*",
+    "https://outlook.cloud.microsoft/*",
+    "https://*.cloud.microsoft/*",
+    "https://videos.pexels.com/*",
+    "https://www.pexels.com/*",
+    "https://mixkit.co/*",
+    "https://assets.mixkit.co/*",
+    "https://commons.wikimedia.org/*",
+    "https://upload.wikimedia.org/*",
+    "https://open.spotify.com/*",
+    "https://api-partner.spotify.com/*",
+    "https://api.spotify.com/*",
+    "https://spclient.wg.spotify.com/*",
+    "https://chatgpt.com/*",
+    "https://chat.openai.com/*",
+    "https://archive.org/*",
+    "https://svs.gsfc.nasa.gov/*",
+    "https://web.push.apple.com/*",
+    "https://graph.microsoft.com/*",
+    "https://raw.githubusercontent.com/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "side_panel": {
+    "default_path": "sidepanel.html"
+  },
+  "action": {
+    "default_title": "Open Warrior Hub"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://open.spotify.com/*"
+      ],
+      "js": [
+        "content/spotify_auth_main_v517.js"
+      ],
+      "run_at": "document_start",
+      "all_frames": true,
+      "world": "MAIN"
+    },
+    {
+      "matches": [
+        "https://open.spotify.com/*"
+      ],
+      "js": [
+        "content/spotify_auth_bridge_v517.js"
+      ],
+      "run_at": "document_start",
+      "all_frames": true
+    },
+    {
+      "matches": [
+        "https://open.spotify.com/embed/*"
+      ],
+      "js": [
+        "content/spotify_host_main_v522.js"
+      ],
+      "run_at": "document_start",
+      "all_frames": true,
+      "world": "MAIN"
+    },
+    {
+      "matches": [
+        "https://open.spotify.com/embed/*"
+      ],
+      "js": [
+        "content/spotify_dsp_v520.js"
+      ],
+      "run_at": "document_start",
+      "all_frames": true,
+      "world": "MAIN"
+    },
+    {
+      "matches": [
+        "https://open.spotify.com/embed/*"
+      ],
+      "js": [
+        "content/spotify_bridge.js"
+      ],
+      "run_at": "document_start",
+      "all_frames": true
+    },
+    {
+      "matches": [
+        "https://canvas.wayne.edu/*",
+        "https://*.instructure.com/*"
+      ],
+      "js": [
+        "content/canvas.js"
+      ],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": [
+        "https://registration.wayne.edu/*"
+      ],
+      "js": [
+        "content/registration.js"
+      ],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": [
+        "https://a.wayne.edu/*",
+        "https://academica.wayne.edu/*",
+        "https://academica.aws.wayne.edu/*",
+        "https://login.wayne.edu/*"
+      ],
+      "js": [
+        "content/academica.js"
+      ],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": [
+        "https://outlook.office.com/*",
+        "https://outlook.office365.com/*",
+        "https://outlook.live.com/*",
+        "https://*.office365.com/*",
+        "https://*.office.net/*",
+        "https://outlook.cloud.microsoft/*"
+      ],
+      "js": [
+        "content/wayneconnect.js"
+      ],
+      "run_at": "document_idle",
+      "all_frames": true
+    },
+    {
+      "matches": [
+        "https://chatgpt.com/*",
+        "https://chat.openai.com/*"
+      ],
+      "js": [
+        "content/chatgpt_handoff.js"
+      ],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": [
+        "https://archive.org/details/stewart-j.-clegg-d.-watson-s.-calculus.-early-transcendentals-9ed-2020/*"
+      ],
+      "js": [
+        "content/calculus_book_tracker.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "minimum_chrome_version": "114",
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'; frame-src 'self' https://open.spotify.com; connect-src 'self' https://raw.githubusercontent.com https://canvas.wayne.edu https://*.instructure.com https://commons.wikimedia.org https://mixkit.co https://assets.mixkit.co https://svs.gsfc.nasa.gov https://archive.org https://open.spotify.com https://api-partner.spotify.com https://api.spotify.com https://spclient.wg.spotify.com https://login.microsoftonline.com https://graph.microsoft.com; media-src 'self' https://videos.pexels.com https://upload.wikimedia.org https://assets.mixkit.co https://svs.gsfc.nasa.gov https://archive.org;"
+  }
+}

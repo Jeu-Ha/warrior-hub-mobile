@@ -1,0 +1,596 @@
+:root{color-scheme:dark;--text:#f7f8fb;--muted:#abb2be;--glass:rgba(7,9,15,.28);--glass2:rgba(9,11,18,.64);--border:rgba(255,255,255,.14);--accent:#75f0a9;--danger:#ff7a8b;--warn:#ffc66d;--track-accent:#75f0a9;--track-accent-2:#8fbfff;--track-glow:rgba(117,240,169,.28);--track-glow-2:rgba(143,191,255,.22);--track-soft:rgba(117,240,169,.12);--track-soft-2:rgba(143,191,255,.10);--track-border:rgba(117,240,169,.32);--track-card-border:rgba(143,191,255,.24);--track-shadow:rgba(0,0,0,.30);--track-bg-a:rgba(117,240,169,.22);--track-bg-b:rgba(143,191,255,.18);--track-bg-c:rgba(130,216,210,.12)}*{box-sizing:border-box}html,body{margin:0;min-height:100%;font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--text);background:#03050a}body{overflow-x:hidden;position:relative;background:transparent}.hero{position:relative;z-index:2}button,input,select,textarea{font:inherit;color:inherit}button{cursor:pointer}.scene{position:fixed;inset:0;z-index:0;overflow:hidden;background:#06080e;pointer-events:none}.fallback-bg,.video-bg{position:absolute;inset:-3%;width:106%;height:106%;border:0}.fallback-bg{overflow:hidden;transform:scale(1.03);transition:background 1s ease,filter 1s ease;animation:sceneBreath 16s ease-in-out infinite alternate;filter:saturate(1.34) brightness(1.42) contrast(1.04)}.video-bg{opacity:0;transition:opacity .65s ease;pointer-events:none;object-fit:cover;filter:saturate(1.05) contrast(1.04) brightness(.88)}.video-bg.active{opacity:.94}.cinema-shade{position:absolute;inset:0;background:linear-gradient(180deg,rgba(2,3,7,.06),rgba(2,3,7,0) 40%,rgba(2,3,7,.08)),radial-gradient(circle at center,transparent 0 60%,rgba(0,0,0,.18) 100%);pointer-events:none}.scene-window,.scene-shelves,.scene-glow,.rain-layer,.star-layer{position:absolute;inset:0;pointer-events:none;transition:opacity .9s ease}.scene-window{opacity:0}.scene-shelves{opacity:0}.scene-glow{opacity:.9;mix-blend-mode:screen}.rain-layer,.star-layer{opacity:0}
+body[data-scene="library"] .fallback-bg{background:linear-gradient(110deg,#120d0a 0 24%,#382218 24% 26%,#0c1014 26% 65%,#342218 65% 68%,#0c0908 68%),radial-gradient(circle at 56% 48%,#e29a46 0,transparent 32%),linear-gradient(#11151d,#07090e)}body[data-scene="library"] .scene-window{opacity:1;inset:10% 26% 16% 35%;border:3px solid rgba(255,204,131,.22);background:linear-gradient(90deg,transparent 49.3%,rgba(255,235,198,.18) 49.3% 50.7%,transparent 50.7%),linear-gradient(0deg,transparent 49.3%,rgba(255,235,198,.18) 49.3% 50.7%,transparent 50.7%),radial-gradient(circle at 68% 35%,rgba(255,205,125,.38),transparent 24%),linear-gradient(145deg,#19283b,#111a26 58%,#6a4530);box-shadow:0 0 90px rgba(255,168,72,.18),inset 0 0 70px rgba(0,0,0,.45)}body[data-scene="library"] .scene-shelves{opacity:.82;background:repeating-linear-gradient(90deg,rgba(8,4,2,.85) 0 13%,transparent 13% 30%),repeating-linear-gradient(0deg,transparent 0 8%,rgba(74,43,23,.78) 8% 10%,transparent 10% 17%);filter:drop-shadow(0 20px 50px #000)}body[data-scene="library"] .scene-glow{background:radial-gradient(circle at 20% 72%,rgba(255,153,61,.36),transparent 18%),radial-gradient(circle at 72% 64%,rgba(255,195,95,.20),transparent 22%)}
+body[data-scene="rain"] .fallback-bg{background:radial-gradient(circle at 70% 50%,rgba(110,165,210,.20),transparent 27%),linear-gradient(145deg,#08131d,#101c29 55%,#06090e)}body[data-scene="rain"] .scene-window{opacity:1;inset:7% 16% 12% 27%;border:4px solid rgba(196,221,236,.16);background:linear-gradient(90deg,transparent 49.5%,rgba(220,240,255,.16) 49.5% 50.5%,transparent 50.5%),linear-gradient(0deg,transparent 49.5%,rgba(220,240,255,.16) 49.5% 50.5%,transparent 50.5%),radial-gradient(circle at 72% 28%,rgba(204,228,247,.17),transparent 18%),linear-gradient(155deg,#122c3f,#0b1825);box-shadow:0 0 100px rgba(83,157,211,.13)}body[data-scene="rain"] .rain-layer{opacity:.45;background:repeating-linear-gradient(105deg,transparent 0 20px,rgba(205,232,255,.26) 21px 22px,transparent 23px 43px);animation:rainFall 1.2s linear infinite}body[data-scene="rain"] .scene-glow{background:radial-gradient(circle at 23% 73%,rgba(226,157,76,.22),transparent 18%)}
+body[data-scene="dark"] .fallback-bg{background:radial-gradient(circle at 67% 38%,rgba(103,82,53,.30),transparent 22%),linear-gradient(120deg,#0a0d0d,#17130f 48%,#090707)}body[data-scene="dark"] .scene-shelves{opacity:.92;background:repeating-linear-gradient(90deg,rgba(15,8,5,.88) 0 8%,transparent 8% 19%),repeating-linear-gradient(0deg,transparent 0 7%,rgba(75,48,29,.83) 7% 9%,transparent 9% 15%)}body[data-scene="dark"] .scene-window{opacity:.74;inset:10% 37% 20% 40%;border:5px solid rgba(179,145,96,.12);background:linear-gradient(90deg,transparent 49%,rgba(209,184,135,.12) 49% 51%,transparent 51%),linear-gradient(0deg,transparent 49%,rgba(209,184,135,.12) 49% 51%,transparent 51%),linear-gradient(160deg,#171815,#292319);box-shadow:0 0 80px rgba(180,124,60,.13)}body[data-scene="dark"] .scene-glow{background:radial-gradient(circle at 31% 68%,rgba(255,139,41,.24),transparent 16%),radial-gradient(circle at 75% 72%,rgba(106,156,93,.11),transparent 20%)}
+body[data-scene="space"] .fallback-bg{background:radial-gradient(circle at 76% 24%,rgba(93,69,190,.55),transparent 17%),radial-gradient(circle at 30% 74%,rgba(27,139,181,.33),transparent 22%),radial-gradient(circle at 48% 50%,#10182a,#03040a 66%)}body[data-scene="space"] .star-layer{opacity:1;background-image:radial-gradient(circle,#fff 0 1px,transparent 1.5px),radial-gradient(circle,#b9d5ff 0 1px,transparent 1.7px),radial-gradient(circle,#fff 0 1.3px,transparent 1.8px);background-size:83px 83px,137px 137px,211px 211px;background-position:0 0,31px 48px,70px 16px;animation:starsDrift 38s linear infinite}body[data-scene="space"] .scene-glow{background:radial-gradient(ellipse at 62% 42%,rgba(160,90,255,.24),transparent 26%),radial-gradient(ellipse at 40% 66%,rgba(30,174,227,.18),transparent 25%)}
+body[data-scene="static"] .fallback-bg{background:radial-gradient(circle at 18% 25%,#322072,transparent 33%),radial-gradient(circle at 82% 72%,#153e2c,transparent 28%),linear-gradient(145deg,#070816,#0b0a12 50%,#05070b)}
+@keyframes sceneBreath{to{transform:scale(1.075) translate3d(-.7%,.4%,0);filter:saturate(1.08)}}@keyframes rainFall{from{transform:translate3d(0,-4%,0)}to{transform:translate3d(-2%,7%,0)}}@keyframes starsDrift{to{transform:translate3d(-3%,2%,0) scale(1.05)}}
+.top-hud{position:fixed;z-index:5;left:0;right:0;top:0;padding:20px 24px;display:flex;justify-content:space-between;align-items:center;background:linear-gradient(rgba(0,0,0,.24),transparent);pointer-events:none}.brand,.top-actions{pointer-events:auto}.brand{font-size:12px;font-weight:800;letter-spacing:.12em;text-shadow:0 2px 16px #000}.dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--accent);box-shadow:0 0 18px var(--accent);margin-right:6px}.muted{color:var(--muted)}.top-actions{display:flex;gap:8px}.top-actions button,.hero-controls button,.preset,.dock button,.drawer button,.notebook-modal button{border:1px solid var(--border);background:rgba(8,10,16,.42);backdrop-filter:blur(14px);border-radius:13px;padding:9px 13px}.hero{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:110px 24px 150px}.phase{font-size:13px;letter-spacing:.34em;font-weight:900;color:var(--accent);text-shadow:0 2px 20px #000}.timer{font-size:clamp(82px,13vw,200px);line-height:.86;font-weight:900;letter-spacing:-.075em;font-variant-numeric:tabular-nums;text-shadow:0 8px 55px rgba(0,0,0,.9);margin:18px 0}.mission{font-size:clamp(16px,1.8vw,26px);font-weight:650;max-width:850px;text-shadow:0 3px 24px #000;color:rgba(255,255,255,.94)}.hero-controls{display:flex;gap:10px;margin-top:25px}.hero-controls button{min-width:94px;font-weight:700}.hero-controls .primary{background:rgba(36,125,77,.53);border-color:rgba(110,231,162,.42)}.preset-row{display:flex;gap:7px;margin-top:10px}.preset{padding:7px 10px;font-size:12px}.preset.active{border-color:rgba(110,231,162,.42);color:var(--accent)}.cycle-text{margin-top:12px;color:rgba(255,255,255,.72);font-size:12px;text-shadow:0 2px 10px #000}.dock{position:fixed;z-index:7;bottom:22px;left:50%;transform:translateX(-50%);display:flex;gap:7px;padding:8px;background:rgba(5,7,11,.42);border:1px solid var(--border);backdrop-filter:blur(20px);border-radius:18px;box-shadow:0 20px 60px rgba(0,0,0,.28)}.dock button{background:transparent;border:0;padding:10px 14px}.dock button:hover,.dock button.active{background:rgba(255,255,255,.09)}.drawer{position:fixed;z-index:8;top:76px;right:22px;bottom:88px;width:min(430px,calc(100vw - 44px));padding:18px;background:var(--glass2);border:1px solid var(--border);backdrop-filter:blur(26px) saturate(1.15);border-radius:22px;box-shadow:0 30px 90px rgba(0,0,0,.46);transform:translateX(calc(100% + 45px));opacity:0;transition:.28s ease;overflow:auto}.drawer.open{transform:none;opacity:1}.drawer-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}.drawer-head h2{margin:2px 0 0}.eyebrow{font-size:10px;letter-spacing:.16em;color:var(--muted);font-weight:800}.drawer-head #drawerClose{font-size:22px;width:39px;height:39px;padding:0}.drawer-page{display:none}.drawer-page.active{display:grid;gap:12px}label{font-size:12px;color:#d9dde5;font-weight:700}input,select,textarea{width:100%;border:1px solid var(--border);background:rgba(4,6,11,.55);border-radius:12px;padding:11px 12px;outline:none}textarea{resize:vertical;min-height:190px;line-height:1.5}.wide{width:100%}.auto-row{display:flex;gap:9px;align-items:center}.auto-row input{width:auto}.section-row,.current-day-head{display:flex;align-items:center;justify-content:space-between;gap:12px}.tiny{font-size:10px;color:var(--muted);line-height:1.45}.mode-row,.ai-actions,.scene-grid,.spotify-entry,.notes-toolbar{display:flex;gap:7px;flex-wrap:wrap}.mode.active,.theme.active{border-color:rgba(110,231,162,.45);color:var(--accent);background:rgba(52,138,88,.18)}.status-dot{border-radius:999px;padding:4px 8px;font-size:10px;border:1px solid var(--border)}.status-dot.online{color:var(--accent);border-color:rgba(110,231,162,.35)}.status-dot.offline{color:var(--danger);border-color:rgba(255,122,139,.35)}.ai-answer{white-space:pre-wrap;background:rgba(4,6,11,.5);border:1px solid var(--border);padding:12px;border-radius:13px;line-height:1.55;max-height:300px;overflow:auto}.api-settings{border-top:1px solid var(--border);padding-top:8px}.api-settings>*{margin-top:9px}.scene-grid{display:grid;grid-template-columns:1fr 1fr}.spotify-frame{width:100%;height:352px;border:0;border-radius:14px;background:rgba(0,0,0,.25)}.spotify-entry input{flex:1;min-width:160px}.primary{background:rgba(36,125,77,.58)!important;border-color:rgba(110,231,162,.42)!important}.day-caption{font-size:10px;text-transform:uppercase;letter-spacing:.12em;color:var(--muted)}.day-list{display:flex;gap:7px;overflow:auto;padding-bottom:3px}.day-list button{white-space:nowrap;text-align:left;min-width:112px;padding:9px 10px}.day-list button.active{border-color:rgba(110,231,162,.42);background:rgba(62,145,94,.18)}.day-list .day-main{font-size:11px;font-weight:750}.day-list .day-meta{display:block;font-size:9px;color:var(--muted);margin-top:2px}.page-badge{padding:4px 8px;border:1px solid var(--border);border-radius:999px;font-size:10px;color:var(--muted)}.drawer::-webkit-scrollbar{width:6px}.drawer::-webkit-scrollbar-thumb{background:rgba(255,255,255,.18);border-radius:99px}
+.notebook-modal{position:fixed;z-index:30;inset:0;background:#0a0b0f;display:none;grid-template-rows:auto auto 1fr}.notebook-modal.open{display:grid}.notebook-topbar{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:13px 16px;border-bottom:1px solid rgba(255,255,255,.11);background:#111319}.notebook-title{font-size:16px;font-weight:800}.notebook-actions,.notebook-toolrow{display:flex;align-items:center;gap:7px;flex-wrap:wrap}.notebook-actions button,.notebook-toolrow button{padding:7px 10px}.notebook-toolrow{padding:9px 16px;background:#0d0f14;border-bottom:1px solid rgba(255,255,255,.09)}.notebook-toolrow .pen.active,#eraserBtn.active{color:var(--accent);border-color:rgba(110,231,162,.45)}.paper-stage{min-height:0;display:flex;align-items:center;justify-content:center;padding:18px;overflow:auto;background:radial-gradient(circle at 50% 20%,rgba(255,255,255,.05),transparent 40%),#08090d}#fullNoteCanvas{display:block;max-width:100%;max-height:calc(100vh - 145px);width:auto;height:auto;aspect-ratio:8/5;background-color:#faf9f4;background-image:linear-gradient(rgba(85,112,150,.12) 1px,transparent 1px),linear-gradient(90deg,rgba(85,112,150,.12) 1px,transparent 1px);background-size:32px 32px;box-shadow:0 24px 80px rgba(0,0,0,.55);touch-action:none;cursor:crosshair}.notebook-save-flash{color:var(--accent)}
+@media(max-width:700px){.top-hud{padding:14px}.hero{padding-bottom:175px}.timer{font-size:25vw}.dock{bottom:12px;max-width:calc(100vw - 20px);overflow:auto}.dock button{white-space:nowrap;padding:9px}.drawer{top:62px;right:10px;left:10px;width:auto;bottom:78px}.notebook-topbar{align-items:flex-start;flex-direction:column}.paper-stage{padding:8px}#fullNoteCanvas{max-height:calc(100vh - 205px)}}
+
+/* v1.2: real Pexels internet footage is the primary visual layer; CSS scenes remain as instant fallbacks. */
+body[data-scene="library"] .fallback-bg{box-shadow:inset 0 0 180px rgba(255,166,79,.12)}
+body[data-scene="rain"] .fallback-bg{box-shadow:inset 0 0 180px rgba(76,176,255,.12)}
+body[data-scene="dark"] .fallback-bg{box-shadow:inset 0 0 200px rgba(255,151,67,.16)}
+body[data-scene="space"] .fallback-bg{box-shadow:inset 0 0 220px rgba(113,75,255,.18)}
+
+/* v1.2 online footage */
+.video-bg{opacity:0;transition:opacity .55s ease;filter:saturate(1.02) contrast(1.02);object-fit:cover}
+.video-bg.active{opacity:.96}
+#backgroundHelp a{color:var(--accent);text-decoration:none}
+#backgroundHelp a:hover{text-decoration:underline}
+
+
+/* v1.3 — outdoor Commons video pools */
+body[data-scene="forest"] .fallback-bg{background:radial-gradient(circle at 28% 34%,rgba(131,196,103,.35),transparent 28%),linear-gradient(145deg,#0e2618,#203d25 48%,#07140e)}
+body[data-scene="mountains"] .fallback-bg{background:linear-gradient(165deg,#506d89 0 35%,#a5b5bf 36% 42%,#405545 43% 56%,#17231c 57% 100%)}
+body[data-scene="coast"] .fallback-bg{background:radial-gradient(circle at 72% 22%,rgba(255,220,153,.24),transparent 20%),linear-gradient(180deg,#5b8baa 0 48%,#1c607a 49% 72%,#0b3044 73%)}
+body[data-scene="water"] .fallback-bg{background:radial-gradient(circle at 58% 32%,rgba(137,218,205,.26),transparent 24%),linear-gradient(135deg,#15352c,#1e5a58 50%,#0b252a)}
+.spotify-mini{position:fixed;z-index:10;left:18px;bottom:18px;width:min(390px,calc(100vw - 36px));height:152px;border:1px solid rgba(255,255,255,.16);border-radius:18px;overflow:hidden;background:#111;box-shadow:0 20px 60px rgba(0,0,0,.45);transition:width .24s ease,height .24s ease,transform .24s ease}
+.spotify-mini.expanded{width:min(430px,calc(100vw - 36px));height:352px}
+.spotify-mini .spotify-frame{display:block;width:100%;height:100%;border:0;border-radius:0;background:#111}
+.spotify-mini-icon{position:absolute;z-index:2;right:8px;top:8px;width:34px;height:34px;padding:0!important;border-radius:999px!important;border:1px solid rgba(255,255,255,.2)!important;background:#1db954!important;color:#06120a!important;font-size:18px;font-weight:900;box-shadow:0 8px 24px rgba(0,0,0,.35)}
+@media(max-width:700px){.spotify-mini{left:10px;bottom:74px;width:calc(100vw - 20px);height:92px}.spotify-mini.expanded{height:260px}.dock{z-index:12}.drawer{z-index:13}}
+
+
+/* v1.4 — phase transitions + custom Pomodoro */
+.custom-pomodoro{display:flex;align-items:end;gap:8px;margin-top:9px;padding:10px 11px;border:1px solid var(--border);background:rgba(5,7,12,.40);border-radius:14px;backdrop-filter:blur(14px);opacity:0;max-height:0;overflow:hidden;pointer-events:none;transform:translateY(-5px);transition:.22s ease}
+.custom-pomodoro.open{opacity:1;max-height:90px;pointer-events:auto;transform:none}
+.custom-pomodoro label{display:grid;gap:4px;text-align:left;font-size:10px;color:rgba(255,255,255,.72)}
+.custom-pomodoro input{width:78px;padding:8px 9px;background:rgba(1,3,7,.65);font-size:13px}
+.custom-pomodoro>span{padding-bottom:8px;color:var(--muted);font-weight:800}
+.custom-pomodoro button{padding:8px 12px}
+.phase-transition-overlay{position:absolute;inset:0;z-index:4;display:grid;place-items:center;opacity:0;pointer-events:none;background:radial-gradient(circle at center,rgba(255,255,255,.08),rgba(0,0,0,.36) 52%,rgba(0,0,0,.72));backdrop-filter:blur(0px);transition:opacity .5s ease,backdrop-filter .7s ease}
+.phase-transition-overlay span{font-size:clamp(34px,7vw,98px);font-weight:900;letter-spacing:.24em;text-indent:.24em;text-shadow:0 10px 45px #000;transform:scale(.94);opacity:0;transition:.45s ease}
+body.phase-transition .phase-transition-overlay{opacity:1;backdrop-filter:blur(8px)}
+body.phase-transition .phase-transition-overlay span{opacity:.92;transform:scale(1)}
+body.phase-break .video-bg{filter:saturate(.86) contrast(1.01) brightness(.74) sepia(.08)}
+body.phase-focus .video-bg{filter:saturate(1.08) contrast(1.05) brightness(.90)}
+body.phase-break .cinema-shade{background:linear-gradient(180deg,rgba(3,8,12,.13),rgba(2,6,10,.04) 45%,rgba(0,0,0,.18)),radial-gradient(circle at center,transparent 0 54%,rgba(0,12,16,.34) 100%)}
+body.phase-focus .cinema-shade{background:linear-gradient(180deg,rgba(2,3,7,.04),rgba(2,3,7,0) 40%,rgba(2,3,7,.08)),radial-gradient(circle at center,transparent 0 62%,rgba(0,0,0,.16) 100%)}
+.spotify-mini.phase-deep{transform:translateY(-2px) scale(.992);box-shadow:0 24px 70px rgba(0,0,0,.64),0 0 50px rgba(60,110,130,.15)}
+.spotify-mini.phase-bright{transform:translateY(-2px) scale(1.008);box-shadow:0 22px 64px rgba(0,0,0,.52),0 0 54px rgba(90,220,145,.16)}
+@media(max-width:700px){.custom-pomodoro{flex-wrap:wrap;justify-content:center}.custom-pomodoro.open{max-height:150px}.custom-pomodoro label{min-width:100px}.custom-pomodoro input{width:100%}}
+
+/* v1.5 — curated nature video bank + state-aware Spotify docking */
+.spotify-player-slot{height:330px;border:1px dashed rgba(255,255,255,.12);border-radius:16px;background:rgba(2,4,8,.12)}
+.spotify-mini{position:fixed;z-index:16;left:18px;top:auto;right:auto;bottom:18px;width:min(390px,calc(100vw - 36px));height:152px;border:1px solid rgba(255,255,255,.16);border-radius:18px;overflow:visible;background:#111;box-shadow:0 20px 60px rgba(0,0,0,.45);opacity:1;transform:translate3d(0,0,0) scale(1);transition:left .34s cubic-bezier(.22,.8,.22,1),top .34s cubic-bezier(.22,.8,.22,1),width .34s cubic-bezier(.22,.8,.22,1),height .34s cubic-bezier(.22,.8,.22,1),opacity .22s ease,transform .34s cubic-bezier(.22,.8,.22,1),border-radius .34s ease;will-change:left,top,width,height,transform,opacity}
+.spotify-mini.spotify-hidden{opacity:0;transform:translate3d(0,12px,0) scale(.94);pointer-events:none}
+.spotify-mini.spotify-panel{border-radius:16px;box-shadow:0 22px 70px rgba(0,0,0,.34)}
+.spotify-mini.spotify-panel .spotify-mini-icon{display:none}
+.spotify-mini.spotify-docked{border-radius:18px;box-shadow:0 24px 80px rgba(0,0,0,.52)}
+.spotify-mini .spotify-frame{display:block;width:100%;height:100%;border:0;border-radius:inherit;background:#111;overflow:hidden}
+.spotify-mini-icon{position:absolute;z-index:4;right:-11px;top:-11px;width:34px;height:34px;padding:0!important;border-radius:999px!important;border:1px solid rgba(255,255,255,.24)!important;background:#1ed760!important;color:#06120a!important;font-size:17px;font-weight:900;box-shadow:0 10px 28px rgba(0,0,0,.48)}
+.spotify-page details{margin-top:12px}
+.spotify-page{padding-bottom:8px}
+body.phase-transition .spotify-mini.spotify-docked{filter:saturate(.94)}
+#testPhaseFxBtn{margin-top:2px}
+@media(max-width:700px){.spotify-player-slot{height:250px}.spotify-mini{left:10px;bottom:76px;width:calc(100vw - 20px);height:108px}.spotify-mini.spotify-panel{height:240px}}
+
+
+/* v1.6 — exact Spotify viewport + real captured-tab music FX */
+.spotify-player-slot{height:152px;min-height:152px;max-height:152px;overflow:hidden;border:0;border-radius:16px;background:#121212}
+.spotify-mini{height:152px!important;overflow:hidden!important;background:#121212!important}
+.spotify-mini.spotify-panel,.spotify-mini.spotify-docked{height:152px!important;overflow:hidden!important}
+.spotify-mini .spotify-frame,.spotify-frame{display:block;width:100%;height:152px!important;min-height:152px!important;max-height:152px!important;border:0;border-radius:inherit;background:#121212}
+.spotify-mini-icon{right:8px!important;top:8px!important}
+.music-fx-card{display:grid;gap:9px;padding:11px;border:1px solid rgba(255,255,255,.12);border-radius:14px;background:rgba(3,5,9,.34)}
+.music-fx-actions{display:flex;gap:8px;flex-wrap:wrap}.music-fx-actions button{flex:1;min-width:120px}
+body.real-music-fx .spotify-mini{box-shadow:0 24px 80px rgba(0,0,0,.52),0 0 0 1px rgba(110,231,162,.18)}
+body.phase-break.real-music-fx .spotify-mini{box-shadow:0 24px 80px rgba(0,0,0,.58),0 0 50px rgba(68,118,160,.17)}
+body.phase-focus.real-music-fx .spotify-mini{box-shadow:0 24px 80px rgba(0,0,0,.48),0 0 50px rgba(77,217,142,.13)}
+@media(max-width:700px){.spotify-player-slot{height:152px}.spotify-mini,.spotify-mini.spotify-panel,.spotify-mini.spotify-docked{height:152px!important}}
+
+
+/* v1.8 — smooth 3s pre/post Spotify track warp; no generated phase stingers */
+.video-bg{transition:opacity .55s ease,filter 3s ease,transform 3s ease}
+body.music-boundary-warp .video-bg{filter:saturate(.96) contrast(1.03) brightness(.84) blur(.7px);transform:scale(1.008)}
+body.music-boundary-warp .spotify-mini{box-shadow:0 24px 80px rgba(0,0,0,.55),0 0 0 1px rgba(120,210,170,.18),0 0 42px rgba(86,170,145,.14)}
+.music-fx-card .tiny{line-height:1.55}
+
+
+/* v2.0 — calm break mix + reliable Spotify docking */
+#breakAmbienceState{padding:8px 10px;border:1px solid rgba(255,255,255,.10);border-radius:11px;background:rgba(3,7,9,.24)}
+body.phase-break.real-music-fx .spotify-mini{filter:saturate(.88) brightness(.92)}
+body.music-boundary-warp .spotify-mini{transform:translateY(-1px) scale(.997)}
+
+
+/* v3.1 — safe Spotify UX on top of the confirmed v2.8 audio core */
+.spotify-utility-row{display:grid;grid-template-columns:auto 1fr;gap:9px;align-items:center;margin-top:10px}
+.spotify-volume-control{display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:center;padding:8px 10px;border:1px solid var(--border);background:rgba(4,6,11,.45);border-radius:12px}
+.spotify-volume-control input{padding:0;border:0;background:transparent;min-width:90px}
+/* Override the old 152px panel lock ONLY while the player is in the full Spotify drawer. */
+.spotify-player-slot{height:clamp(340px,52vh,560px)!important;min-height:340px!important;max-height:none!important;overflow:hidden!important;border:0!important;background:#121212!important}
+.spotify-mini.spotify-panel{height:clamp(340px,52vh,560px)!important;overflow:hidden!important;transform:none!important;filter:none!important;backdrop-filter:none!important}
+.spotify-mini.spotify-panel .spotify-frame{height:100%!important;min-height:100%!important;max-height:none!important;transform:none!important;filter:none!important}
+/* Docked mode stays Spotify's native compact height so controls are not cropped or blurred. */
+.spotify-mini.spotify-docked{height:152px!important;overflow:hidden!important;transform:none!important;filter:none!important;backdrop-filter:none!important}
+.spotify-mini.spotify-docked .spotify-frame{height:152px!important;min-height:152px!important;max-height:152px!important;transform:none!important;filter:none!important}
+.spotify-mini.phase-deep,.spotify-mini.phase-bright,body.music-boundary-warp .spotify-mini{transform:none!important;filter:none!important}
+.spotify-mini,.spotify-mini .spotify-frame{image-rendering:auto;backdrop-filter:none!important}
+@media(max-width:700px){.spotify-utility-row{grid-template-columns:1fr}.spotify-player-slot,.spotify-mini.spotify-panel{height:clamp(300px,46vh,440px)!important;min-height:300px!important}}
+
+/* v3.2 Spotify control state */
+#spotifyShuffleBtn{min-width:132px;transition:.18s ease}
+#spotifyShuffleBtn.active{background:rgba(30,215,96,.20)!important;border-color:rgba(30,215,96,.62)!important;color:#8dffb3;box-shadow:0 0 0 1px rgba(30,215,96,.10) inset}
+#spotifyShuffleBtn.unknown{opacity:.78}
+#spotifyShuffleBtn.pending{cursor:wait;filter:saturate(.9)}
+.spotify-volume-control input[type=range]{cursor:pointer}
+
+/* v5.1: keep the same Spotify iframe, but temporarily give its hidden viewport enough
+   height for Spotify to mount playlist rows while side-panel transport commands run. */
+.spotify-mini.spotify-transport-expanded{overflow:hidden!important}
+.spotify-mini.spotify-transport-expanded .spotify-frame{height:560px!important;min-height:560px!important;max-height:none!important}
+
+/* v5.4 exact current-track artwork overlay for docked mini player */
+.spotify-mini-track-art{display:none;position:absolute;left:8px;top:8px;width:52px;height:52px;border-radius:8px;background:#0b0d10 center/cover no-repeat;box-shadow:0 4px 14px rgba(0,0,0,.34);z-index:4;pointer-events:none}.spotify-mini.spotify-docked .spotify-mini-track-art{display:block}.spotify-mini.spotify-panel .spotify-mini-track-art{display:none}
+
+/* v5.5 rebuilt Spotify mini-player: same live iframe, custom stable UI while docked. */
+.spotify-mini-custom{display:none;position:absolute;inset:0;z-index:5;align-items:center;gap:10px;padding:10px 12px;background:linear-gradient(145deg,rgba(18,18,18,.98),rgba(11,13,17,.99));border-radius:inherit;color:#f6f7f8;pointer-events:auto}
+.spotify-mini.spotify-docked .spotify-frame{opacity:0!important;pointer-events:none!important}
+.spotify-mini.spotify-docked .spotify-mini-custom{display:flex}
+.spotify-mini.spotify-panel .spotify-mini-custom{display:none!important}
+.spotify-mini.spotify-panel .spotify-frame{opacity:1!important;pointer-events:auto!important}
+.spotify-mini-custom .spotify-mini-track-art{display:grid!important;place-items:center;position:static!important;flex:0 0 62px;width:62px;height:62px;border-radius:10px;background:#171a20 center/cover no-repeat;box-shadow:0 8px 24px rgba(0,0,0,.35);font-size:22px;color:#737b88}
+.spotify-mini-copy{min-width:0;flex:1;align-self:stretch;display:flex;flex-direction:column;justify-content:center}
+.spotify-mini-title{font-size:12px;font-weight:850;white-space:normal;overflow:visible;letter-spacing:-.01em;line-height:1.15;display:block;overflow-wrap:anywhere}
+.spotify-mini-artist{font-size:10px;color:#aab1bd;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
+.spotify-mini-progress{height:5px;background:#2b3038;border-radius:999px;overflow:hidden;margin-top:8px;cursor:pointer}.spotify-mini-progress>div{height:100%;width:0;background:#eef2f5;border-radius:inherit}
+.spotify-mini-time{display:flex;justify-content:space-between;font-size:9px;color:#7e8793;margin-top:3px}
+.spotify-mini-controls{display:grid;grid-template-columns:32px 38px 32px;gap:5px;align-items:center;flex:0 0 auto}.spotify-mini-controls button{width:32px;height:30px;border:1px solid rgba(255,255,255,.12);border-radius:9px;background:#161a20;color:#edf1f5;font-size:10px;padding:0;cursor:pointer}.spotify-mini-controls .spotify-mini-main{width:38px;height:36px;background:#f4f6f8;color:#101216;font-size:14px;font-weight:900}.spotify-mini-controls #spotifyMiniShuffle{grid-column:1/4;width:100%;height:24px;color:#98a0ac}.spotify-mini-controls #spotifyMiniShuffle.active{color:#7cff9f;border-color:rgba(30,215,96,.45);background:rgba(30,215,96,.10)}
+@media(max-width:700px){.spotify-mini-custom{padding:8px 9px;gap:8px}.spotify-mini-custom .spotify-mini-track-art{flex-basis:54px;width:54px;height:54px}.spotify-mini-controls{grid-template-columns:29px 34px 29px;gap:4px}.spotify-mini-controls button{width:29px}.spotify-mini-controls .spotify-mini-main{width:34px}}
+.spotify-mini.spotify-docked .spotify-mini-icon{z-index:9!important;right:-9px!important;top:-9px!important}
+
+
+/* v5.10 — uncropped custom mini player.
+   The track copy gets the full top-row width; controls live on their own row. */
+.spotify-mini.spotify-docked{
+  width:min(440px,calc(100vw - 36px))!important;
+  height:188px!important;
+  overflow:hidden!important;
+}
+.spotify-mini.spotify-docked .spotify-frame{
+  height:188px!important;min-height:188px!important;max-height:188px!important;
+}
+.spotify-mini.spotify-docked .spotify-mini-custom{
+  display:grid!important;
+  grid-template-columns:68px minmax(0,1fr);
+  grid-template-rows:minmax(0,1fr) auto;
+  align-items:center;
+  column-gap:11px;
+  row-gap:8px;
+  padding:11px 12px 10px;
+}
+.spotify-mini.spotify-docked .spotify-mini-custom .spotify-mini-track-art{
+  grid-column:1;
+  grid-row:1;
+  align-self:center;
+  width:64px;height:64px;flex-basis:64px;
+}
+.spotify-mini.spotify-docked .spotify-mini-copy{
+  grid-column:2;
+  grid-row:1;
+  align-self:center;
+  min-width:0;
+  justify-content:center;
+}
+.spotify-mini.spotify-docked .spotify-mini-title{
+  display:block!important;
+  white-space:normal!important;
+  overflow:visible!important;
+  text-overflow:clip!important;
+  overflow-wrap:anywhere;
+  font-size:13px;
+  line-height:1.22;
+  max-height:none!important;
+}
+.spotify-mini.spotify-docked .spotify-mini-artist{
+  white-space:normal;
+  overflow:visible;
+  text-overflow:clip;
+  line-height:1.18;
+  max-height:2.36em;
+}
+.spotify-mini.spotify-docked .spotify-mini-controls{
+  grid-column:1 / 3;
+  grid-row:2;
+  display:grid;
+  grid-template-columns:42px 48px 42px minmax(96px,1fr);
+  gap:7px;
+  width:100%;
+}
+.spotify-mini.spotify-docked .spotify-mini-controls button,
+.spotify-mini.spotify-docked .spotify-mini-controls .spotify-mini-main{
+  width:100%!important;
+  height:34px;
+}
+.spotify-mini.spotify-docked .spotify-mini-controls #spotifyMiniShuffle{
+  grid-column:4;
+  width:100%!important;
+  height:34px;
+}
+@media(max-width:700px){
+  .spotify-mini.spotify-docked{width:calc(100vw - 20px)!important;height:188px!important}
+  .spotify-mini.spotify-docked .spotify-mini-custom{grid-template-columns:58px minmax(0,1fr);padding:10px}
+  .spotify-mini.spotify-docked .spotify-mini-custom .spotify-mini-track-art{width:56px;height:56px;flex-basis:56px}
+  .spotify-mini.spotify-docked .spotify-mini-controls{grid-template-columns:38px 44px 38px minmax(82px,1fr);gap:5px}
+}
+
+
+/* v5.11 — mini player geometry + volume restoration. */
+.spotify-mini.spotify-docked{width:min(440px,calc(100vw - 36px))!important;height:214px!important;overflow:hidden!important}
+.spotify-mini.spotify-docked .spotify-frame{height:214px!important;min-height:214px!important;max-height:214px!important}
+.spotify-mini.spotify-docked .spotify-mini-custom{grid-template-columns:68px minmax(0,1fr)!important;grid-template-rows:minmax(0,1fr) 36px 24px!important;row-gap:7px!important;padding:11px 12px 10px!important}
+.spotify-mini.spotify-docked .spotify-mini-copy{padding-right:38px!important}
+.spotify-mini.spotify-docked .spotify-mini-controls{grid-column:1/3!important;grid-row:2!important;grid-template-columns:44px 50px 44px 112px!important;justify-content:start!important;gap:7px!important;width:auto!important}
+.spotify-mini.spotify-docked .spotify-mini-controls button,.spotify-mini.spotify-docked .spotify-mini-controls .spotify-mini-main{height:36px!important;width:100%!important}
+.spotify-mini.spotify-docked .spotify-mini-controls #spotifyMiniShuffle{grid-column:4!important;height:36px!important;width:112px!important}
+.spotify-mini-volume{grid-column:1/3;grid-row:3;display:grid;grid-template-columns:18px minmax(0,1fr) 34px;align-items:center;gap:7px;color:#8d96a4;font-size:10px;min-width:0}
+.spotify-mini-volume input{width:100%;min-width:0;accent-color:#a8a8ff;cursor:pointer}
+.spotify-mini-volume span:last-child{text-align:right;font-variant-numeric:tabular-nums}
+.spotify-mini.spotify-docked .spotify-mini-icon{right:10px!important;top:10px!important;width:30px!important;height:30px!important;border-radius:10px!important;display:grid!important;place-items:center!important;padding:0!important;line-height:1!important;transform:none!important}
+@media(max-width:700px){.spotify-mini.spotify-docked{width:calc(100vw - 20px)!important;height:214px!important}.spotify-mini.spotify-docked .spotify-frame{height:214px!important;min-height:214px!important;max-height:214px!important}.spotify-mini.spotify-docked .spotify-mini-controls{grid-template-columns:40px 46px 40px 100px!important;gap:5px!important}.spotify-mini.spotify-docked .spotify-mini-controls #spotifyMiniShuffle{width:100px!important}}
+
+/* v5.17 — full Spotify catalog beyond the native embed's ~100 rendered rows */
+.spotify-full-queue-card{display:grid;gap:8px;padding:10px;border:1px solid var(--border);border-radius:14px;background:rgba(4,6,11,.42)}
+.spotify-full-queue-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}.spotify-full-queue-head strong{font-size:12px}.spotify-full-queue-head #spotifyQueueCount{text-align:right;white-space:nowrap}
+.spotify-queue-search{padding:8px 10px!important;border-radius:10px!important;font-size:11px}
+.spotify-queue-viewport{position:relative;height:260px;overflow:auto;border:1px solid rgba(255,255,255,.08);border-radius:11px;background:rgba(7,9,14,.66);contain:strict}
+.spotify-queue-list{position:relative;width:100%;min-height:1px}
+.spotify-queue-row{position:absolute;left:0;right:0;top:0;height:52px;width:100%;display:grid!important;grid-template-columns:32px minmax(0,1fr) 38px;align-items:center;gap:8px;padding:6px 8px!important;border:0!important;border-bottom:1px solid rgba(255,255,255,.055)!important;border-radius:0!important;background:transparent!important;text-align:left!important;cursor:pointer;will-change:transform}
+.spotify-queue-row:hover{background:rgba(255,255,255,.06)!important}.spotify-queue-row.active{background:rgba(30,215,96,.11)!important;box-shadow:inset 3px 0 0 rgba(30,215,96,.75)}
+.spotify-queue-num{font-size:10px;color:#77808e;text-align:right;font-variant-numeric:tabular-nums}.spotify-queue-text{min-width:0;display:grid;gap:2px}.spotify-queue-text strong{font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.spotify-queue-text small{font-size:9px;color:#8993a1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.spotify-queue-row img{width:36px;height:36px;border-radius:6px;object-fit:cover;background:#171a20}
+@media(max-width:700px){.spotify-queue-viewport{height:300px}}
+.spotify-queue-head-actions{display:flex;align-items:center;gap:7px}.spotify-queue-head-actions button{width:28px;height:28px;padding:0!important;border-radius:8px!important}
+
+.todo-study-add{display:grid;grid-template-columns:minmax(0,1fr) 128px 42px;gap:6px}.todo-study-add button{padding:0!important;font-size:18px}.todo-study-list{display:grid;gap:6px}
+.todo-study-row{display:grid;grid-template-columns:24px minmax(0,1fr) auto;gap:7px;align-items:center;padding:7px 8px;border:1px solid rgba(255,255,255,.08);border-radius:11px;background:rgba(0,0,0,.15)}
+.todo-study-check{width:22px!important;height:22px!important;padding:0!important;border-radius:8px!important}.todo-study-title{font-size:12px;font-weight:720;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.todo-study-date{font-size:9px;color:var(--muted)}
+.todo-study-subadd{padding:3px 6px!important;background:transparent!important;border:0!important}.todo-study-subs{grid-column:2/4;display:grid;gap:4px;padding-left:8px;border-left:1px solid rgba(255,255,255,.1)}
+.todo-study-subs .todo-study-row{grid-template-columns:20px minmax(0,1fr);padding:4px 6px;border:0;background:transparent}.timer-options{border-top:1px solid var(--border);padding-top:8px}.timer-options summary{cursor:pointer;color:var(--muted);font-size:11px}.timer-options label{margin-top:8px}
+.spotify-mini.spotify-panel.spotify-track-mode,.spotify-mini.spotify-panel.spotify-track-mode .spotify-frame{height:352px!important;min-height:352px!important;max-height:352px!important}.spotify-player-slot.spotify-track-mode{height:352px!important;min-height:352px!important;max-height:352px!important}
+@media(max-width:700px){.todo-study-add{grid-template-columns:1fr 42px}.todo-study-add input[type=date]{grid-column:1/3}}
+
+/* v5.19.1 — one Spotify surface. Full-catalog machinery stays internal, not a second UI. */
+.spotify-clean-state{padding:2px 2px 0;color:#7f8996}
+.music-fx-card{display:none!important}
+.spotify-full-queue-card{display:grid!important}
+.spotify-panel-custom{display:none}
+.spotify-mini.spotify-panel.spotify-track-mode{
+  height:278px!important;min-height:278px!important;max-height:278px!important;
+  background:#111214!important;border:1px solid rgba(255,255,255,.09)
+}
+.spotify-player-slot.spotify-track-mode{height:278px!important;min-height:278px!important;max-height:278px!important}
+.spotify-mini.spotify-panel.spotify-track-mode .spotify-frame{visibility:hidden!important;pointer-events:none!important}
+.spotify-mini.spotify-panel.spotify-track-mode .spotify-mini-custom{display:none!important}
+.spotify-mini.spotify-panel.spotify-track-mode .spotify-panel-custom{
+  display:grid;grid-template-columns:132px minmax(0,1fr);gap:18px;align-items:center;
+  position:absolute;inset:0;padding:22px;background:linear-gradient(145deg,#17191d,#0d0f12);z-index:5
+}
+.spotify-panel-art{width:132px;height:132px;border-radius:12px;background:#20242a center/cover no-repeat;display:grid;place-items:center;font-size:34px;box-shadow:0 16px 38px rgba(0,0,0,.35)}
+.spotify-panel-copy{min-width:0;display:grid;gap:7px}.spotify-panel-title{font-size:20px;font-weight:790;line-height:1.12;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.spotify-panel-artist{font-size:12px;color:#9ca4af;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.spotify-panel-progress{height:5px;border-radius:999px;background:#3a3f47;overflow:hidden;cursor:pointer;margin-top:7px}.spotify-panel-progress>div{height:100%;width:0;background:#f3f6fa;border-radius:inherit}
+.spotify-panel-time{display:flex;justify-content:space-between;font-size:9px;color:#8e97a3;font-variant-numeric:tabular-nums}
+.spotify-panel-controls{display:flex;gap:8px;align-items:center;margin-top:4px}.spotify-panel-controls button{width:38px;height:34px;padding:0!important;border-radius:10px!important}.spotify-panel-controls .spotify-panel-main{width:44px;background:#f5f6f8!important;color:#111!important}
+.spotify-more{margin-top:4px}.spotify-more summary{cursor:pointer;color:#8f98a4;font-size:10px}
+@media(max-width:700px){
+  .spotify-mini.spotify-panel.spotify-track-mode,.spotify-player-slot.spotify-track-mode{height:250px!important;min-height:250px!important;max-height:250px!important}
+  .spotify-mini.spotify-panel.spotify-track-mode .spotify-panel-custom{grid-template-columns:105px minmax(0,1fr);gap:14px;padding:18px}
+  .spotify-panel-art{width:105px;height:105px}.spotify-panel-title{font-size:17px}
+}
+
+/* v5.19.4 — never swap the large Spotify drawer into Warrior's custom fallback card.
+   Exact-track mode keeps the official Spotify iframe visible at the same panel size. */
+.spotify-panel-custom{display:none!important}
+.spotify-mini.spotify-panel.spotify-track-mode{
+  height:clamp(340px,52vh,560px)!important;
+  min-height:340px!important;
+  max-height:none!important;
+  background:#121212!important;
+  border-radius:16px!important;
+}
+.spotify-player-slot.spotify-track-mode{
+  height:clamp(340px,52vh,560px)!important;
+  min-height:340px!important;
+  max-height:none!important;
+  background:#121212!important;
+}
+.spotify-mini.spotify-panel.spotify-track-mode .spotify-frame{
+  display:block!important;
+  visibility:visible!important;
+  opacity:1!important;
+  pointer-events:auto!important;
+  height:100%!important;
+  min-height:100%!important;
+  max-height:none!important;
+}
+.spotify-mini.spotify-panel.spotify-track-mode .spotify-mini-custom{display:none!important}
+@media(max-width:700px){
+  .spotify-mini.spotify-panel.spotify-track-mode,
+  .spotify-player-slot.spotify-track-mode{
+    height:clamp(300px,46vh,440px)!important;
+    min-height:300px!important;
+  }
+}
+
+
+/* v5.19.7 — Spotify track embeds render at 352px. Older builds stretched the
+   iframe to 52vh/560px, leaving the large white dead area visible in the drawer. */
+.spotify-mini.spotify-panel.spotify-track-mode,
+.spotify-player-slot.spotify-track-mode{
+  height:352px!important;
+  min-height:352px!important;
+  max-height:352px!important;
+}
+.spotify-mini.spotify-panel.spotify-track-mode .spotify-frame{
+  height:352px!important;
+  min-height:352px!important;
+  max-height:352px!important;
+}
+@media(max-width:700px){
+  .spotify-mini.spotify-panel.spotify-track-mode,
+  .spotify-player-slot.spotify-track-mode,
+  .spotify-mini.spotify-panel.spotify-track-mode .spotify-frame{
+    height:352px!important;
+    min-height:352px!important;
+    max-height:352px!important;
+  }
+}
+
+/* v5.19.8 — exact-track mode should not leave a giant empty drawer below Spotify. */
+.drawer.spotify-track-drawer{
+  bottom:auto!important;
+  height:auto!important;
+  max-height:calc(100vh - 112px)!important;
+}
+@media(max-width:700px){
+  .drawer.spotify-track-drawer{
+    bottom:auto!important;
+    max-height:calc(100vh - 86px)!important;
+  }
+}
+
+
+/* v5.19.13 — one Spotify player surface.
+   Keep Spotify's official artwork/transport at the top, crop away its native
+   ~100-row list, and continue the SAME player card with Warrior's uncapped queue. */
+.spotify-unified-player{
+  position:relative;display:grid;grid-template-rows:200px 335px;
+  overflow:hidden;border:1px solid rgba(255,255,255,.14);border-radius:16px;
+  background:#121212;box-shadow:0 14px 42px rgba(0,0,0,.22)
+}
+.spotify-unified-player .spotify-player-slot{
+  height:200px!important;min-height:200px!important;max-height:200px!important;
+  overflow:hidden!important;border:0!important;border-radius:0!important;background:#121212!important
+}
+.spotify-mini.spotify-panel,
+.spotify-mini.spotify-panel.spotify-track-mode{
+  height:200px!important;min-height:200px!important;max-height:200px!important;
+  overflow:hidden!important;border:0!important;border-radius:15px 15px 0 0!important;
+  box-shadow:none!important;background:#121212!important
+}
+.spotify-mini.spotify-panel .spotify-frame,
+.spotify-mini.spotify-panel.spotify-track-mode .spotify-frame{
+  display:block!important;visibility:visible!important;opacity:1!important;pointer-events:auto!important;
+  height:352px!important;min-height:352px!important;max-height:352px!important;
+  border-radius:15px 15px 0 0!important;background:#121212!important
+}
+.spotify-unified-player .spotify-queue-viewport{
+  position:relative;height:335px!important;min-height:335px!important;overflow:auto;
+  border:0!important;border-top:1px solid rgba(255,255,255,.08)!important;border-radius:0!important;
+  background:#121212!important;contain:strict;scrollbar-color:rgba(255,255,255,.24) transparent
+}
+.spotify-unified-player .spotify-queue-viewport::-webkit-scrollbar{width:7px}
+.spotify-unified-player .spotify-queue-viewport::-webkit-scrollbar-thumb{background:rgba(255,255,255,.22);border-radius:99px}
+.spotify-unified-player .spotify-queue-list{position:relative;width:100%;min-height:1px}
+.spotify-unified-player .spotify-queue-row{
+  position:absolute;left:0;right:0;top:0;height:50px;width:100%;display:grid!important;
+  grid-template-columns:28px minmax(0,1fr);align-items:center;gap:9px;padding:6px 12px 6px 9px!important;
+  border:0!important;border-bottom:1px solid rgba(255,255,255,.045)!important;border-radius:0!important;
+  background:#121212!important;text-align:left!important;cursor:pointer;will-change:transform
+}
+.spotify-unified-player .spotify-queue-row:hover{background:#1b1b1b!important}
+.spotify-unified-player .spotify-queue-row.active{background:#202820!important;box-shadow:inset 3px 0 0 #1ed760}
+.spotify-unified-player .spotify-queue-num{font-size:11px;color:#777;text-align:right;font-variant-numeric:tabular-nums}
+.spotify-unified-player .spotify-queue-text{min-width:0;display:grid;gap:2px}
+.spotify-unified-player .spotify-queue-text strong{font-size:12px;line-height:1.15;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#fff}
+.spotify-unified-player .spotify-queue-text small{font-size:10px;color:#8d8d8d;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.spotify-full-queue-card,.spotify-queue-search,.spotify-full-queue-head,.spotify-queue-head-actions{display:none!important}
+.drawer.spotify-track-drawer{bottom:88px!important;height:auto!important;max-height:none!important}
+@media(max-width:700px){
+  .spotify-unified-player{grid-template-rows:190px 300px}
+  .spotify-unified-player .spotify-player-slot,
+  .spotify-mini.spotify-panel,
+  .spotify-mini.spotify-panel.spotify-track-mode{height:190px!important;min-height:190px!important;max-height:190px!important}
+  .spotify-unified-player .spotify-queue-viewport{height:300px!important;min-height:300px!important}
+  .drawer.spotify-track-drawer{bottom:78px!important;height:auto!important;max-height:none!important}
+}
+
+/* v5.19.14 — stable Spotify drawer chrome.
+   Never expose Spotify's playlist/track embed UI in the drawer. The embed stays
+   alive as the playback engine, while Warrior renders one stable header above
+   the uncapped queue. This prevents the layout from changing after playIndex. */
+.spotify-unified-player{
+  grid-template-rows:210px 335px!important;
+}
+.spotify-unified-player .spotify-player-slot,
+.spotify-unified-player .spotify-player-slot.spotify-track-mode,
+.spotify-mini.spotify-panel,
+.spotify-mini.spotify-panel.spotify-track-mode{
+  height:210px!important;
+  min-height:210px!important;
+  max-height:210px!important;
+  overflow:hidden!important;
+  background:#121212!important;
+  border:0!important;
+}
+.spotify-mini.spotify-panel .spotify-frame,
+.spotify-mini.spotify-panel.spotify-track-mode .spotify-frame{
+  position:absolute!important;
+  inset:0!important;
+  display:block!important;
+  width:100%!important;
+  height:210px!important;
+  min-height:210px!important;
+  max-height:210px!important;
+  opacity:0!important;
+  visibility:visible!important;
+  pointer-events:none!important;
+  z-index:0!important;
+}
+.spotify-mini.spotify-panel .spotify-mini-custom,
+.spotify-mini.spotify-panel.spotify-track-mode .spotify-mini-custom{
+  display:none!important;
+}
+.spotify-mini.spotify-panel .spotify-panel-custom,
+.spotify-mini.spotify-panel.spotify-track-mode .spotify-panel-custom{
+  display:grid!important;
+  grid-template-columns:126px minmax(0,1fr)!important;
+  gap:16px!important;
+  align-items:center!important;
+  position:absolute!important;
+  inset:0!important;
+  padding:20px!important;
+  background:linear-gradient(145deg,#1a1b1f,#111214)!important;
+  z-index:5!important;
+  pointer-events:auto!important;
+}
+.spotify-mini.spotify-panel .spotify-panel-art,
+.spotify-mini.spotify-panel.spotify-track-mode .spotify-panel-art{
+  width:126px!important;
+  height:126px!important;
+}
+.spotify-mini.spotify-panel .spotify-panel-title,
+.spotify-mini.spotify-panel.spotify-track-mode .spotify-panel-title{
+  font-size:19px!important;
+}
+.spotify-unified-player .spotify-queue-viewport{
+  height:335px!important;
+  min-height:335px!important;
+}
+@media(max-width:700px){
+  .spotify-unified-player{grid-template-rows:190px 300px!important}
+  .spotify-unified-player .spotify-player-slot,
+  .spotify-unified-player .spotify-player-slot.spotify-track-mode,
+  .spotify-mini.spotify-panel,
+  .spotify-mini.spotify-panel.spotify-track-mode{
+    height:190px!important;min-height:190px!important;max-height:190px!important
+  }
+  .spotify-mini.spotify-panel .spotify-frame,
+  .spotify-mini.spotify-panel.spotify-track-mode .spotify-frame{
+    height:190px!important;min-height:190px!important;max-height:190px!important
+  }
+  .spotify-mini.spotify-panel .spotify-panel-custom,
+  .spotify-mini.spotify-panel.spotify-track-mode .spotify-panel-custom{
+    grid-template-columns:102px minmax(0,1fr)!important;gap:13px!important;padding:16px!important
+  }
+  .spotify-mini.spotify-panel .spotify-panel-art,
+  .spotify-mini.spotify-panel.spotify-track-mode .spotify-panel-art{
+    width:102px!important;height:102px!important
+  }
+  .spotify-mini.spotify-panel .spotify-panel-title,
+  .spotify-mini.spotify-panel.spotify-track-mode .spotify-panel-title{font-size:17px!important}
+  .spotify-unified-player .spotify-queue-viewport{height:300px!important;min-height:300px!important}
+}
+
+/* v5.19.16 — keep Spotify's engine compositor-visible without exposing native UI.
+   A fully transparent cross-origin media iframe can lose background playback/update
+   activity. The iframe now renders normally underneath Warrior's opaque custom UI. */
+.spotify-mini.spotify-panel .spotify-frame,
+.spotify-mini.spotify-panel.spotify-track-mode .spotify-frame,
+.spotify-mini.spotify-docked .spotify-frame{
+  opacity:1!important;
+  visibility:visible!important;
+  pointer-events:none!important;
+  z-index:0!important;
+}
+.spotify-mini.spotify-panel .spotify-panel-custom,
+.spotify-mini.spotify-panel.spotify-track-mode .spotify-panel-custom,
+.spotify-mini.spotify-docked .spotify-mini-custom{
+  position:absolute!important;
+  z-index:3!important;
+  background:#121212!important;
+}
+\n\n/* v5.19.25 — compact aligned mini player */
+.spotify-mini.spotify-docked{width:min(344px,calc(100vw - 30px))!important;height:158px!important;border-radius:14px!important}
+.spotify-mini.spotify-docked .spotify-frame{height:158px!important;min-height:158px!important;max-height:158px!important}
+.spotify-mini.spotify-docked .spotify-mini-custom{display:grid!important;grid-template-columns:56px minmax(0,1fr)!important;grid-template-rows:58px 34px 22px!important;column-gap:10px!important;row-gap:7px!important;padding:10px 11px!important;align-content:center!important}
+.spotify-mini.spotify-docked .spotify-mini-custom .spotify-mini-track-art{grid-column:1!important;grid-row:1!important;width:54px!important;height:54px!important;align-self:center!important;border-radius:9px!important}
+.spotify-mini.spotify-docked .spotify-mini-copy{grid-column:2!important;grid-row:1!important;padding-right:30px!important;justify-content:center!important}
+.spotify-mini.spotify-docked .spotify-mini-title{font-size:12px!important;line-height:1.15!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
+.spotify-mini.spotify-docked .spotify-mini-artist{font-size:9px!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
+.spotify-mini.spotify-docked .spotify-mini-progress{margin-top:6px!important;height:4px!important}
+.spotify-mini.spotify-docked .spotify-mini-time{font-size:8px!important;margin-top:2px!important}
+.spotify-mini.spotify-docked .spotify-mini-controls{grid-column:1/3!important;grid-row:2!important;display:grid!important;grid-template-columns:38px 44px 38px minmax(74px,1fr)!important;gap:6px!important;width:100%!important;align-items:center!important}
+.spotify-mini.spotify-docked .spotify-mini-controls button,.spotify-mini.spotify-docked .spotify-mini-controls .spotify-mini-main{height:34px!important;width:100%!important;border-radius:9px!important}
+.spotify-mini.spotify-docked .spotify-mini-controls #spotifyMiniShuffle{grid-column:4!important;width:100%!important;height:34px!important}
+.spotify-mini.spotify-docked .spotify-mini-volume{grid-column:1/3!important;grid-row:3!important;grid-template-columns:16px minmax(0,1fr) 32px!important;gap:6px!important;font-size:9px!important;margin:0!important}
+.spotify-mini.spotify-docked .spotify-mini-icon{right:10px!important;top:9px!important;width:27px!important;height:27px!important;font-size:12px!important}
+@media(max-width:700px){.spotify-mini.spotify-docked{width:calc(100vw - 20px)!important;height:158px!important}}
+
+
+/* v5.19.29 — same exact volume slider in full Spotify + floating mini player. */
+#spotifyVolume,#spotifyMiniVolume{
+  -webkit-appearance:none!important;appearance:none!important;
+  height:5px!important;border:0!important;border-radius:999px!important;
+  padding:0!important;margin:0!important;overflow:visible!important;
+  background:linear-gradient(90deg,#a88cff 0 var(--range-pct,100%),rgba(255,255,255,.28) var(--range-pct,100%) 100%)!important;
+}
+#spotifyVolume::-webkit-slider-runnable-track,#spotifyMiniVolume::-webkit-slider-runnable-track{height:5px;background:transparent;border:0;border-radius:999px}
+#spotifyVolume::-webkit-slider-thumb,#spotifyMiniVolume::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:14px;height:14px;border-radius:50%;background:#a88cff;border:0;margin-top:-4.5px;box-shadow:0 0 0 1px rgba(255,255,255,.12)}
+#spotifyVolume::-moz-range-track,#spotifyMiniVolume::-moz-range-track{height:5px;background:rgba(255,255,255,.28);border:0;border-radius:999px}
+#spotifyVolume::-moz-range-progress,#spotifyMiniVolume::-moz-range-progress{height:5px;background:#a88cff;border-radius:999px}
+#spotifyVolume::-moz-range-thumb,#spotifyMiniVolume::-moz-range-thumb{width:14px;height:14px;border-radius:50%;background:#a88cff;border:0}
+
+
+/* v5.19.33 — smooth 4K compositor path. Keep the decoded video layer cheap; mood lives in overlays. */
+.fallback-bg,.video-bg{inset:0!important;width:100%!important;height:100%!important}
+.video-bg{filter:none!important;transform:none!important;transition:opacity .45s ease!important;will-change:opacity;backface-visibility:hidden;contain:paint}
+.video-bg.active{opacity:.96!important}
+body.phase-break .video-bg,body.phase-focus .video-bg,body.music-boundary-warp .video-bg{filter:none!important;transform:none!important}
+.phase-transition-overlay{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+body.phase-transition .phase-transition-overlay{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+/* Preserve the visual phase mood without filtering every 4K frame. */
+body.phase-break .cinema-shade{background:linear-gradient(180deg,rgba(4,9,14,.18),rgba(4,9,14,.08) 44%,rgba(0,0,0,.24)),radial-gradient(circle at center,rgba(0,12,18,.03) 0 52%,rgba(0,10,18,.34) 100%)!important}
+body.phase-focus .cinema-shade{background:linear-gradient(180deg,rgba(2,3,7,.06),rgba(2,3,7,0) 42%,rgba(2,3,7,.10)),radial-gradient(circle at center,transparent 0 62%,rgba(0,0,0,.17) 100%)!important}
+
+/* v5.19.41 — restore Todo quick-add in Study Room. */
+.study-todo-toolbar{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:7px}.todo-study-plus{width:30px!important;height:30px!important;padding:0!important;border-radius:9px!important;font-size:18px!important;line-height:1!important;background:rgba(255,255,255,.08)!important;border:1px solid rgba(255,255,255,.14)!important}.todo-study-plus:hover,.todo-study-plus.active{background:rgba(255,255,255,.14)!important}.todo-study-add[hidden]{display:none!important}.todo-study-add{margin:0 0 8px}.todo-study-add input{min-width:0}.todo-study-add #studyTodoInput{width:100%}.todo-study-add #studyTodoDate{width:100%}
+
+
+/* v5.19.43 — task add/complete celebration in Study Room. Visual only. */
+.todo-study-row{position:relative;isolation:isolate;transform-origin:50% 50%}
+.todo-study-check{transition:transform .18s ease,background .22s ease,border-color .22s ease,color .22s ease,box-shadow .22s ease}
+.todo-study-check:hover{transform:translateY(-1px) scale(1.08);border-color:rgba(110,231,162,.5)!important;color:#a8ffd0!important;box-shadow:0 0 0 3px rgba(110,231,162,.07)}
+.task-fx-enter{animation:warriorTaskEnter .64s cubic-bezier(.16,1,.3,1) both;overflow:hidden}
+.task-fx-enter::before{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:-1;background:linear-gradient(105deg,rgba(105,92,255,.18),rgba(99,245,255,.13) 48%,rgba(110,231,162,.16));animation:warriorTaskEnterGlow .72s ease-out both}
+.task-fx-complete{pointer-events:none;overflow:hidden;animation:warriorTaskComplete .48s cubic-bezier(.4,0,.2,1) both}
+.task-fx-complete::before{content:"";position:absolute;inset:-1px;border-radius:inherit;pointer-events:none;z-index:0;background:linear-gradient(100deg,transparent,rgba(99,245,255,.12) 22%,rgba(110,231,162,.34) 48%,rgba(154,255,203,.18) 64%,transparent);transform:translateX(-115%);animation:warriorTaskSweep .42s ease-out forwards}
+.task-fx-complete>*{position:relative;z-index:1}.task-fx-complete .todo-study-title{position:relative;color:#c9ffe0!important;text-shadow:0 0 14px rgba(110,231,162,.28)}
+.task-fx-complete .todo-study-title::after{content:"";position:absolute;left:0;top:52%;height:2px;width:0;border-radius:999px;background:linear-gradient(90deg,#63f5ff,#6ee7a2,#d8ff8a);box-shadow:0 0 9px rgba(110,231,162,.55);animation:warriorTaskStrike .28s .08s ease-out forwards}
+.task-fx-complete .todo-study-check{background:linear-gradient(135deg,#63f5ff,#6ee7a2)!important;border-color:rgba(183,255,219,.9)!important;color:#07140e!important;box-shadow:0 0 0 5px rgba(110,231,162,.10),0 0 20px rgba(99,245,255,.28)!important;animation:warriorCheckPop .38s cubic-bezier(.16,1,.3,1) both}
+.task-fx-burst{position:fixed;width:1px;height:1px;z-index:20000;pointer-events:none;contain:layout style}.task-fx-ring{position:absolute;left:0;top:0;width:10px;height:10px;border:2px solid #78ffd1;border-radius:999px;transform:translate(-50%,-50%) scale(.2);box-shadow:0 0 16px rgba(99,245,255,.55);animation:warriorBurstRing .56s ease-out forwards}.task-fx-particle{position:absolute;left:0;top:0;width:5px;height:5px;border-radius:999px;background:#6ee7a2;box-shadow:0 0 8px currentColor;transform:translate(-50%,-50%) rotate(var(--a)) translateX(0) scale(.5);animation:warriorBurstParticle .62s var(--delay) cubic-bezier(.16,.75,.2,1) forwards}.task-fx-particle:nth-of-type(3n+1){background:#63f5ff}.task-fx-particle:nth-of-type(3n+2){background:#9b8cff}.task-fx-particle:nth-of-type(3n){background:#d8ff8a}.task-fx-burst.added .task-fx-ring{border-color:#9b8cff;box-shadow:0 0 16px rgba(155,140,255,.48)}
+@keyframes warriorTaskEnter{0%{opacity:0;transform:translateY(-9px) scale(.965);filter:blur(3px)}52%{opacity:1;transform:translateY(2px) scale(1.012);filter:blur(0)}100%{opacity:1;transform:none;filter:none}}@keyframes warriorTaskEnterGlow{0%{opacity:0;transform:scale(.94)}35%{opacity:1}100%{opacity:0;transform:scale(1.04)}}@keyframes warriorTaskSweep{to{transform:translateX(115%)}}@keyframes warriorTaskStrike{to{width:100%}}@keyframes warriorCheckPop{0%{transform:scale(.72) rotate(-11deg)}52%{transform:scale(1.22) rotate(4deg)}100%{transform:scale(1) rotate(0)}}@keyframes warriorTaskComplete{0%{opacity:1;transform:none;filter:none}52%{opacity:1;transform:translateX(4px) scale(1.012);filter:none}100%{opacity:0;transform:translateX(26px) scale(.95);filter:blur(2px)}}@keyframes warriorBurstRing{0%{opacity:.9;transform:translate(-50%,-50%) scale(.25)}100%{opacity:0;transform:translate(-50%,-50%) scale(3.2)}}@keyframes warriorBurstParticle{0%{opacity:1;transform:translate(-50%,-50%) rotate(var(--a)) translateX(0) scale(.65)}72%{opacity:1}100%{opacity:0;transform:translate(-50%,-50%) rotate(var(--a)) translateX(var(--d)) scale(.05)}}
+@media(prefers-reduced-motion:reduce){.task-fx-enter,.task-fx-complete,.task-fx-complete::before,.task-fx-complete .todo-study-title::after,.task-fx-complete .todo-study-check{animation-duration:.01ms!important;animation-delay:0ms!important}.task-fx-burst{display:none!important}}
+
+
+/* v5.19.49 — smooth Spotify palette morph + full scene tint */
+.scene::after{content:'';position:absolute;inset:-7%;pointer-events:none;background:
+  radial-gradient(circle at 12% 14%,var(--track-bg-a),transparent 34%),
+  radial-gradient(circle at 88% 18%,var(--track-bg-b),transparent 33%),
+  radial-gradient(circle at 52% 94%,var(--track-bg-c),transparent 40%),
+  linear-gradient(135deg,var(--track-soft),transparent 42%,var(--track-soft-2));
+  mix-blend-mode:screen;opacity:.94;filter:blur(13px) saturate(1.10);}
+.track-theme-live .cinema-shade{background:
+  linear-gradient(180deg,var(--track-soft),rgba(2,3,7,0) 36%,var(--track-soft-2)),
+  radial-gradient(circle at center,transparent 0 54%,rgba(0,0,0,.19) 100%);}
+.track-theme-live .drawer,.track-theme-live .dock,.track-theme-live .spotify-mini,.track-theme-live .hero-controls button,.track-theme-live .preset,.track-theme-live .top-actions button,.track-theme-live input,.track-theme-live select,.track-theme-live textarea{border-color:color-mix(in srgb,var(--track-border) 84%, var(--border))!important;box-shadow:0 16px 40px var(--track-shadow);transition:border-color .24s linear,box-shadow .24s linear,background .24s linear,color .24s linear}
+.track-theme-live .drawer,.track-theme-live .dock,.track-theme-live .spotify-mini,.track-theme-live .todo-study-row,.track-theme-live .spotify-queue-viewport,.track-theme-live .spotify-full-queue-card,.track-theme-live .timer-options{background-image:linear-gradient(135deg,var(--track-soft),rgba(9,11,18,.20) 38%,var(--track-soft-2))}
+.track-theme-live .hero-controls .primary,.track-theme-live .mode.active,.track-theme-live .theme.active,.track-theme-live .status-dot.online{background:linear-gradient(135deg,var(--track-soft),var(--track-soft-2));border-color:var(--track-border)!important}
+.track-theme-live .phase,.track-theme-live .dot,.track-theme-live .brand .dot,.track-theme-live .spotify-mini-controls #spotifyMiniShuffle.active,.track-theme-live .spotify-queue-row.active .spotify-queue-num{color:var(--track-accent)}
+.track-theme-live .dot{background:var(--track-accent);box-shadow:0 0 22px var(--track-accent)}
+.track-theme-live .spotify-mini-progress>div,.track-theme-live .spotify-panel-progress>div{background:linear-gradient(90deg,var(--track-accent),var(--track-accent-2))}
+.track-theme-live .spotify-mini-track-art,.track-theme-live .spotify-panel-art{box-shadow:0 14px 34px var(--track-shadow),0 0 0 1px var(--track-card-border)}
+.track-theme-transitioning .scene::after{opacity:1;filter:blur(16px) saturate(1.16)}
+@media(prefers-reduced-motion:reduce){.track-theme-live *{transition-duration:0s!important}.scene::after{filter:blur(11px)}}

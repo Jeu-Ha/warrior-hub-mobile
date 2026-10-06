@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Warrior Hub — Study Room</title>
+  <link rel="stylesheet" href="study.css">
+  <link rel="stylesheet" href="desktop_music.css">
+</head>
+<body data-scene="forest">
+  <div class="scene" aria-hidden="true">
+    <div class="fallback-bg" id="fallbackBg">
+      <div class="scene-window"></div>
+      <div class="scene-shelves"></div>
+      <div class="scene-glow"></div>
+      <div class="rain-layer"></div>
+      <div class="star-layer"></div>
+    </div>
+    <video id="localBackground" class="video-bg" autoplay muted loop playsinline preload="auto" aria-hidden="true"></video>
+    <div class="cinema-shade"></div>
+    <div id="phaseTransitionOverlay" class="phase-transition-overlay"><span id="phaseTransitionLabel">BREAK</span></div>
+  </div>
+
+  <header class="top-hud">
+    <div class="brand"><span class="dot"></span> WARRIOR HUB <span class="muted">/ STUDY</span></div>
+    <div class="top-actions"><button id="openCanvasBtn">Canvas ↗</button><button id="closeBtn">Close</button></div>
+  </header>
+
+  <main class="hero">
+    <div class="phase" id="phaseLabel">FOCUS</div>
+    <div class="timer" id="timerText">50:00</div>
+    <div class="mission" id="focusLine">To-do clear.</div>
+    <div class="hero-controls">
+      <button id="startPauseBtn" class="primary">Start</button><button id="skipBtn">Skip</button><button id="resetBtn">Reset</button>
+    </div>
+    <div class="preset-row">
+      <button data-preset="50,10" class="preset active">50 / 10</button><button data-preset="25,5" class="preset">25 / 5</button><button data-preset="90,15" class="preset">90 / 15</button><button id="customPomodoroToggle" class="preset">Custom</button>
+    </div>
+    <div id="customPomodoro" class="custom-pomodoro" aria-hidden="true">
+      <label>Focus <input id="customWorkMinutes" type="number" min="1" max="240" inputmode="numeric" value="50"></label>
+      <span>:</span>
+      <label>Break <input id="customBreakMinutes" type="number" min="1" max="120" inputmode="numeric" value="10"></label>
+      <button id="applyCustomPomodoro" class="primary">Apply</button>
+    </div>
+    <div class="cycle-text" id="cycleText">0 completed cycles</div>
+  </main>
+
+  <nav class="dock" aria-label="Study tools">
+    <button data-drawer="focus">✓ Todo</button>
+    <button data-open-warrior-notes>✎ Notes</button>
+    <button data-drawer="notes">Text notes</button>
+    <button data-drawer="ai">✦ ChatGPT</button>
+    <button data-drawer="spotify">♫ Spotify</button>
+    <button data-drawer="atmosphere">◉ Scene</button>
+  </nav>
+
+  <div id="spotifyMini" class="spotify-mini spotify-hidden" aria-label="Spotify player">
+    <button id="spotifyMiniIcon" class="spotify-mini-icon" title="Spotify settings" aria-label="Open Spotify settings">♫</button>
+    <iframe id="spotifyFrame" class="spotify-frame" title="Spotify player" height="152" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="eager"></iframe>
+    <div id="spotifyPanelCustom" class="spotify-panel-custom" aria-label="Spotify player fallback">
+      <div id="spotifyPanelArt" class="spotify-panel-art" aria-hidden="true">♫</div>
+      <div class="spotify-panel-copy">
+        <div id="spotifyPanelTitle" class="spotify-panel-title">Starting Spotify…</div>
+        <div id="spotifyPanelArtist" class="spotify-panel-artist">Spotify</div>
+        <div id="spotifyPanelProgress" class="spotify-panel-progress" role="slider" aria-label="Track progress"><div id="spotifyPanelProgressFill"></div></div>
+        <div class="spotify-panel-time"><span id="spotifyPanelElapsed">0:00</span><span id="spotifyPanelRemaining">−0:00</span></div>
+        <div class="spotify-panel-controls">
+          <button id="spotifyPanelPrev" title="Previous track">◀◀</button>
+          <button id="spotifyPanelToggle" class="spotify-panel-main" title="Play">▶</button>
+          <button id="spotifyPanelNext" title="Next track">▶▶</button>
+        </div>
+      </div>
+    </div>
+    <div id="spotifyMiniCustom" class="spotify-mini-custom" aria-label="Warrior Hub Spotify mini player">
+      <div id="spotifyMiniTrackArt" class="spotify-mini-track-art" aria-hidden="true">♫</div>
+      <div class="spotify-mini-copy">
+        <div id="spotifyMiniTitle" class="spotify-mini-title">Starting Spotify…</div>
+        <div id="spotifyMiniArtist" class="spotify-mini-artist">Spotify</div>
+        <div id="spotifyMiniProgress" class="spotify-mini-progress" role="slider" aria-label="Track progress"><div id="spotifyMiniProgressFill"></div></div>
+        <div class="spotify-mini-time"><span id="spotifyMiniElapsed">0:00</span><span id="spotifyMiniRemaining">−0:00</span></div>
+      </div>
+      <div class="spotify-mini-controls">
+        <button id="spotifyMiniPrev" title="Previous track" aria-label="Previous track">◀◀</button>
+        <button id="spotifyMiniToggle" class="spotify-mini-main" title="Play" aria-label="Play">▶</button>
+        <button id="spotifyMiniNext" title="Next track" aria-label="Next track">▶▶</button>
+        <button id="spotifyMiniShuffle" title="Shuffle" aria-label="Shuffle" aria-pressed="false">🔀</button>
+      </div>
+      <label class="spotify-mini-volume" for="spotifyMiniVolume"><span aria-hidden="true">🔊</span><input id="spotifyMiniVolume" type="range" min="0" max="100" step="1" value="100" aria-label="Spotify volume"><span id="spotifyMiniVolumeValue">100%</span></label>
+    </div>
+  </div>
+
+  <aside class="drawer" id="drawer" aria-hidden="true">
+    <div class="drawer-head"><div><div class="eyebrow">STUDY TOOL</div><h2 id="drawerTitle">Todo</h2></div><button id="drawerClose">×</button></div>
+
+    <section class="drawer-page" data-page="focus">
+      <div class="study-todo-toolbar"><span class="tiny">Quick tasks</span><button id="studyTodoQuickAdd" class="todo-study-plus" type="button" aria-label="Add task" title="Add task">＋</button></div>
+      <div id="studyTodoComposer" class="todo-study-add" hidden>
+        <input id="studyTodoInput" maxlength="240" placeholder="What do you need to do?" autocomplete="off">
+        <input id="studyTodoDate" type="date" aria-label="Optional date">
+        <button id="studyTodoSave" class="primary" type="button" aria-label="Save task" title="Save task">＋</button>
+      </div>
+      <div id="studyTodoList" class="todo-study-list"></div>
+      <div class="tiny">Add here or edit tasks from the Assignments tab in Warrior Hub.</div>
+      <details class="timer-options"><summary>Timer options</summary><label class="auto-row"><input id="autoAdvance" type="checkbox" checked> Auto-start next phase</label><label class="auto-row"><input id="phaseFxEnabled" type="checkbox" checked> Transition FX</label></details>
+    </section>
+
+    <section class="drawer-page" data-page="notes">
+      <div class="section-row"><label>Subject notebook</label><span id="noteState" class="tiny">Saved locally</span></div>
+      <select id="noteSubject"></select>
+      <div class="notes-toolbar"><button id="newTodayNote">+ Today</button><button id="openNotebookBtn" class="primary">✎ Open drawing notebook</button></div>
+      <div class="day-caption">Days — newest first</div>
+      <div id="noteDayList" class="day-list"></div>
+      <div class="current-day-head"><div><div class="eyebrow">CURRENT DAY</div><strong id="currentNoteDayLabel"></strong></div><span id="pageCountBadge" class="page-badge">0 pages</span></div>
+      <textarea id="notes" placeholder="Text notes for this subject and this day…"></textarea>
+      <div class="tiny">Text and drawing pages are stored locally, separated by subject and day.</div>
+    </section>
+
+    <section class="drawer-page" data-page="ai">
+      <div class="section-row"><label>ChatGPT Coach</label><span class="status-dot online">uses your ChatGPT</span></div>
+      <textarea id="aiQuestion" placeholder="Paste a problem, ask for a hint, or ask me to quiz you…"></textarea>
+      <div class="mode-row"><button data-mode="hint" class="mode active">Hint</button><button data-mode="explain" class="mode">Explain</button><button data-mode="quiz" class="mode">Quiz me</button></div>
+      <div class="ai-actions"><button id="chatgptBtn" class="primary wide">Ask ChatGPT ↗</button></div>
+      <div id="aiAnswer" class="ai-answer">Your draft is saved locally. One click opens ChatGPT and inserts the full Coach prompt into the message box automatically.</div>
+      <div class="tiny">The prompt includes the selected Canvas course, assignment, due date, points/importance and assignment description when available. No Copy/Paste step is needed.</div>
+    </section>
+
+    <section class="drawer-page spotify-page" data-page="spotify">
+      <div class="section-row"><label>Spotify</label><span id="spotifyPlaybackState" class="tiny">paused</span></div>
+      <div class="spotify-unified-player" aria-label="Spotify player and full playlist">
+        <div id="spotifyPlayerSlot" class="spotify-player-slot" aria-label="Spotify player position"></div>
+        <div id="spotifyQueueViewport" class="spotify-queue-viewport" tabindex="0" aria-label="Spotify playlist tracks"><div id="spotifyQueueList" class="spotify-queue-list"></div></div>
+      </div>
+      <div class="spotify-utility-row">
+        <button id="spotifyShuffleBtn" type="button" aria-pressed="false">🔀 Shuffle · CHECKING</button>
+        <label class="spotify-volume-control" for="spotifyVolume"><span>🔊 Sound</span><input id="spotifyVolume" type="range" min="0" max="100" step="1" value="100"><span id="spotifyVolumeValue" class="tiny">100%</span></label>
+      </div>
+      <div id="spotifyUiState" class="spotify-clean-state tiny">Playlist catalog loads quietly in the background.</div>
+      <details class="spotify-more"><summary>Change playlist</summary><div class="spotify-entry"><input id="spotifyUrl" type="url"><button id="loadSpotifyBtn" class="primary">Load</button></div></details>
+    </section>
+
+    <section class="drawer-page" data-page="atmosphere">
+      <div class="section-row"><label>Outdoor background</label><span id="backgroundState" class="tiny">Building video pool…</span></div>
+      <div class="scene-grid"><button data-video="forest" class="theme active">🌲 Forest trails</button><button data-video="mountains" class="theme">🏔 Mountains</button><button data-video="coast" class="theme">🌊 Ocean & coast</button><button data-video="water" class="theme">💧 Waterfalls & rivers</button><button data-video="night" class="theme">🌠 Night sky</button><button data-video="space" class="theme">🪐 Space</button></div>
+      <button id="nextFootageBtn" class="wide">↻ Next footage</button>
+      <button id="testPhaseFxBtn" class="wide">✦ Preview real break track FX</button>
+      <div id="breakAmbienceState" class="tiny">Water ambience · rotating natural recordings</div>
+      <div id="backgroundHelp" class="tiny">Scenes start as soon as the first verified 4K clip is ready and keep growing in the background. Cinematic Mixkit is the primary source; Space also uses NASA SVS for planets, galaxies, nebulae and black holes. Curated Commons is fallback only. Footage auto-randomizes every 10 minutes.</div>
+    </section>
+  </aside>
+
+  <div class="notebook-modal" id="notebookModal" aria-hidden="true">
+    <div class="notebook-topbar">
+      <div class="notebook-title-wrap"><div class="eyebrow">LOCAL NOTEBOOK</div><div id="notebookTitle" class="notebook-title">General · Today</div></div>
+      <div class="notebook-actions">
+        <button id="prevPageBtn">←</button><span id="notebookPageLabel">Page 1 / 1</span><button id="nextPageBtn">→</button>
+        <button id="addPageBtn" class="primary">+ Page</button><button id="deletePageBtn">Delete page</button><button id="savePageBtn">Save</button><button id="closeNotebookBtn">Close</button>
+      </div>
+    </div>
+    <div class="notebook-toolrow">
+      <button data-pen="3" class="pen active">Thin</button><button data-pen="7" class="pen">Medium</button><button data-pen="13" class="pen">Thick</button>
+      <button id="eraserBtn">Eraser</button><button id="undoFullDraw">Undo</button><button id="clearFullDraw">Clear page</button>
+      <span id="notebookSaveState" class="tiny">Saved locally</span>
+    </div>
+    <div class="paper-stage"><canvas id="fullNoteCanvas" width="1600" height="1000"></canvas></div>
+  </div>
+
+  <script src="onedrive_sync.js"></script>
+  <script src="mobile_bridge.js"></script>
+  <script src="desktop_music.js"></script>
+  <script src="notes-launcher.js"></script>
+  <script src="study.js"></script>
+</body>
+</html>
