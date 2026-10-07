@@ -47,7 +47,7 @@ assert(app.includes('optimisticSpotify(action,payload)'));assert(app.includes('n
 
 assert(app.includes('function predictStudy'));assert(app.includes('function optimisticStudy'));assert(app.includes('REMOTE_STALE_MS=90000'));assert(app.includes("Desktop syncing…"));assert(app.includes('remoteDisplayStudy().running'));
 
-assert(app.includes("STYLUS_TOUCH_KEY='warriorMobileStylusTouchV08'"));
+assert(app.includes("STYLUS_TOUCH_KEY='warriorMobileStylusTouchV011'"));
 assert(app.includes("data-tool==='hand'")||app.includes("drawTool==='hand'"));
 assert(app.includes("touchInk=e.pointerType==='touch'&&fingerDraw"));
 assert(app.includes("document.body.classList.toggle('notes-workspace-mode'"));
