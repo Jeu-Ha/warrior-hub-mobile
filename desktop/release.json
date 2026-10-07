@@ -51,7 +51,7 @@
     "sidepanel.js": "6898a6aaf937fbc03e5ad4d9358733cc5eab2bb3f6f84b63736fa0b4fb0cc1b4",
     "study.css": "4509706739f0d346118c1a489406257ed038fa4e036c351d2b4a014166bc11a2",
     "study.html": "1a4066c95ec86f7a305c2105efe59f0fcfcfecc728d7806e2ae74e761e99d3a3",
-    "study.js": "2ec7d0228083ca52b4d977e64cdde0c66943232076048459e6d4050da3f33deb",
+    "study.js": "ad56c4a5205f6214f6cce05e0b9c985f4266e0c039443f20f42be2a09f327546",
     "content/academica.js": "fd4ac88f114fd9f09ad6833b7081e0cd1d432c2f2412b09011ca540e135146d8",
     "content/canvas.js": "e00f5329dfa60aefe7becce533674434e3a0d727e3b40cc324316337e5499851",
     "content/calculus_book_tracker.js": "998dd8591511e428d3c4804967481153c3813f24f0d31d7e582d0d9468df74f5",
@@ -76,7 +76,7 @@
     "desktop_music.js": "e75f5c122e49af149abf01a65037baff8e620c570fef62f3d04b9f9f9fe3835f",
     "desktop_music.css": "1bc0226132dfd388f4dd97f4f6858aa2ed3ed7b7902d53c972244abfa30dca5c",
     "auto_update.js": "5643d97d1a09f33731b4255a9d64d6c5fdb7424df06c61d3042da01eead726eb",
-    "background_runtime.js": "d60671aee0b5565ee342b17fc6d51b0c1b996ce0ec5a362a6c3a2bad4e69d39d",
+    "background_runtime.js": "cca8087ada2e8902b5553583cc426467d64841a521d1f770222b582a5b679021",
     "graph_client.js": "7162cfc43ca081ed7f40f341df7b6f555a3e9ddb3db1e7d4d198f9ccd08827d5",
     "spotify-engine.html": "b7046c1e7da8f99d86ad741223ddc31454334c948c3ce1702fdcfd5f4e0e6246",
     "spotify-engine.css": "bba23d5ac9787cf6f591ab374315f047a6409f86678146f2c99113bf85aab89b"

@@ -1482,7 +1482,7 @@ function handleSpotifyHostPlayback(payload={},started=false){
   const stillPending=Boolean(spotifyPendingTarget&&spotifyPendingTarget.trackId===trackId);
   const buffering=Boolean(payload.isBuffering)||stillPending||(controllerPlaying&&!spotifyProgressConfirmed);
   publishSpotifyPlayerState({trackId,currentIndex:index,position,duration,playing:realPlaying,buffering,progressConfirmed:spotifyProgressConfirmed},started?'playback-started':'playback-update',realPlaying||spotifyProgressConfirmed).catch(()=>{});
-  if(!payload.backgroundAdvanced&&!stillPending&&!controllerPlaying&&duration>2&&position>=duration-.35&&spotifyNaturalEndTrackId!==trackId){
+  if(!payload.backgroundManaged&&!payload.backgroundAdvanced&&!stillPending&&!controllerPlaying&&duration>2&&position>=duration-.35&&spotifyNaturalEndTrackId!==trackId){
     spotifyNaturalEndTrackId=trackId;debugLog('spotify-natural-end',{trackId,position,duration});spotifyNext('natural-end').catch(e=>debugLog('spotify-natural-end-error',{error:String(e?.message||e)}));
   }
 }

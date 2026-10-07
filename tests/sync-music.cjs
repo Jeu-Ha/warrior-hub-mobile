@@ -58,6 +58,17 @@ function pc(id,{runtime=false}={}){
  await runtime.execute({action:'pause',seq:'pause'});const afterPause=source.loads.length;
  await runtime.engineEvent({eventType:'playback_update',payload:{playingURI:'spotify:track:CCC',position:20000,duration:20000,isPaused:true}});assert.equal(source.loads.length,afterPause);
  console.log('PASS: background end advances once; explicit pause stays paused; command replay does not skip twice');
+ // The actual Study Room consumer must not also advance or overwrite a worker target.
+ const studySource=fs.readFileSync(path.join(root,'study.js'),'utf8');
+ const body=studySource.slice(studySource.indexOf('function handleSpotifyHostPlayback('),studySource.indexOf('function handleSpotifyHostEvent('));
+ let advanced=0,published=0;
+ const room=vm.createContext({Date,console,spotifyTrackIdFromUri:uri=>uri.split(':').at(-1),spotifyPendingTarget:null,spotifyRestartPending:null,spotifyIndexForTrack:()=>0,spotifyCurrentIndex:0,spotifyProgressTrackId:'CCC',spotifyProgressLastPosition:20,spotifyProgressConfirmed:true,spotifyExplicitSeekUntil:0,spotifyPlayerState:{trackId:'CCC'},spotifyNaturalEndTrackId:'',debugLog:()=>{},publishSpotifyOfficial:async()=>{},publishSpotifyPlayerState:async()=>{published++},spotifyNext:async()=>{advanced++}});
+ vm.runInContext(body,room);
+ room.handleSpotifyHostPlayback({playingURI:'spotify:track:CCC',position:20000,duration:20000,isPaused:true,backgroundManaged:true});assert.equal(advanced,0,'Study Room respects background-managed pause');
+ const alreadyPublished=published;room.handleSpotifyHostPlayback({playingURI:'spotify:track:CCC',position:20000,duration:20000,isPaused:true,backgroundAdvanced:true});assert.equal(published,alreadyPublished,'ended track does not overwrite new target');
+ room.handleSpotifyHostPlayback({playingURI:'spotify:track:CCC',position:20000,duration:20000,isPaused:true});assert.equal(advanced,1,'legacy fallback remains available');
+ console.log('PASS: actual Study Room event consumer respects worker pause and target');
+
  // Cloud command delivery across PCs, including pagination and receipt deduplication.
  source.data.warriorSpotifyExplicitPauseV61=false;source.data.warriorSpotifyRuntimeTargetV61=null;source.data[P]={...source.data[P],trackId:'AAA',playing:true,nextPreview:{trackId:'BBB',index:1},at:Date.now()};
  folders.add('WARRIOR HUB/warrior-desktop-music-commands');for(let i=0;i<100;i++)files.set('WARRIOR HUB/warrior-desktop-music-commands/cmd-other-'+i+'.json',{});

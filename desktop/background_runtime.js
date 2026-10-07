@@ -62,6 +62,7 @@ importScripts('graph_client.js','onedrive_sync.js','desktop_music.js');
     if(type==='playback_update'||type==='playback_started'){
       const id=String(payload.playingURI||'').match(/^spotify:track:([A-Za-z0-9]+)$/)?.[1];
       if(id){const got=await chrome.storage.local.get([PLAYER,QUEUE,PAUSED,TARGET]);if(got[TARGET]?.until>Date.now()&&got[TARGET].trackId!==id)return;
+        payload.backgroundManaged=true;
         const old=got[PLAYER]||{},tracks=got[QUEUE]?.tracks||[],index=tracks.findIndex(row=>row.id===id),row=tracks[index]||{};
         const position=Math.max(0,Number(payload.position)||0)/1000,duration=Math.max(0,Number(payload.duration)||0)/1000,playing=payload.isPaused===false;
         if(playing&&position<duration-.5)endedTrack='';
@@ -70,7 +71,7 @@ importScripts('graph_client.js','onedrive_sync.js','desktop_music.js');
         await chrome.storage.local.set({[PLAYER]:next});
         if(type==='playback_update'&&!playing&&!payload.isBuffering&&!got[PAUSED]&&duration>2&&position>=duration-.35&&endedTrack!==id){
           endedTrack=id;payload.backgroundAdvanced=true;
-          try{await execute({action:'next',seq:'natural-'+id+'-'+Number(old.at||0)})}catch(error){endedTrack='';payload.backgroundAdvanced=false;console.warn('Music advance',error.message)}
+          try{await execute({action:'next',seq:'natural-'+id+'-'+Number(old.at||0)})}catch(error){endedTrack='';payload.backgroundAdvanced=false;payload.backgroundManaged=false;console.warn('Music advance',error.message)}
         }
       }
     }
