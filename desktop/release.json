@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "app": "Warrior Hub",
-  "version": "5.19.60",
+  "version": "5.19.61",
   "files": [
     "manifest.json",
     "onedrive_sync.js",
@@ -36,18 +36,22 @@
     "notes/desktop.css",
     "desktop_music.js",
     "desktop_music.css",
-    "auto_update.js"
+    "auto_update.js",
+    "background_runtime.js",
+    "graph_client.js",
+    "spotify-engine.html",
+    "spotify-engine.css"
   ],
   "hashes": {
-    "manifest.json": "1ccd8fed40ef61249e2e51875172fd3cac151fcc907a604e163b984b0c5295b9",
-    "onedrive_sync.js": "1634e205c88cf592e05c46cb36e1d3f4622553314213dc4835c9fbca8e297a34",
+    "manifest.json": "4cf0f421b4925e50f3339818b3b395c583b1caae0e87b4be3df3128dbde8ac1f",
+    "onedrive_sync.js": "5d9c4b40aece8f09499dda6f8a6c08507a75f7d6c99979604af733019c29fcf2",
     "onedrive_update.js": "e1f82a468ac6ba38208e386db0677bf21d1aef6a4daf4a2fcae6a91db58ec3f5",
     "sidepanel.css": "5a48c655a34261d0d9e7dfb088027ad3b2374d919cef456fbd28b36ac9909b47",
-    "sidepanel.html": "d04f824c9da0f8f85cfddb300be81e56e698456837a18ae15823c6f8cca2b96c",
+    "sidepanel.html": "b50d5b34616839af0ffcdbbb9165bffc45cce3cdb692cd96456dbb21400e19db",
     "sidepanel.js": "6898a6aaf937fbc03e5ad4d9358733cc5eab2bb3f6f84b63736fa0b4fb0cc1b4",
     "study.css": "4509706739f0d346118c1a489406257ed038fa4e036c351d2b4a014166bc11a2",
-    "study.html": "699f6dc2a076d709c7142fb8919e41334d884a475029b70e872a5f92970e3d91",
-    "study.js": "02624a735acd1090137a09dc02137346f314ed533c068630d7fe915754a0b7fb",
+    "study.html": "1a4066c95ec86f7a305c2105efe59f0fcfcfecc728d7806e2ae74e761e99d3a3",
+    "study.js": "2ec7d0228083ca52b4d977e64cdde0c66943232076048459e6d4050da3f33deb",
     "content/academica.js": "fd4ac88f114fd9f09ad6833b7081e0cd1d432c2f2412b09011ca540e135146d8",
     "content/canvas.js": "e00f5329dfa60aefe7becce533674434e3a0d727e3b40cc324316337e5499851",
     "content/calculus_book_tracker.js": "998dd8591511e428d3c4804967481153c3813f24f0d31d7e582d0d9468df74f5",
@@ -59,9 +63,8 @@
     "content/spotify_dsp_v520.js": "c76f9551a79c7b60fdbbaee198b5f814d765b71b460d1d2be779387e88429f83",
     "content/wayneconnect.js": "7940a94f719b6107d01a5d26a3f17f07c8af83623bafe037d9b8976f03cef36e",
     "content/spotify_host_main_v522.js": "d40a9ce0d4512e39dfeb8b67e119ad13b665d1318414fd90b4adcd60ea14f8c4",
-    "spotify_engine.js": "274a3fd8b2589a486b06b87b8d07bcd592a1625cd3ccbb2cc738de1c5d786517",
-    "mobile_bridge.js": "c6e7894252f34ace6cfb92fe2379a3b6c36968b180619492c0c350ba2da8b41f",
-    "update-manifest.json": "5a18fec77890b79f043ba3ff873d1ab70a189449dcc99f65ba73986244572716",
+    "spotify_engine.js": "21fd37dc7451500b8750ebfdeef1dd18a56c1a0146b4f1734c640227d79301b7",
+    "mobile_bridge.js": "6fa365be9b072499b0c7705cab0fb2941f94249a5ba1dbe0c905e5fdff811b75",
     "notes-launcher.js": "30b18d48b0850435389ffbdafb41e4801cdaf91b2e2ae0fe74c8c199d93a4317",
     "notes/index.html": "4dc01818e52da065b74970bb33384f7288af3836c8436348282b949b364a0484",
     "notes/app.js": "b38375f0910c46b2c48c91f8a85c4c1185546d73da0ada9cfe6f7a987d2667ea",
@@ -70,8 +73,12 @@
     "notes/notes-pdf.js": "fc9744ce26560d133a56e2247e5e0fa03f672d7140e0b05022455093535e8414",
     "notes/desktop.js": "1126b735007e31bb351db1e5f4a7edc928eb67bafa1581b1a53a4fbc4540f5f8",
     "notes/desktop.css": "7a9fab7acb69d2e8db7d081db615efb286c3a42e987f59e22b876944fc3e7d00",
-    "desktop_music.js": "6589b6470e9006adcfa6c383aad0d6d77d5b5c3eb15f16ff0945eb9218399182",
+    "desktop_music.js": "e75f5c122e49af149abf01a65037baff8e620c570fef62f3d04b9f9f9fe3835f",
     "desktop_music.css": "1bc0226132dfd388f4dd97f4f6858aa2ed3ed7b7902d53c972244abfa30dca5c",
-    "auto_update.js": "5643d97d1a09f33731b4255a9d64d6c5fdb7424df06c61d3042da01eead726eb"
+    "auto_update.js": "5643d97d1a09f33731b4255a9d64d6c5fdb7424df06c61d3042da01eead726eb",
+    "background_runtime.js": "b9e7734c4cc11c36de6b9e8945ca27c136ad332f06e06d1311d01df9f707d9ac",
+    "graph_client.js": "7162cfc43ca081ed7f40f341df7b6f555a3e9ddb3db1e7d4d198f9ccd08827d5",
+    "spotify-engine.html": "b7046c1e7da8f99d86ad741223ddc31454334c948c3ce1702fdcfd5f4e0e6246",
+    "spotify-engine.css": "bba23d5ac9787cf6f591ab374315f047a6409f86678146f2c99113bf85aab89b"
   }
 }

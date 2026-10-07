@@ -1,5 +1,6 @@
 (() => {
   'use strict';
+  const window=globalThis, document=globalThis.document;
 
   const DB_NAME = 'warrior-hub-onedrive-v51';
   const STORE = 'handles';
@@ -14,7 +15,7 @@
   const sharePath = path => path !== 'sync' && !(path.startsWith('study.') && LOCAL_STUDY.has(path.slice(6)));
   function shareState(state){const out=clone(state);delete out.sync;if(out.study)for(const k of LOCAL_STUDY)delete out.study[k];return out;}
   const SYNC_DEBOUNCE_MS = 2500;
-  const PULL_INTERVAL_MS = 60000;
+  const PULL_INTERVAL_MS = 10000;
   const DEBUG_ENABLED_KEY = 'warriorDebugEnabledV59';
 
   let dirHandle = null;
@@ -121,6 +122,8 @@
 
   function emit(status){
     lastStatus={...lastStatus,...status};debug('onedrive-status',{status:lastStatus});
+    chrome.storage.local.set({warriorOneDriveStatusV61:lastStatus}).catch(()=>{});
+    if(!document)return;
     let banner=document.getElementById('onedriveProblem');
     if(!banner && document.getElementById('view-today')){banner=document.createElement('div');banner.id='onedriveProblem';banner.className='notice';banner.setAttribute('role','status');document.getElementById('view-today').prepend(banner);}
     if(banner){
@@ -136,6 +139,7 @@
   }
 
   function renderUi(){
+    if(!document)return;
     const status=document.getElementById('onedriveStatus');
     const connect=document.getElementById('onedriveConnectBtn');
     const sync=document.getElementById('onedriveSyncBtn');
@@ -355,7 +359,7 @@
       const special=mergeSpecial(path,lv,cv);
       if(typeof special!=='undefined'){
         setPath(result,path,special);
-        clocks[path]=Math.max(Number(localMeta.clocks?.[path]||0),Number(cloudClocks?.[path]||0),Number(cloudUpdatedAt||0));
+        clocks[path]=Math.max(Number(localMeta.clocks?.[path]||0),Number(cloudClocks?.[path]||cloudUpdatedAt||0));
         continue;
       }
       const lc=Number(localMeta.clocks?.[path]||0),cc=Number(cloudClocks?.[path]||0);
@@ -377,7 +381,8 @@
     if(syncBusy){syncQueued=true;return {ok:false,busy:true}}
     syncBusy=true;renderUi();
     try{
-      const handle=await loadHandle();
+      const token=await window.WarriorGraphClient?.accessToken().catch(()=>null);
+      const handle=token?await window.WarriorGraphClient.root():await loadHandle();
       if(!handle){emit({connected:false,state:'not-connected',text:'OneDrive: not connected'});return {ok:false,reason:'not-connected'}}
       const allowed=await permission(handle,{request:userGesture});
       if(!allowed){emit({connected:true,state:'permission',text:'OneDrive: click Reconnect folder to grant access'});return {ok:false,reason:'permission'}}
@@ -449,7 +454,7 @@
       return await syncNow({userGesture:true,reason:'connect'});
     }catch(e){
       if(e?.name!=='AbortError')emit({connected:false,state:'error',text:`OneDrive: ${String(e?.message||'connection error').slice(0,90)}`});
-      debug('onedrive-sync-error',{reason,error:String(e?.message||e)});return {ok:false,error:String(e?.message||e)};
+      debug('onedrive-sync-error',{reason:'connect',error:String(e?.message||e)});return {ok:false,error:String(e?.message||e)};
     }
   }
 
@@ -468,7 +473,8 @@
   async function init(){
     if(initialized)return;initialized=true;
     await ensureDeviceId();
-    const handle=await loadHandle();
+    const token=await window.WarriorGraphClient?.accessToken().catch(()=>null);
+    const handle=token?await window.WarriorGraphClient.root():await loadHandle();
     if(handle){
       const meta=await getMeta();
       const allowed=await permission(handle,{request:false});
@@ -482,6 +488,7 @@
       queueSync('local-change');
     });
     const queuePullIfStale=reason=>{if(lastStatus.connected&&Date.now()-Number(lastStatus.lastSyncAt||0)>15000)queueSync(reason)};
+    if(!document)return;
     window.addEventListener('online',()=>queuePullIfStale('online'));
     window.addEventListener('focus',()=>queuePullIfStale('focus'));
     document.addEventListener('visibilitychange',()=>{if(!document.hidden)queuePullIfStale('visible')});
@@ -491,6 +498,7 @@
 
   async function getDirectoryHandle({request=false}={}){const h=await loadHandle();if(!h)return null;return await permission(h,{request})?h:null;}
   window.WarriorOneDriveSync={init,connect,disconnect,syncNow,getStatus:()=>clone(lastStatus),getDirectoryHandle};
+  if(!document)return;
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>init().catch(()=>{}),{once:true});
   else init().catch(()=>{});
 })();

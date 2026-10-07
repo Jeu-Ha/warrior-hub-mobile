@@ -162,9 +162,9 @@
       <div id="cloudUpdateStatus" class="cloud-update-status">Automatic updates</div>
       <button id="enableAutoUpdateBtn" class="secondary" type="button">Enable automatic updates</button>
       <div class="fast-phone-sync">
-        <div class="fast-phone-copy"><strong>⚡ Fast phone sync</strong><span id="fastPhoneStatus" data-state="off">Fast phone sync: not connected</span></div>
-        <div class="fast-phone-actions"><button id="fastPhoneConnectBtn" class="secondary" type="button">Enable fast phone sync</button><button id="fastPhoneDisconnectBtn" class="text-btn" type="button" hidden>Disconnect fast link</button></div>
-        <div class="small-note">Direct Microsoft Graph link for Study Remote. It bypasses Windows OneDrive folder propagation, so phone commands and Now Playing state reach the PC much faster. Local OneDrive sync stays as a fallback.</div>
+        <div class="fast-phone-copy"><strong>⚡ OneDrive cloud</strong><span id="fastPhoneStatus" data-state="off">OneDrive cloud: not connected</span></div>
+        <div class="fast-phone-actions"><button id="fastPhoneConnectBtn" class="secondary" type="button">Connect OneDrive cloud</button><button id="fastPhoneDisconnectBtn" class="text-btn" type="button" hidden>Disconnect cloud link</button></div>
+        <div class="small-note">Connect the same Microsoft account on every device to sync tasks and control music across PCs. The direct cloud link also connects Study Remote on your phone.</div>
       </div>
       <div class="small-note">Choose the same folder inside OneDrive on every computer. <b>Sync now</b> handles both your Warrior Hub data and app updates. A newly installed version is published to OneDrive automatically; another computer installs it the next time you press Sync now. The receiving computer may ask once for its local unpacked Warrior Hub folder.</div>
     </section>
@@ -174,14 +174,13 @@
     <div class="privacy-note">Main Sync always refreshes Canvas. Mail refreshes only when an Outlook Inbox tab is already open, so Sync never spawns mail windows.</div>
   </footer>
 
-  <iframe id="spotifyEngineFrame" class="side-spotify-engine-frame" title="Warrior Spotify playback engine" src="https://open.spotify.com/embed/playlist/3pRLVP3hoPzbZtetvH1tro" allow="autoplay; encrypted-media; clipboard-write; fullscreen; picture-in-picture" aria-hidden="true" tabindex="-1"></iframe>
   <div class="side-spotify-engine-cover" aria-hidden="true"></div>
+  <script src="graph_client.js"></script>
   <script src="onedrive_sync.js"></script>
   <script src="mobile_bridge.js"></script>
   <script src="desktop_music.js"></script>
   <script src="onedrive_update.js"></script>
   <script src="auto_update.js"></script>
-  <script src="spotify_engine.js"></script>
   <script src="notes-launcher.js"></script>
   <script src="sidepanel.js"></script>
 </body>

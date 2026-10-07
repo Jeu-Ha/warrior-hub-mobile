@@ -1285,7 +1285,10 @@ function makeSpotifyState(patch={},reason='state'){
     nextPreview:spotifyPreviewForIndex(spotifyEnsureNextPlan()),previousPreview:spotifyPreviousPreview(),reason,at:Date.now()
   }
 }
+let spotifySavedQueueSignature='';
 async function publishSpotifyPlayerState(patch={},reason='state',force=false){
+  const queueSignature=spotifyQueuePlaylistId+':'+spotifyQueueCatalog.map(row=>row.id).join(',');
+  if(spotifyQueueCatalog.length&&queueSignature!==spotifySavedQueueSignature){spotifySavedQueueSignature=queueSignature;await chrome.storage.local.set({warriorSpotifyQueueV61:{playlistId:spotifyQueuePlaylistId,tracks:spotifyQueueCatalog}});}
   const next=makeSpotifyState(patch,reason);spotifyPlayerState=next;spotifyPlaying=next.playing===true;
   renderSpotifyControls();renderSpotifyMiniCustom();positionSpotifyPlayer(true);scheduleSpotifyQueueRender();
   const semantic=JSON.stringify([next.sessionId,next.playerReady,next.playing,next.buffering,next.progressConfirmed,next.trackId,next.title,next.artist,next.artwork,Math.round(next.duration*10),next.shuffleOn,next.queueSize,next.currentIndex,next.nextPreview?.trackId||'',next.previousPreview?.trackId||'',reason]);
@@ -1402,6 +1405,10 @@ async function spotifyPrevious(reason='previous',positionHint=0){
   return index>=0?playSpotifyIndex(index,reason,true,{recordHistory:false}):false
 }
 async function ensureSpotifyStarted(reason='startup'){
+  const runtime=await chrome.storage.local.get(['warriorDesktopMusicRemoteV1','warriorSpotifyExplicitPauseV61']);
+  if(runtime.warriorSpotifyExplicitPauseV61)return true;
+  const remote=runtime.warriorDesktopMusicRemoteV1?.remote;
+  if(remote&&Date.now()-Number(remote.at)<90000)return true;
   if(spotifyPendingTarget)return true;
   if(spotifyPlayerState?.playing===true&&spotifyPlayerState?.progressConfirmed===true)return true;
   if(spotifyStartupPromise)return spotifyStartupPromise;
@@ -1427,6 +1434,8 @@ async function ensureSpotifyStarted(reason='startup'){
   try{return await spotifyStartupPromise}finally{spotifyStartupPromise=null}
 }
 function handleSpotifyHostPlayback(payload={},started=false){
+  // The worker already published the new target; do not overwrite it with the ended track.
+  if(payload.backgroundAdvanced)return;
   const uri=String(payload.playingURI||''),trackId=spotifyTrackIdFromUri(uri);if(!trackId)return;
   const pending=spotifyPendingTarget;
   if(pending&&trackId!==pending.trackId){debugLog('spotify-host-stale-event',{trackId,expected:pending.trackId,started});return}
@@ -1473,7 +1482,7 @@ function handleSpotifyHostPlayback(payload={},started=false){
   const stillPending=Boolean(spotifyPendingTarget&&spotifyPendingTarget.trackId===trackId);
   const buffering=Boolean(payload.isBuffering)||stillPending||(controllerPlaying&&!spotifyProgressConfirmed);
   publishSpotifyPlayerState({trackId,currentIndex:index,position,duration,playing:realPlaying,buffering,progressConfirmed:spotifyProgressConfirmed},started?'playback-started':'playback-update',realPlaying||spotifyProgressConfirmed).catch(()=>{});
-  if(!stillPending&&!controllerPlaying&&duration>2&&position>=duration-.35&&spotifyNaturalEndTrackId!==trackId){
+  if(!payload.backgroundAdvanced&&!stillPending&&!controllerPlaying&&duration>2&&position>=duration-.35&&spotifyNaturalEndTrackId!==trackId){
     spotifyNaturalEndTrackId=trackId;debugLog('spotify-natural-end',{trackId,position,duration});spotifyNext('natural-end').catch(e=>debugLog('spotify-natural-end-error',{error:String(e?.message||e)}));
   }
 }
@@ -1508,12 +1517,15 @@ function handleSpotifyHostControl(cmd={}){const action=String(cmd.action||'');if
 async function handleSpotifyCommand(cmd={}){
   const seq=String(cmd.seq||'');if(seq&&seq===spotifyLastCommandSeq)return;if(seq)spotifyLastCommandSeq=seq;const action=String(cmd.action||'');if(!action)return;
   debugLog('spotify-command',{action,cmd,currentIndex:spotifyCurrentIndex,shuffle:spotifyShuffleState});
+  if(['next','previous','playIndex'].includes(action))await chrome.storage.local.set({warriorSpotifyExplicitPauseV61:false});
   if(action==='next'){if(spotifyPendingTarget){queueSpotifyNavigation('next');return}await spotifyNext('command-next');return}
   if(action==='previous'){if(spotifyPendingTarget){queueSpotifyNavigation('previous',cmd.positionHint);return}await spotifyPrevious('command-previous',cmd.positionHint);return}
   if(action==='restart'){await restartSpotifyCurrentTrack('command-restart');return}
   if(action==='playIndex'){spotifyDeferredNavigation=null;await playSpotifyIndex(Number(cmd.index),'queue-select',true,{recordHistory:true});return}
-  if(action==='pause'){spotifyHostPost('pause');await publishSpotifyPlayerState({playing:false},'pause-command',true);return}
+  if(action==='pause'){await chrome.storage.local.set({warriorSpotifyExplicitPauseV61:true});spotifyHostPost('pause');await publishSpotifyPlayerState({playing:false},'pause-command',true);return}
+  if(['next','previous','playIndex'].includes(action))await chrome.storage.local.set({warriorSpotifyExplicitPauseV61:false});
   if(action==='resume'||action==='play'){
+    await chrome.storage.local.set({warriorSpotifyExplicitPauseV61:false});
     if(!spotifyPlayerState?.trackId){await ensureSpotifyStarted('resume-start')}
     else if(cmd.engineDirect!==true)spotifyHostPost('resume');
     return

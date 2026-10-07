@@ -23,11 +23,12 @@
   window.addEventListener('message',e=>{
     if(!e.data||e.data.source!==EVENT_SOURCE)return;if(e.source!==frame?.contentWindow)return;if(e.origin&&e.origin!=='https://open.spotify.com')return;
     const type=String(e.data.type||'');if(type==='controller_created'){controllerCreated=true}if(type==='ready'){hostReady=true;setTimeout(flushPending,0)}
-    chrome.runtime.sendMessage({type:'SPOTIFY_ENGINE_EVENT',eventType:type,payload:e.data.payload||{}}).catch(()=>{});
+    chrome.runtime.sendMessage({type:'WARRIOR_RUNTIME_ENGINE_EVENT',eventType:type,payload:e.data.payload||{}}).catch(()=>{});
   });
   chrome.runtime.onMessage.addListener((msg,_sender,sendResponse)=>{
     if(msg?.type==='SPOTIFY_ENGINE_EXEC'){const ok=post(msg.command||{});sendResponse?.({ok,queued:!hostReady||!frameLoaded});return false;}
     if(msg?.type==='SPOTIFY_ENGINE_PING'){sendResponse?.({ok:true,hostReady,controllerCreated,frameLoaded,pending:pending.length});return false;}
   });
+  setInterval(()=>chrome.runtime.sendMessage({type:'WARRIOR_RUNTIME_PULSE'}).catch(()=>{}),3000);
   frame?.addEventListener('load',()=>{frameLoaded=true;setTimeout(()=>{if(hostReady)flushPending();else queueCommand({action:'status',seq:`engine-load-${Date.now()}`});},650);});
 })();

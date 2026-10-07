@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Warrior Hub",
-  "version": "5.19.60",
-  "description": "Warrior Hub v5.19.60: Notes only in Study Room, automatic verified desktop updates, shared OneDrive notebooks and PC music controls.",
+  "version": "5.19.61",
+  "description": "Warrior Hub v5.19.61: direct cloud task sync, persistent music and background PC controls.",
   "permissions": [
     "storage",
     "tabs",
@@ -51,7 +51,7 @@
     "https://raw.githubusercontent.com/*"
   ],
   "background": {
-    "service_worker": "background.js"
+    "service_worker": "background_runtime.js"
   },
   "side_panel": {
     "default_path": "sidepanel.html"
@@ -185,7 +185,7 @@
     "48": "icons/icon48.png",
     "128": "icons/icon128.png"
   },
-  "minimum_chrome_version": "114",
+  "minimum_chrome_version": "120",
   "content_security_policy": {
     "extension_pages": "script-src 'self'; object-src 'self'; frame-src 'self' https://open.spotify.com; connect-src 'self' https://raw.githubusercontent.com https://canvas.wayne.edu https://*.instructure.com https://commons.wikimedia.org https://mixkit.co https://assets.mixkit.co https://svs.gsfc.nasa.gov https://archive.org https://open.spotify.com https://api-partner.spotify.com https://api.spotify.com https://spclient.wg.spotify.com https://login.microsoftonline.com https://graph.microsoft.com; media-src 'self' https://videos.pexels.com https://upload.wikimedia.org https://assets.mixkit.co https://svs.gsfc.nasa.gov https://archive.org;"
   }

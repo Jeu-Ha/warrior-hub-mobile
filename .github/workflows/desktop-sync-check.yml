@@ -1,0 +1,24 @@
+name: Desktop cloud and music checks
+on:
+  push:
+    branches: [desktop-sync-v5.19.61]
+  pull_request:
+    branches: [desktop-release]
+permissions:
+  contents: read
+jobs:
+  desktop:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      WARRIOR_EXTENSION_ROOT: desktop
+      WARRIOR_BROWSER_FIXTURE: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install --no-save --package-lock=false playwright@1.62.1
+      - run: npx playwright install --with-deps chromium
+      - run: node tests/sync-music.cjs
+      - run: node tests/extension-browser.cjs
