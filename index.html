@@ -8,15 +8,15 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Warrior Hub">
   <title>Warrior Hub Mobile</title>
-  <link rel="manifest" href="manifest.webmanifest?v=0.10.0">
+  <link rel="manifest" href="manifest.webmanifest?v=0.11.0">
   <link rel="apple-touch-icon" href="icons/icon192.png">
-  <link rel="stylesheet" href="app.css?v=0.10.0">
-  <link rel="stylesheet" href="notes.css?v=0.10.0">
+  <link rel="stylesheet" href="app.css?v=0.11.0">
+  <link rel="stylesheet" href="notes.css?v=0.11.0">
 </head>
 <body>
   <div id="appShell">
     <header class="topbar">
-      <div><div class="eyebrow" id="todayLabel">WARRIOR HUB MOBILE · v0.10.0</div><h1>Warrior Hub</h1></div>
+      <div><div class="eyebrow" id="todayLabel">WARRIOR HUB MOBILE · v0.11.0</div><h1>Warrior Hub</h1></div>
       <button id="syncNowBtn" class="sync-btn" type="button">↻ Sync</button>
     </header>
     <div id="statusBanner" class="status-banner">Not connected</div>
@@ -169,14 +169,14 @@
                 <label class="compact-control color-control"><span>Color</span><input id="drawColor" type="color" value="#11151d"></label>
                 <label class="compact-control width-control"><span>Size</span><input id="drawWidth" type="range" min="1" max="18" step="1" value="4"></label>
                 <select id="paperStyle" aria-label="Paper style"><option value="ruled">Ruled</option><option value="blank">Blank</option></select>
-                <button id="fingerDrawBtn" class="stylus-toggle active" aria-pressed="true" title="A capacitive stylus is reported as touch, the same as a finger">✎ Touch: write</button>
+                <button id="fingerDrawBtn" class="stylus-toggle" aria-pressed="false" title="A capacitive stylus is reported as touch, the same as a finger">✋ Touch: pan</button>
                 <button id="insertNoteItemBtn" class="insert-btn">＋ Insert</button>
                 <button id="fitItemBtn" class="soft" disabled>Fit width</button>
                 <button id="openItemBtn" class="soft" disabled>Open</button>
                 <button id="deleteItemBtn" class="danger-soft" disabled>Delete</button>
               </div>
 
-              <div class="notes-quickbar"><div class="ink-presets" aria-label="Quick colors"><button data-ink="#11151d" style="--ink:#11151d" aria-label="Black ink"></button><button data-ink="#2855c5" style="--ink:#2855c5" aria-label="Blue ink"></button><button data-ink="#c53e3e" style="--ink:#c53e3e" aria-label="Red ink"></button><button data-ink="#298256" style="--ink:#298256" aria-label="Green ink"></button></div><span id="penDetectionState">Universal stylus: touch mode</span><div class="notes-zoom"><button id="zoomOutBtn" aria-label="Zoom out">−</button><button id="zoomResetBtn" title="Fit to width">100%</button><button id="zoomInBtn" aria-label="Zoom in">＋</button></div></div>
+              <div class="notes-quickbar"><div class="ink-presets" aria-label="Quick colors"><button data-ink="#11151d" style="--ink:#11151d" aria-label="Black ink"></button><button data-ink="#2855c5" style="--ink:#2855c5" aria-label="Blue ink"></button><button data-ink="#c53e3e" style="--ink:#c53e3e" aria-label="Red ink"></button><button data-ink="#298256" style="--ink:#298256" aria-label="Green ink"></button></div><span id="penDetectionState">Pen only · fingers navigate</span><div class="notes-zoom"><button id="zoomOutBtn" aria-label="Zoom out">−</button><button id="zoomResetBtn" title="Fit to width">100%</button><button id="zoomInBtn" aria-label="Zoom in">＋</button></div></div>
 
               <div id="drawingViewport" class="drawing-viewport apple-paper-viewport" aria-label="Infinite drawing notebook">
                 <div id="infinitePaper" class="infinite-paper"></div>
@@ -240,7 +240,8 @@
       </section>
     </main>
   </div>
-  <script src="notes-pdf.js?v=0.10.0"></script>
-  <script src="app.js?v=0.10.0"></script>
+  <script src="notes-pdf.js?v=0.11.0"></script>
+  <script src="app.js?v=0.11.0"></script>
 </body>
 </html>
+

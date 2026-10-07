@@ -1,7 +1,7 @@
 name: Notes browser checks
 on:
   push:
-    branches: [main, notes-mode-v0.9]
+    branches: [main, notes-mode-v0.9, notes-palm-v0.11]
   pull_request:
 permissions:
   contents: read
@@ -30,3 +30,4 @@ jobs:
         with:
           name: notes-screenshots
           path: test-output/
+

@@ -1,7 +1,7 @@
 (() => {
 'use strict';
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
-const FILE_NAME='warrior-hub-sync.json', DEVICE_DIR='warrior-hub-sync-devices', SCHEMA=1, APP_VERSION='0.10.0';
+const FILE_NAME='warrior-hub-sync.json', DEVICE_DIR='warrior-hub-sync-devices', SCHEMA=1, APP_VERSION='0.11.0';
 const CALCULUS_URL='https://archive.org/details/stewart-j.-clegg-d.-watson-s.-calculus.-early-transcendentals-9ed-2020/page/425/mode/2up';
 const ETHICS_URL='./resources/being-good-simon-blackburn.pdf';
 const CHEM2_LAB_URL='https://canvas.wayne.edu/courses/244636/modules/items/6576907';
@@ -14,7 +14,7 @@ const MOBILE_VAPID_PUBLIC_KEY='BNRHZhm7ACH99DcUwvQAYJfx9p1QAzoyUnqjk3nFs8NlR2NF4
 // Keep v0.1 keys intentionally: updating the PWA must not reset setup/state cache.
 const CFG_KEY='warriorMobileConfigV01', CACHE_KEY='warriorMobileCloudV01', META_KEY='warriorMobileMetaV01', TIMER_KEY='warriorMobileTimerV01';
 const DRAW_DB='warrior-mobile-drawing-notes-v2', DRAW_DB_VERSION=2, NOTES_FOLDER='warrior-notes-v2', NOTES_ASSETS_FOLDER='assets';
-const CANVAS_W=1400, CANVAS_H=1980, STYLUS_TOUCH_KEY='warriorMobileStylusTouchV08';
+const CANVAS_W=1400, CANVAS_H=1980, STYLUS_TOUCH_KEY='warriorMobileStylusTouchV011';
 const debug=[]; const log=(event,data={})=>{debug.push({at:Date.now(),event,data});if(debug.length>600)debug.splice(0,debug.length-600)};
 let cfg=loadJson(CFG_KEY,{clientId:'',folder:'WARRIOR HUB',tenant:'common'}), cloud=loadJson(CACHE_KEY,null), meta=loadJson(META_KEY,{clocks:{},deviceId:crypto.randomUUID?.()||`${Date.now()}-${Math.random()}`,lastSyncAt:0});
 // Migrate the mistaken Microsoft Services tenant ID that was saved by v0.6.0.
@@ -22,7 +22,7 @@ if(cfg.clientId==='f8cdef31-a31e-4b4a-93e4-5f571e91255a'){cfg={...cfg,clientId:D
 let state=cloud?.warriorState||{}, currentView='today', selectedDay=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][new Date().getDay()], calCursor=new Date(new Date().getFullYear(),new Date().getMonth(),1), calSelected=localDateKey(new Date());
 let timer=loadJson(TIMER_KEY,{remainingMs:50*60*1000,running:false,endAt:0}), timerHandle=null, pushTimer=null, noteCloudTimer=null;
 let remoteLive=null, remotePollTimer=null, remoteFetchBusy=false, remoteLastError='', remoteCommandBusy=false, remoteCommandFolderReady=false, remoteSpotifyOptimistic=null, remoteStudyOptimistic=null;
-let drawCourse='', drawDate=localDateKey(new Date()), drawPages=[], activePage=null, activePageIndex=0, activePageChanged=false, drawTool='pen', drawColor='#11151d', drawWidth=4, fingerDraw=loadJson(STYLUS_TOUCH_KEY,true)!==false, drawing=false, liveStroke=null, undoStack=[], redoStack=[], lastCheckpointAt=0, selectedItemId='', itemGesture=null;
+let drawCourse='', drawDate=localDateKey(new Date()), drawPages=[], activePage=null, activePageIndex=0, activePageChanged=false, drawTool='pen', drawColor='#11151d', drawWidth=4, fingerDraw=loadJson(STYLUS_TOUCH_KEY,false)===true, drawing=false, liveStroke=null, undoStack=[], redoStack=[], lastCheckpointAt=0, selectedItemId='', itemGesture=null;
 let noteDbPromise=null,segmentObserver=null,segmentGrowBusy=false,lastStrokeSafetySaveAt=0; const assetDecodePromises=new Map(),assetBitmapCache=new Map(), assetBitmapOrder=[], assetLoadPending=new Set();
 let notesScreen='library',notebookZoom=1,noteSaveQueue=Promise.resolve(),noteCloudBusy=null,inkPointerId=null,inkStart=null,inkBefore=null,lassoPath=[],selectedStrokeIds=new Set(),strokeMove=null;
 const noteTouchPoints=new Map(), NOTE_JOURNAL_KEY='warriorNotesRecoveryJournalV1';
@@ -240,10 +240,18 @@ function selectNoteTool(tool){drawTool=tool;selectedItemId='';selectedStrokeIds.
 function cancelInkForPinch(){if(drawing&&inkPointerId!==null){if(inkBefore)applyUndoState(inkBefore);if(inkUndoPushed&&undoStack.length)undoStack.pop();activePageChanged=inkBeforeChanged;clearDrawingJournal({...activePage,rev:(Number(activePage.rev)||0)+1});drawing=false;liveStroke=null;inkPointerId=null;itemGesture=null;strokeMove=null;lassoPath=[];const c=activeCanvas();if(c)drawPageToCanvas(activePage,c)}}
 function stopNotebookMomentum(){if(noteMomentumFrame)cancelAnimationFrame(noteMomentumFrame);noteMomentumFrame=0}
 function startNotebookMomentum(vx,vy){stopNotebookMomentum();const vp=$('#drawingViewport');vx=Math.max(-3,Math.min(3,vx));vy=Math.max(-3,Math.min(3,vy));let last=performance.now();const step=now=>{const dt=Math.min(32,Math.max(1,now-last));last=now;const x=vp.scrollLeft,y=vp.scrollTop;vp.scrollLeft+=vx*dt;vp.scrollTop+=vy*dt;const decay=Math.exp(-dt/220);vx*=decay;vy*=decay;if(vp.scrollLeft===x)vx=0;if(vp.scrollTop===y)vy=0;if(Math.hypot(vx,vy)>.025&&currentView==='notes'&&notesScreen==='editor')noteMomentumFrame=requestAnimationFrame(step);else noteMomentumFrame=0};noteMomentumFrame=requestAnimationFrame(step)}
+let lastPenInputAt=0,inkPointerType='';
+function preparePenInput(){
+  lastPenInputAt=performance.now();stopNotebookMomentum();
+  if(drawing&&inkPointerType!=='pen')cancelInkForPinch();
+  noteTouchPoints.clear();notePinch=null;noteGestureLocked=false;
+}
 function bindNotebookGestures(){const vp=$('#drawingViewport');
-  vp.addEventListener('pointerdown',e=>{stopNotebookMomentum();const onPaper=Boolean(e.target.closest('canvas[data-page-key]')),pan=!onPaper||drawTool==='hand'||(e.pointerType==='touch'&&!fingerDraw);if((e.pointerType!=='touch'&&!pan)||(e.pointerType==='mouse'&&e.button!==0)||(drawing&&penDetected))return;noteTouchPoints.set(e.pointerId,{x:e.clientX,y:e.clientY,t:performance.now(),vx:0,vy:0,pan});if(noteTouchPoints.size===2){cancelInkForPinch();noteGestureLocked=true;const [a,b]=[...noteTouchPoints.values()];notePinch={distance:Math.hypot(a.x-b.x,a.y-b.y),zoom:notebookZoom,x:(a.x+b.x)/2,y:(a.y+b.y)/2}}if(pan)try{vp.setPointerCapture?.(e.pointerId)}catch(_){}},{capture:true});
-  vp.addEventListener('pointermove',e=>{if(!noteTouchPoints.has(e.pointerId))return;const last=noteTouchPoints.get(e.pointerId),t=performance.now(),dt=Math.max(8,t-last.t),dx=last.x-e.clientX,dy=last.y-e.clientY;noteTouchPoints.set(e.pointerId,{...last,x:e.clientX,y:e.clientY,t,vx:dx/dt,vy:dy/dt});if(noteTouchPoints.size>=2&&notePinch){e.preventDefault();const [a,b]=[...noteTouchPoints.values()],x=(a.x+b.x)/2,y=(a.y+b.y)/2;setNotebookZoom(notePinch.zoom*Math.hypot(a.x-b.x,a.y-b.y)/Math.max(1,notePinch.distance),{x:notePinch.x,y:notePinch.y});vp.scrollLeft+=notePinch.x-x;vp.scrollTop+=notePinch.y-y;notePinch={distance:Math.hypot(a.x-b.x,a.y-b.y),zoom:notebookZoom,x,y}}else if(!noteGestureLocked&&last.pan){e.preventDefault();vp.scrollLeft+=dx;vp.scrollTop+=dy}}, {capture:true,passive:false});
-  const end=e=>{const last=noteTouchPoints.get(e.pointerId),wasPinch=noteGestureLocked;noteTouchPoints.delete(e.pointerId);if(noteTouchPoints.size<2)notePinch=null;if(!noteTouchPoints.size){noteGestureLocked=false;notePinch=null;if(e.type==='pointerup'&&last?.pan&&!wasPinch&&performance.now()-last.t<100)startNotebookMomentum(last.vx,last.vy)}};vp.addEventListener('pointerup',end,{capture:true});vp.addEventListener('pointercancel',end,{capture:true});
+  vp.addEventListener('selectstart',e=>e.preventDefault());
+  vp.addEventListener('contextmenu',e=>e.preventDefault());
+  vp.addEventListener('pointerdown',e=>{if(e.pointerType==='pen'&&drawTool!=='hand'){preparePenInput();return}if(e.pointerType==='touch'&&(drawing&&penDetected||performance.now()-lastPenInputAt<500))return;stopNotebookMomentum();const onPaper=Boolean(e.target.closest('canvas[data-page-key]')),pan=!onPaper||drawTool==='hand'||(e.pointerType==='touch'&&!fingerDraw);if((e.pointerType!=='touch'&&!pan)||(e.pointerType==='mouse'&&e.button!==0)||(drawing&&penDetected))return;noteTouchPoints.set(e.pointerId,{x:e.clientX,y:e.clientY,t:performance.now(),vx:0,vy:0,pan});if(noteTouchPoints.size===2){cancelInkForPinch();noteGestureLocked=true;const [a,b]=[...noteTouchPoints.values()];notePinch={distance:Math.hypot(a.x-b.x,a.y-b.y),zoom:notebookZoom,x:(a.x+b.x)/2,y:(a.y+b.y)/2}}if(pan)try{vp.setPointerCapture?.(e.pointerId)}catch(_){}},{capture:true});
+  vp.addEventListener('pointermove',e=>{if(e.pointerType==='pen'){lastPenInputAt=performance.now();return}if(drawing&&penDetected||performance.now()-lastPenInputAt<500)return;if(!noteTouchPoints.has(e.pointerId))return;const last=noteTouchPoints.get(e.pointerId),t=performance.now(),dt=Math.max(8,t-last.t),dx=last.x-e.clientX,dy=last.y-e.clientY;noteTouchPoints.set(e.pointerId,{...last,x:e.clientX,y:e.clientY,t,vx:dx/dt,vy:dy/dt});if(noteTouchPoints.size>=2&&notePinch){e.preventDefault();const [a,b]=[...noteTouchPoints.values()],x=(a.x+b.x)/2,y=(a.y+b.y)/2;setNotebookZoom(notePinch.zoom*Math.hypot(a.x-b.x,a.y-b.y)/Math.max(1,notePinch.distance),{x:notePinch.x,y:notePinch.y});vp.scrollLeft+=notePinch.x-x;vp.scrollTop+=notePinch.y-y;notePinch={distance:Math.hypot(a.x-b.x,a.y-b.y),zoom:notebookZoom,x,y}}else if(!noteGestureLocked&&last.pan){e.preventDefault();vp.scrollLeft+=dx;vp.scrollTop+=dy}}, {capture:true,passive:false});
+  const end=e=>{if(e.pointerType==='pen'){lastPenInputAt=performance.now();return}const last=noteTouchPoints.get(e.pointerId),wasPinch=noteGestureLocked;noteTouchPoints.delete(e.pointerId);if(noteTouchPoints.size<2)notePinch=null;if(!noteTouchPoints.size){noteGestureLocked=false;notePinch=null;if(e.type==='pointerup'&&last?.pan&&!wasPinch&&performance.now()-last.t<100)startNotebookMomentum(last.vx,last.vy)}};vp.addEventListener('pointerup',end,{capture:true});vp.addEventListener('pointercancel',end,{capture:true});
   vp.addEventListener('wheel',e=>{stopNotebookMomentum();if(e.ctrlKey||e.metaKey){e.preventDefault();setNotebookZoom(notebookZoom*Math.exp(-e.deltaY*.008),{x:e.clientX,y:e.clientY})}},{passive:false});window.addEventListener('resize',applyNotebookWidth)
 }
 function shapePoints(tool,a,b){if(tool==='line')return[a,b];if(tool==='rectangle')return[a,{x:b.x,y:a.y,p:.5},b,{x:a.x,y:b.y,p:.5},a];const cx=(a.x+b.x)/2,cy=(a.y+b.y)/2,rx=Math.abs(b.x-a.x)/2,ry=Math.abs(b.y-a.y)/2;return Array.from({length:81},(_,i)=>({x:cx+rx*Math.cos(i/80*Math.PI*2),y:cy+ry*Math.sin(i/80*Math.PI*2),p:.5}))}
@@ -307,10 +315,12 @@ function updateCanvasInputMode(){
     c.classList.toggle('select-mode',['select','lasso','text','line','rectangle','ellipse'].includes(drawTool));
     c.classList.toggle('hand-mode',drawTool==='hand');
   }
+  const hint=$('#penDetectionState');if(hint)hint.textContent=penDetected?'Active pen detected · palm ignored while writing':fingerDraw?'Touch writing · this pen cannot be separated from your hand':'Pen only · fingers navigate';
   const sb=$('#fingerDrawBtn');if(sb){sb.setAttribute('aria-pressed',String(fingerDraw));sb.textContent=fingerDraw?'✎ Touch: write':'✋ Touch: pan';sb.classList.toggle('active',fingerDraw)}
 }
 function bindCanvas(c){
   c.addEventListener('pointerdown',e=>{
+    if(e.pointerType==='pen'&&drawTool!=='hand')preparePenInput();
     if(drawTool==='hand'||noteGestureLocked||noteTouchPoints.size>1||inkPointerId!==null)return;
     const touchInk=e.pointerType==='touch'&&fingerDraw;
     if(!(e.pointerType==='pen'||e.pointerType==='mouse'||touchInk)||(e.pointerType==='mouse'&&e.button!==0))return;
@@ -318,7 +328,7 @@ function bindCanvas(c){
     if(e.pointerType==='pen'){penDetected=true;fingerDraw=false;saveJson(STYLUS_TOUCH_KEY,false);updateCanvasInputMode();$('#penDetectionState').textContent='Active pen detected · fingers only navigate'}
     e.preventDefault();const p=canvasPoint(e,c);inkBefore=pageUndoState();inkBeforeChanged=activePageChanged;inkUndoPushed=false;inkStart=p;
     if(drawTool==='text'){addTextAt(p).catch(err=>noteStatus(String(err),'error'));return}
-    drawing=true;inkPointerId=e.pointerId;try{c.setPointerCapture?.(e.pointerId)}catch(_){};lastStrokeSafetySaveAt=Date.now();
+    drawing=true;inkPointerType=e.pointerType;inkPointerId=e.pointerId;try{c.setPointerCapture?.(e.pointerId)}catch(_){};lastStrokeSafetySaveAt=Date.now();
     if(drawTool==='select'){const it=notebookItemAt(p);beginItemGesture(p,it);inkUndoPushed=!!it;return}
     if(drawTool==='lasso'){
       const b=strokeSelectionBounds();if(b&&p.x>=b.x-18&&p.x<=b.x+b.w+18&&p.y>=b.y-18&&p.y<=b.y+b.h+18){pushUndo();inkUndoPushed=true;strokeMove={start:p,original:structuredClone(activePage.strokes)}}else{selectedStrokeIds.clear();lassoPath=[p];strokeMove=null}drawPageToCanvas(activePage,c);return
@@ -337,6 +347,7 @@ function bindCanvas(c){
     if(activePageChanged&&Date.now()-lastStrokeSafetySaveAt>1500)emergencyDrawingSnapshot()
   },{passive:false});
   const end=async e=>{if(!drawing||e.pointerId!==inkPointerId||activePage?.key!==c.dataset.pageKey)return;drawing=false;inkPointerId=null;try{c.releasePointerCapture?.(e.pointerId)}catch(_){}
+    if(e.pointerType==='pen')lastPenInputAt=performance.now();
     if(drawTool==='lasso'){if(!strokeMove&&lassoPath.length>2){for(const st of activePage.strokes||[])if((st.points||[]).some(pt=>pointInLasso(pt,lassoPath)))selectedStrokeIds.add(st.id)}strokeMove=null;lassoPath=[];updateItemTools();drawPageToCanvas(activePage,c)}
     if(drawTool==='select')itemGesture=null;liveStroke=null;await saveActiveDrawing({checkpoint:false});maybeGrowInfinitePaper().catch(()=>{})};
   for(const type of ['pointerup','pointercancel','lostpointercapture'])c.addEventListener(type,e=>end(e).catch(err=>noteStatus(String(err.message||err),'error')),{passive:false});
@@ -558,3 +569,4 @@ async function boot(){bind();bindDrawing();bindNotesMode();await recoverLocalDra
 
 boot().catch(e=>{log('boot-error',{error:String(e)});renderStatus({kind:'error',text:String(e.message||e)});setNotesConnection(navigator.onLine?'error':'offline',String(e.message||e))});
 })();
+
