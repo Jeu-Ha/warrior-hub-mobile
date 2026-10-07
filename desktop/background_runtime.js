@@ -16,7 +16,12 @@ importScripts('graph_client.js','onedrive_sync.js','desktop_music.js');
     creating=(async()=>{const tabs=await chrome.tabs.query({url});let tab=tabs[0];
       if(!tab)tab=await chrome.tabs.create({url,active:false,pinned:true});
       await chrome.tabs.update(tab.id,{autoDiscardable:false});
-      return true;
+      for(let attempt=0;attempt<50;attempt++){
+        const reply=await chrome.runtime.sendMessage({type:'SPOTIFY_ENGINE_PING'}).catch(()=>null);
+        if(reply?.ok)return true;
+        await new Promise(resolve=>setTimeout(resolve,100));
+      }
+      throw new Error('Music engine is still loading; try again');
     })();try{return await creating}finally{creating=null}
   }
   // The legacy relay now targets the one permanent engine instead of a side panel.
