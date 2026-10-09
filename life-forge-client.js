@@ -1,0 +1,9 @@
+// No passwords, Microsoft tokens or Site service credentials cross this bridge.
+(()=>{
+ const forgeOrigin='https://life-forge.sassycocoa.chatgpt.site';
+ let target=null,source='',nonce='',read=null,status=null;
+ function setStatus(text){if(status)status.textContent=text;}
+ async function send(){if(!target||target.closed||!nonce||!read)return;try{const data=await read();target.postMessage({...data,type:'LIFE_FORGE_SOURCE_DATA',source,nonce},forgeOrigin);}catch(_){setStatus('Не вдалося підготувати дані. Спробуй знову.');}}
+ window.addEventListener('message',e=>{if(e.origin!==forgeOrigin||!target||e.source!==target||e.data?.source!==source)return;if(e.data.type==='LIFE_FORGE_SOURCE_PULL'&&typeof e.data.nonce==='string'){nonce=e.data.nonce;void send();}else if(e.data.type==='LIFE_FORGE_SOURCE_SAVED'&&e.data.nonce===nonce){setStatus('Life Forge: збережено '+new Date(e.data.receivedAt).toLocaleTimeString('uk-UA'));}});
+ window.LifeForgeSourceBridge={attach({kind,getSnapshot,container}){source=kind;read=getSnapshot;const wrap=document.createElement('div');wrap.style.cssText='margin:20px 0;padding:16px;border:1px solid #ffffff35;border-radius:12px';const b=document.createElement('button');b.type='button';b.textContent='Life Forge · під’єднати';b.style.cssText='padding:12px 16px;min-height:44px;font-weight:700';status=document.createElement('p');status.style.cssText='font-size:14px;line-height:1.5;margin-bottom:0';status.textContent='Передає тільки навчання або фінансові записи. Потрібен вхід у Life Forge.';b.addEventListener('click',()=>{nonce='';target=window.open(forgeOrigin+'/connect?source='+encodeURIComponent(source),'LifeForgeSource-'+source,'popup,width=530,height=720');setStatus(target?'Увійди в Life Forge, потім повернися сюди. Обидва вікна потрібні для передавання.':'Браузер заблокував вікно. Дозволь відкриття для Life Forge.');});wrap.append(b,status);(container||document.body).append(wrap);},notify:send};
+})();
