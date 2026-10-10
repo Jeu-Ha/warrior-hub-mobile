@@ -21,9 +21,9 @@ jobs:
           mkdir -p package/Payload
           cp -R build/Build/Products/Release-iphoneos/LifeForge.app package/Payload/
           cd package
-          zip -qry Life-Forge-iPhone-1.4-unsigned.ipa Payload
+          zip -qry Life-Forge-iPhone-1.5-unsigned.ipa Payload
       - uses: actions/upload-artifact@v4
         with:
-          name: Life-Forge-iPhone-1.4-unsigned
-          path: package/Life-Forge-iPhone-1.4-unsigned.ipa
+          name: Life-Forge-iPhone-1.5-unsigned
+          path: package/Life-Forge-iPhone-1.5-unsigned.ipa
           retention-days: 14

@@ -2,6 +2,7 @@ import SwiftUI
 import WebKit
 import ActivityKit
 import CoreLocation
+import AVFoundation
 
 enum ForgeRoute: String { case day,now }
 struct ForgeRouteRequest { let id=UUID();let route:ForgeRoute }
@@ -26,7 +27,7 @@ struct ForgeWebView: UIViewRepresentable {
         let view=WKWebView(frame:.zero,configuration:config)
         view.isOpaque=false;view.backgroundColor = .black;view.scrollView.backgroundColor = .black
         view.allowsBackForwardNavigationGestures=true;context.coordinator.webView=view
-        view.navigationDelegate=context.coordinator
+        view.navigationDelegate=context.coordinator;view.uiDelegate=context.coordinator
         context.coordinator.observe()
         view.load(URLRequest(url:TimerAccess.site));return view
     }
@@ -36,11 +37,24 @@ struct ForgeWebView: UIViewRepresentable {
         }
     }
     static func dismantleUIView(_ view:WKWebView,coordinator:Coordinator) { view.configuration.userContentController.removeScriptMessageHandler(forName:"lifeForgeTimer");view.configuration.userContentController.removeScriptMessageHandler(forName:"lifeForgeLocation") }
-    final class Coordinator: NSObject,WKScriptMessageHandler,WKNavigationDelegate {
+    final class Coordinator: NSObject,WKScriptMessageHandler,WKNavigationDelegate,WKUIDelegate {
         weak var webView: WKWebView?
         var lastVersion=""
         var lastRequest:UUID?
         var pendingRoute:ForgeRoute?
+        // Reuse the iOS camera decision; WebKit's default is to prompt for each view.
+        // Only our own top-level camera requests receive this grant.
+        func webView(_ webView:WKWebView,requestMediaCapturePermissionFor origin:WKSecurityOrigin,initiatedByFrame frame:WKFrameInfo,type:WKMediaCaptureType,decisionHandler:@escaping (WKPermissionDecision)->Void) {
+            guard origin.protocol=="https",origin.host==TimerAccess.site.host,(origin.port==0 || origin.port==443),
+                  frame.isMainFrame,frame.request.url?.scheme=="https",frame.request.url?.host==TimerAccess.site.host,
+                  type == .camera else { decisionHandler(.deny);return }
+            switch AVCaptureDevice.authorizationStatus(for:.video) {
+            case .authorized: decisionHandler(.grant)
+            case .notDetermined:
+                AVCaptureDevice.requestAccess(for:.video) { allowed in DispatchQueue.main.async { decisionHandler(allowed ? .grant : .deny) } }
+            default: decisionHandler(.deny)
+            }
+        }
         func navigate() {
             guard let view=webView,view.url?.host==TimerAccess.site.host,view.url?.scheme=="https",let route=pendingRoute else { return }
             view.evaluateJavaScript("typeof window.__lifeForgeNavigate==='function' && window.__lifeForgeNavigate('"+route.rawValue+"')") { result,_ in
@@ -163,4 +177,3 @@ final class ForgeLocation:NSObject,CLLocationManagerDelegate {
         webView?.evaluateJavaScript("window.__forgeLocationStatus="+json+";window.dispatchEvent(new CustomEvent('life-forge-location-status',{detail:"+json+"}))",completionHandler:nil)
     }
 }
-
