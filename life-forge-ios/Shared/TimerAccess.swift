@@ -41,6 +41,15 @@ final class TimerAccess: NSObject, URLSessionTaskDelegate {
         guard let http=response as? HTTPURLResponse else { throw AccessError.network }
         guard http.statusCode == 200 else { throw http.statusCode == 401 || http.statusCode == 302 ? AccessError.session : AccessError.network }
     }
+    func sendObservations(_ records:[[String:Any]]) async throws {
+        var request=URLRequest(url:Self.site.appendingPathComponent("api/observations"));request.httpMethod="POST";request.timeoutInterval=15
+        request.setValue("application/json",forHTTPHeaderField:"Content-Type");request.setValue(try cookieHeader(),forHTTPHeaderField:"Cookie")
+        request.httpBody=try JSONSerialization.data(withJSONObject:["records":records])
+        let config=URLSessionConfiguration.ephemeral;config.httpShouldSetCookies=false
+        let session=URLSession(configuration:config,delegate:self,delegateQueue:nil);defer { session.finishTasksAndInvalidate() }
+        let (data,response)=try await session.data(for:request)
+        guard let http=response as? HTTPURLResponse,http.statusCode==200,let body=try JSONSerialization.jsonObject(with:data) as? [String:Any],body["saved"] as? Bool == true,(body["ids"] as? [String])?.count==records.count else { throw AccessError.network }
+    }
     func urlSession(_ session: URLSession, task: URLSessionTask, willPerformHTTPRedirection response: HTTPURLResponse, newRequest request: URLRequest, completionHandler: @escaping (URLRequest?) -> Void) { completionHandler(nil) }
     enum AccessError: LocalizedError, Equatable {
         case session,network
