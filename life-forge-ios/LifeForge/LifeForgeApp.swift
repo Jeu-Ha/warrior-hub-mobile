@@ -144,7 +144,7 @@ final class ForgeLocation:NSObject,CLLocationManagerDelegate {
         persist();flush();publish()
     }
     func locationManager(_ manager:CLLocationManager,didFailWithError error:Error){publish(error:error.localizedDescription)}
-    private func persist(){if let data=try? JSONSerialization.data(withJSONObject:queue){try? data.write(to:queueURL,options:[.atomic,.completeFileProtectionUntilFirstUserAuthentication])}}
+    private func persist(){do { let data=try JSONSerialization.data(withJSONObject:queue);try data.write(to:queueURL,options:[.atomic,.completeFileProtectionUntilFirstUserAuthentication]) } catch { publish(error:"Не вдалося записати геолокацію на телефон. Перевір вільне місце.") }}
     func flush(){
         guard !sending,!queue.isEmpty else { return };sending=true
         let records=Array(queue.prefix(100)),ids=Set(records.compactMap{$0["id"] as? String})
@@ -160,6 +160,7 @@ final class ForgeLocation:NSObject,CLLocationManagerDelegate {
         var payload:[String:Any]=["enabled":active,"message":enabled ? (status == .authorizedAlways ? "Геолокація у фоні · черга \(queue.count)" : "Для фону дозволь «Завжди» в налаштуваннях iPhone · черга \(queue.count)") : "Геолокацію зупинено"]
         if let error { payload["error"]=error }
         guard let data=try? JSONSerialization.data(withJSONObject:payload),let json=String(data:data,encoding:.utf8) else { return }
-        webView?.evaluateJavaScript("window.dispatchEvent(new CustomEvent('life-forge-location-status',{detail:"+json+"}))",completionHandler:nil)
+        webView?.evaluateJavaScript("window.__forgeLocationStatus="+json+";window.dispatchEvent(new CustomEvent('life-forge-location-status',{detail:"+json+"}))",completionHandler:nil)
     }
 }
+
