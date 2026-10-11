@@ -41,6 +41,37 @@ final class TimerAccess: NSObject, URLSessionTaskDelegate {
         guard let http=response as? HTTPURLResponse else { throw AccessError.network }
         guard http.statusCode == 200 else { throw http.statusCode == 401 || http.statusCode == 302 ? AccessError.session : AccessError.network }
     }
+    func startSleep(id:String,at:Date) async throws -> [String:Any] {
+        let config=URLSessionConfiguration.ephemeral;config.httpShouldSetCookies=false
+        let session=URLSession(configuration:config,delegate:self,delegateQueue:nil);defer { session.finishTasksAndInvalidate() }
+        var read=URLRequest(url:Self.site.appendingPathComponent("api/now"));read.timeoutInterval=15;read.setValue(try cookieHeader(),forHTTPHeaderField:"Cookie")
+        let (existing,response)=try await session.data(for:read)
+        guard (response as? HTTPURLResponse)?.statusCode==200,let body=try JSONSerialization.jsonObject(with:existing) as? [String:Any] else { throw AccessError.session }
+        let active=body["active"] as? [String:Any]
+        if active?["category"] as? String == "sleep" { return active! }
+        var request=read;request.httpMethod="POST";request.setValue("application/json",forHTTPHeaderField:"Content-Type")
+        let expected:Any
+        if let current=active { expected=["id":current["id"] ?? "","version":current["version"] ?? 0] } else { expected=NSNull() }
+        request.httpBody=try JSONSerialization.data(withJSONObject:["action":"start","id":id,"title":"Сон","category":"sleep","startedAt":ISO8601DateFormatter().string(from:at),"reserveMinutes":480,"reflow":false,"expected":expected,"taskId":NSNull()])
+        let (data,result)=try await session.data(for:request)
+        guard (result as? HTTPURLResponse)?.statusCode==200,let saved=try JSONSerialization.jsonObject(with:data) as? [String:Any],let entry=saved["active"] as? [String:Any] else { throw AccessError.network }
+        rememberActive(entry);return entry
+    }
+    @MainActor func confirmSleep() async throws {
+        let pending=UserDefaults.standard.dictionary(forKey:"forge.pending-sleep")
+        let id=pending?["id"] as? String ?? UUID().uuidString,at=(pending?["at"] as? Double).map(Date.init(timeIntervalSince1970:)) ?? Date()
+        guard Date().timeIntervalSince(at)<12*3600 else { UserDefaults.standard.removeObject(forKey:"forge.pending-sleep");throw AccessError.network }
+        UserDefaults.standard.set(["id":id,"at":at.timeIntervalSince1970],forKey:"forge.pending-sleep")
+        let entry=try await startSleep(id:id,at:at)
+        UserDefaults.standard.removeObject(forKey:"forge.pending-sleep")
+        guard let savedId=entry["id"] as? String,let raw=entry["startedAt"] as? String else { throw AccessError.network }
+        let parser=ISO8601DateFormatter();parser.formatOptions=[.withInternetDateTime,.withFractionalSeconds]
+        let started=parser.date(from:raw) ?? ISO8601DateFormatter().date(from:raw) ?? at
+        for activity in Activity<ForgeActivity>.activities where activity.attributes.entryId != savedId { await activity.end(nil,dismissalPolicy:.immediate) }
+        if Activity<ForgeActivity>.activities.contains(where:{$0.attributes.entryId==savedId}) { return }
+        let state=ForgeActivity.ContentState(title:"Сон",category:"sleep",startedAt:started,pausedAt:nil,pausedSeconds:0,stoppedAt:nil,pending:false)
+        if ActivityAuthorizationInfo().areActivitiesEnabled { _=try Activity.request(attributes:ForgeActivity(entryId:savedId),content:ActivityContent(state:state,staleDate:nil),pushType:nil) }
+    }
     func sendObservations(_ records:[[String:Any]]) async throws {
         var request=URLRequest(url:Self.site.appendingPathComponent("api/observations"));request.httpMethod="POST";request.timeoutInterval=15
         request.setValue("application/json",forHTTPHeaderField:"Content-Type");request.setValue(try cookieHeader(),forHTTPHeaderField:"Cookie")
@@ -94,6 +125,7 @@ final class TimerAccess: NSObject, URLSessionTaskDelegate {
         reasons.removeValue(forKey:id);UserDefaults.standard.set(reasons,forKey:"forge.pending-stop-reasons")
     }
     func flush() async {
+        if UserDefaults.standard.dictionary(forKey:"forge.pending-sleep") != nil { try? await confirmSleep() }
         let values=UserDefaults.standard.dictionary(forKey:"forge.pending-stops") as? [String:Double] ?? [:]
         let reasons=UserDefaults.standard.dictionary(forKey:"forge.pending-stop-reasons") as? [String:String] ?? [:]
         for (id,time) in values { do { try await stop(id:id,at:Date(timeIntervalSince1970:time),sleepEndSource:reasons[id]);clear(id:id)
@@ -147,6 +179,36 @@ struct StopTimerIntent: LiveActivityIntent {
                 await activity.update(ActivityContent(state:state,staleDate:nil))
             }
         }
+        return .result()
+    }
+}
+
+// Shortcuts can run this LiveActivityIntent at bedtime while the app is backgrounded.
+struct AskSleepIntent: LiveActivityIntent {
+    static var title: LocalizedStringResource = "Пора спати?"
+    static var description = IntentDescription("Показує картку Persona на екрані блокування. Запис сну почнеться лише після «Так, спати».")
+    static var openAppWhenRun = false
+    @MainActor func perform() async throws -> some IntentResult {
+        if Activity<ForgeActivity>.activities.contains(where:{$0.content.state.category=="sleep"}) { return .result() }
+        for activity in Activity<ForgeActivity>.activities where activity.content.state.category=="sleep-prompt" { await activity.end(nil,dismissalPolicy:.immediate) }
+        let state=ForgeActivity.ContentState(title:"Пора спати?",category:"sleep-prompt",startedAt:Date(),pausedAt:nil,pausedSeconds:0,stoppedAt:nil,pending:false)
+        if ActivityAuthorizationInfo().areActivitiesEnabled { _=try Activity.request(attributes:ForgeActivity(entryId:"sleep-prompt-"+UUID().uuidString),content:ActivityContent(state:state,staleDate:Date().addingTimeInterval(3600)),pushType:nil) }
+        return .result()
+    }
+}
+struct BeginSleepIntent: LiveActivityIntent {
+    static var title: LocalizedStringResource = "Так, спати"
+    static var openAppWhenRun = false
+    @MainActor func perform() async throws -> some IntentResult { try await TimerAccess.shared.confirmSleep();return .result() }
+}
+struct DismissSleepPromptIntent: LiveActivityIntent {
+    static var title: LocalizedStringResource = "Пізніше"
+    static var openAppWhenRun = false
+    @Parameter(title:"Картка") var entryId:String
+    init() {}
+    init(entryId:String) { self.entryId=entryId }
+    func perform() async throws -> some IntentResult {
+        for activity in Activity<ForgeActivity>.activities where activity.attributes.entryId==entryId && activity.content.state.category=="sleep-prompt" { await activity.end(nil,dismissalPolicy:.immediate) }
         return .result()
     }
 }

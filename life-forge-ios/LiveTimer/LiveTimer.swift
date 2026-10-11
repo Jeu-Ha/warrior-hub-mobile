@@ -57,10 +57,10 @@ struct ForgeBolt: Shape {
 enum ForgeTheme {
     static let ink=Color(red:0.035,green:0.035,blue:0.043),paper=Color(red:0.97,green:0.953,blue:0.913),red=Color(red:0.906,green:0.11,blue:0.2)
     static func color(_ category:String) -> Color {
-        switch category {case "music":return Color(red:0.725,green:0.60,blue:1);case "miners":return Color(red:0.34,green:0.86,blue:0.69);case "study":return Color(red:0.47,green:0.71,blue:1);case "gym":return Color(red:1,green:0.70,blue:0.46);case "sleep":return Color(red:0.675,green:0.65,blue:1);case "meal":return Color(red:0.94,green:0.8,blue:0.46);default:return paper}
+        switch category {case "music":return Color(red:0.725,green:0.60,blue:1);case "miners":return Color(red:0.34,green:0.86,blue:0.69);case "study":return Color(red:0.47,green:0.71,blue:1);case "gym":return Color(red:1,green:0.70,blue:0.46);case "sleep","sleep-prompt":return Color(red:0.675,green:0.65,blue:1);case "meal":return Color(red:0.94,green:0.8,blue:0.46);default:return paper}
     }
     static func icon(_ category:String) -> String {
-        switch category {case "music":return "music.note";case "miners":return "map.fill";case "study":return "book.closed.fill";case "gym":return "dumbbell.fill";case "sleep":return "moon.fill";case "meal":return "fork.knife";case "break":return "cup.and.saucer.fill";case "career":return "briefcase.fill";default:return "bolt.fill"}
+        switch category {case "music":return "music.note";case "miners":return "map.fill";case "study":return "book.closed.fill";case "gym":return "dumbbell.fill";case "sleep","sleep-prompt":return "moon.fill";case "meal":return "fork.knife";case "break":return "cup.and.saucer.fill";case "career":return "briefcase.fill";default:return "bolt.fill"}
     }
 }
 struct ForgeClock: View {
@@ -98,9 +98,9 @@ struct ForgeLiveCard: View {
                             .font(.system(size:10,weight:.black)).tracking(1).lineLimit(1).minimumScaleFactor(0.8)
                     }.padding(.horizontal,9).padding(.vertical,5).background(ForgeTheme.red,in:CutPaper())
                     HStack(spacing:6) { Image(systemName:ForgeTheme.icon(state.category)).foregroundStyle(ForgeTheme.color(state.category));Text(state.title).font(.custom("Arial-BoldItalicMT",size:17)).lineLimit(2) }
-                    ForgeClock(state:state).font(.system(size:32,weight:.black,design:.rounded)).lineLimit(1).minimumScaleFactor(0.7).accessibilityLabel("Тривалість запису")
+                    if state.category=="sleep-prompt" { Text("Твій час відпочити.").font(.system(size:15,weight:.bold)) } else { ForgeClock(state:state).font(.system(size:32,weight:.black,design:.rounded)).lineLimit(1).minimumScaleFactor(0.7).accessibilityLabel("Тривалість запису") }
                 }.frame(maxWidth:.infinity,alignment:.leading)
-                ForgeStopButton(id:id,pending:state.pending,sleep:state.category=="sleep")
+                if state.category=="sleep-prompt" { ForgeSleepButtons(id:id) } else { ForgeStopButton(id:id,pending:state.pending,sleep:state.category=="sleep") }
             }.padding(.horizontal,17).padding(.vertical,13)
         }.frame(maxWidth:.infinity).foregroundStyle(ForgeTheme.paper).clipped()
     }
@@ -113,14 +113,24 @@ struct ForgeTimerWidget: Widget {
         } dynamicIsland: { context in
             DynamicIsland {
                 DynamicIslandExpandedRegion(.leading) { Image(systemName:ForgeTheme.icon(context.state.category)).foregroundStyle(ForgeTheme.color(context.state.category)).font(.system(size:25,weight:.heavy)).accessibilityLabel(context.state.title) }
-                DynamicIslandExpandedRegion(.trailing) { ForgeClock(state:context.state).font(.system(size:22,weight:.black,design:.rounded)).foregroundStyle(ForgeTheme.paper).frame(width:125).minimumScaleFactor(0.7) }
+                DynamicIslandExpandedRegion(.trailing) { if context.state.category != "sleep-prompt" { ForgeClock(state:context.state).font(.system(size:22,weight:.black,design:.rounded)).foregroundStyle(ForgeTheme.paper).frame(width:125).minimumScaleFactor(0.7) } }
                 DynamicIslandExpandedRegion(.bottom) {
-                    HStack(spacing:12) { VStack(alignment:.leading,spacing:4) { Text(context.state.pending ? "ОЧІКУЄ МЕРЕЖІ":context.state.pausedAt != nil ? "ПАУЗА":"ЗАРАЗ").font(.system(size:10,weight:.black)).tracking(2).foregroundStyle(ForgeTheme.red);Text(context.state.title).font(.custom("Arial-BoldItalicMT",size:17)).lineLimit(2).foregroundStyle(ForgeTheme.paper) }.frame(maxWidth:.infinity,alignment:.leading);ForgeStopButton(id:context.attributes.entryId,pending:context.state.pending) }.padding(.top,6)
+                    HStack(spacing:12) { VStack(alignment:.leading,spacing:4) { Text(context.state.pending ? "ОЧІКУЄ МЕРЕЖІ":context.state.pausedAt != nil ? "ПАУЗА":"ЗАРАЗ").font(.system(size:10,weight:.black)).tracking(2).foregroundStyle(ForgeTheme.red);Text(context.state.title).font(.custom("Arial-BoldItalicMT",size:17)).lineLimit(2).foregroundStyle(ForgeTheme.paper) }.frame(maxWidth:.infinity,alignment:.leading);if context.state.category=="sleep-prompt" { ForgeSleepButtons(id:context.attributes.entryId) } else { ForgeStopButton(id:context.attributes.entryId,pending:context.state.pending,sleep:context.state.category=="sleep") } }.padding(.top,6)
                 }
             } compactLeading: { Image(systemName:ForgeTheme.icon(context.state.category)).foregroundStyle(ForgeTheme.color(context.state.category)) }
-              compactTrailing: { ForgeClock(state:context.state).font(.system(size:12,weight:.bold)).frame(width:68).minimumScaleFactor(0.7) }
+              compactTrailing: { if context.state.category=="sleep-prompt" { Text("СПАТИ?").font(.system(size:11,weight:.black)) } else { ForgeClock(state:context.state).font(.system(size:12,weight:.bold)).frame(width:68).minimumScaleFactor(0.7) } }
               minimal: { Image(systemName:context.state.pending ? "arrow.triangle.2.circlepath":ForgeTheme.icon(context.state.category)).foregroundStyle(ForgeTheme.color(context.state.category)) }
             .keylineTint(ForgeTheme.red)
+        }
+    }
+}
+
+struct ForgeSleepButtons:View {
+    let id:String
+    var body:some View {
+        VStack(spacing:8) {
+            Button(intent:BeginSleepIntent()) { Text("Так, спати").font(.system(size:13,weight:.black)).padding(12).background(ForgeTheme.red,in:CutPaper()).foregroundStyle(ForgeTheme.paper) }.buttonStyle(.plain)
+            Button(intent:DismissSleepPromptIntent(entryId:id)) { Text("Пізніше").font(.system(size:12,weight:.bold)).foregroundStyle(ForgeTheme.paper.opacity(0.7)) }.buttonStyle(.plain)
         }
     }
 }

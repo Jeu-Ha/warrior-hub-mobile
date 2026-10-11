@@ -3,11 +3,12 @@ import WebKit
 import ActivityKit
 import CoreLocation
 import AVFoundation
+import UserNotifications
 
 enum ForgeRoute: String { case day,now }
 struct ForgeRouteRequest { let id=UUID();let route:ForgeRoute }
 @main struct LifeForgeApp: App {
-    init() { _ = ForgeLocation.shared }
+    init() { _ = ForgeLocation.shared;_ = ForgeSleep.shared }
     @State private var routeRequest:ForgeRouteRequest?
     var body: some Scene { WindowGroup {
         ForgeWebView(routeRequest:routeRequest).ignoresSafeArea(edges:.bottom).preferredColorScheme(.dark)
@@ -23,6 +24,7 @@ struct ForgeWebView: UIViewRepresentable {
     func makeUIView(context:Context) -> WKWebView {
         let config=WKWebViewConfiguration();config.websiteDataStore = .default()
         config.userContentController.add(context.coordinator,name:"lifeForgeTimer")
+        config.userContentController.add(context.coordinator,name:"lifeForgeSleep")
         config.userContentController.add(context.coordinator,name:"lifeForgeLocation")
         let view=WKWebView(frame:.zero,configuration:config)
         view.isOpaque=false;view.backgroundColor = .black;view.scrollView.backgroundColor = .black
@@ -36,7 +38,7 @@ struct ForgeWebView: UIViewRepresentable {
             context.coordinator.lastRequest=request.id;context.coordinator.pendingRoute=request.route;context.coordinator.navigate()
         }
     }
-    static func dismantleUIView(_ view:WKWebView,coordinator:Coordinator) { view.configuration.userContentController.removeScriptMessageHandler(forName:"lifeForgeTimer");view.configuration.userContentController.removeScriptMessageHandler(forName:"lifeForgeLocation") }
+    static func dismantleUIView(_ view:WKWebView,coordinator:Coordinator) { view.configuration.userContentController.removeScriptMessageHandler(forName:"lifeForgeTimer");view.configuration.userContentController.removeScriptMessageHandler(forName:"lifeForgeSleep");view.configuration.userContentController.removeScriptMessageHandler(forName:"lifeForgeLocation") }
     final class Coordinator: NSObject,WKScriptMessageHandler,WKNavigationDelegate,WKUIDelegate {
         weak var webView: WKWebView?
         var lastVersion=""
@@ -73,6 +75,7 @@ struct ForgeWebView: UIViewRepresentable {
         func userContentController(_ userContentController:WKUserContentController,didReceive message:WKScriptMessage) {
             guard message.frameInfo.isMainFrame,message.frameInfo.request.url?.scheme == "https",message.frameInfo.request.url?.host == TimerAccess.site.host,
                   let payload=message.body as? [String:Any] else { return }
+            if message.name=="lifeForgeSleep" { ForgeSleep.shared.schedule(payload);return }
             if message.name=="lifeForgeLocation" {
                 webView?.configuration.websiteDataStore.httpCookieStore.getAllCookies { cookies in
                     do { try TimerAccess.shared.save(cookies);ForgeLocation.shared.setEnabled(payload["enabled"] as? Bool == true) } catch { self.showError(error.localizedDescription) }
@@ -83,7 +86,7 @@ struct ForgeWebView: UIViewRepresentable {
                 do { try TimerAccess.shared.save(cookies) } catch { self.showError(error.localizedDescription) }
             }
             guard let data=payload["active"] as? [String:Any],let id=data["id"] as? String else {
-                lastVersion="";Task { @MainActor in guard self.lastVersion.isEmpty else { return };for activity in Activity<ForgeActivity>.activities { await activity.end(nil,dismissalPolicy:.immediate) } };return
+                lastVersion="";Task { @MainActor in guard self.lastVersion.isEmpty else { return };for activity in Activity<ForgeActivity>.activities where activity.content.state.category != "sleep-prompt" { await activity.end(nil,dismissalPolicy:.immediate) } };return
             }
             let version=id+":"+String(describing:data["version"] ?? 0)
             guard version != lastVersion else { return };lastVersion=version
@@ -175,5 +178,41 @@ final class ForgeLocation:NSObject,CLLocationManagerDelegate {
         if let error { payload["error"]=error }
         guard let data=try? JSONSerialization.data(withJSONObject:payload),let json=String(data:data,encoding:.utf8) else { return }
         webView?.evaluateJavaScript("window.__forgeLocationStatus="+json+";window.dispatchEvent(new CustomEvent('life-forge-location-status',{detail:"+json+"}))",completionHandler:nil)
+    }
+}
+
+// Local alerts keep working with the web view closed. They never create sleep facts without a tap.
+final class ForgeSleep:NSObject,UNUserNotificationCenterDelegate {
+    static let shared=ForgeSleep()
+    private var signature=""
+    override init() {
+        super.init();let center=UNUserNotificationCenter.current();center.delegate=self
+        let yes=UNNotificationAction(identifier:"forge.sleep.yes",title:"Так, спати",options:[.foreground])
+        let later=UNNotificationAction(identifier:"forge.sleep.later",title:"Пізніше",options:[])
+        center.setNotificationCategories([UNNotificationCategory(identifier:"forge.sleep",actions:[yes,later],intentIdentifiers:[],options:[])])
+    }
+    func schedule(_ payload:[String:Any]) {
+        guard let entries=payload["schedule"] as? [[String:Any]],let bytes=try? JSONSerialization.data(withJSONObject:entries,options:.sortedKeys) else { return }
+        let next=bytes.base64EncodedString();guard next != signature else { return };signature=next
+        let center=UNUserNotificationCenter.current()
+        center.requestAuthorization(options:[.alert,.sound]) { allowed,_ in
+            guard allowed else { return }
+            center.getPendingNotificationRequests { pending in
+                center.removePendingNotificationRequests(withIdentifiers:pending.filter{$0.identifier.hasPrefix("forge.sleep.")}.map{$0.identifier})
+                for item in entries.prefix(28) {
+                    guard let id=item["id"] as? String,let ms=item["at"] as? Double else { continue }
+                    let interval=ms/1000-Date().timeIntervalSince1970;guard interval>1 else { continue }
+                    let content=UNMutableNotificationContent();content.title="Пора спати?";content.body="Так — почати сон зараз. Без відповіді залишиться твій план.";content.sound = .default;content.categoryIdentifier="forge.sleep"
+                    center.add(UNNotificationRequest(identifier:"forge.sleep."+id,content:content,trigger:UNTimeIntervalNotificationTrigger(timeInterval:interval,repeats:false)))
+                }
+            }
+        }
+    }
+    func userNotificationCenter(_ center:UNUserNotificationCenter,willPresent notification:UNNotification,withCompletionHandler completionHandler:@escaping (UNNotificationPresentationOptions)->Void) { completionHandler([.banner,.sound]) }
+    func userNotificationCenter(_ center:UNUserNotificationCenter,didReceive response:UNNotificationResponse,withCompletionHandler completionHandler:@escaping ()->Void) {
+        guard response.actionIdentifier=="forge.sleep.yes" else { completionHandler();return }
+        // Capture the tap, before authentication/network latency.
+        UserDefaults.standard.set(["id":UUID().uuidString,"at":Date().timeIntervalSince1970],forKey:"forge.pending-sleep")
+        Task { @MainActor in do { try await TimerAccess.shared.confirmSleep() } catch { } ;completionHandler() }
     }
 }

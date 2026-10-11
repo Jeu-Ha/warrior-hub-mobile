@@ -1,8 +1,18 @@
-# Life Forge / iPhone — native project 1.2
+# Life Forge / iPhone — native project 1.5
 
-This is Xcode source, **not an installable or signed IPA**. Requires a Mac with Xcode 15+,
-iOS 17+ and Apple signing for the app and widget extension. This Linux workspace cannot
-build, sign, install or physically verify an iPhone application.
+The unsigned device IPA is compiled on macOS through the isolated life-forge-ios-build GitHub branch. Install with Sideloadly and your Apple ID on Windows. App and WidgetKit extension must both remain. Signing, installation, background delivery and permissions on the owner’s physical iPhone are not verified here.
+
+Version 1.5 handles camera capture through WKUIDelegate and the actual AVFoundation
+authorization status. For the Life Forge HTTPS main frame, a previously authorized
+camera grants WebKit capture without another permission dialog. An undetermined
+status asks the iOS system once; denied/restricted status is not prompted again.
+Other origins, subframes, microphone and combined camera/microphone requests are
+denied. Changing system privacy settings still takes effect. Camera capture starts
+only when the owner opens the photo interface.
+Update the existing app with the same Apple ID and bundle identifiers in Sideloadly;
+do not delete it first. Web UI updates do not replace this native camera handler.
+
+For building and signing from source:
 
 1. Open `LifeForge.xcodeproj` in Xcode.
 2. Select both targets → Signing & Capabilities → your Apple Team.
@@ -68,3 +78,18 @@ Version 1.1: Persona-inspired black/paper/red Live Activity, per-category accent
 icon, system-drawn clock, accessible Stop/Retry controls. The displayed clock freezes
 at the earlier of the current pause or original pending Stop. The web camera has a straight,
 safe-area-aware full-screen layout; normal camera permissions are still required.
+
+## Location journal (1.4)
+Open the native app, sign in, open «Застосунок і дані» and tap «Увімкнути геолокацію».
+Accept the system location permission; for background capture choose Always in iOS
+Settings → Privacy & Security → Location Services → Life Forge. The app never retries
+a denied prompt automatically. iOS may show its own background-location reminders.
+Tracking persists across launches; «Зупинити геолокацію» stops both location services.
+100-metre accuracy/distance mode plus significant-change events reduce battery usage.
+Samples include timestamp and reported accuracy; at most one sample per minute.
+Missing samples, stationary pauses, force-quits and permission/session expiry are gaps,
+not inferred movement. No Apple guarantee of an uninterrupted route is made.
+An offline JSON queue uses atomic writes and protected files accessible after first unlock.
+Uploads use only the Site’s signed-in cookies from Keychain and never follow redirects.
+Foreground metadata of other iPhone apps is unavailable in this build. There is no
+Screen Time entitlement, continuous camera, microphone, screen or keystroke capture.
