@@ -188,8 +188,8 @@ final class ForgeLocation:NSObject,CLLocationManagerDelegate {
         super.init()
         try? FileManager.default.createDirectory(at:queueURL.deletingLastPathComponent(),withIntermediateDirectories:true)
         if let data=try? Data(contentsOf:queueURL),let values=try? JSONSerialization.jsonObject(with:data) as? [[String:Any]] { queue=values }
-        manager.delegate=self;manager.desiredAccuracy=kCLLocationAccuracyHundredMeters;manager.distanceFilter=100
-        manager.allowsBackgroundLocationUpdates=true;manager.showsBackgroundLocationIndicator=true;manager.pausesLocationUpdatesAutomatically=true
+        manager.delegate=self;manager.desiredAccuracy=kCLLocationAccuracyNearestTenMeters;manager.distanceFilter=kCLDistanceFilterNone
+        manager.allowsBackgroundLocationUpdates=true;manager.showsBackgroundLocationIndicator=true;manager.pausesLocationUpdatesAutomatically=false
         if enabled { startAuthorized() }
         NotificationCenter.default.addObserver(self,selector:#selector(wake),name:UIApplication.didBecomeActiveNotification,object:nil)
     }
