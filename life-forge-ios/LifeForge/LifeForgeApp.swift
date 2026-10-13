@@ -4,11 +4,12 @@ import ActivityKit
 import CoreLocation
 import AVFoundation
 import UserNotifications
+import WidgetKit
 
 enum ForgeRoute: String { case day,now }
 struct ForgeRouteRequest { let id=UUID();let route:ForgeRoute }
 @main struct LifeForgeApp: App {
-    init() { _ = ForgeLocation.shared;_ = ForgeSleep.shared }
+    init() { _ = ForgeLocation.shared;_ = ForgeSleep.shared;WidgetCenter.shared.reloadAllTimelines() }
     @State private var routeRequest:ForgeRouteRequest?
     var body: some Scene { WindowGroup {
         ForgeWebView(routeRequest:routeRequest).ignoresSafeArea(edges:.bottom).preferredColorScheme(.dark)
@@ -25,6 +26,7 @@ struct ForgeWebView: UIViewRepresentable {
         let config=WKWebViewConfiguration();config.websiteDataStore = .default()
         config.userContentController.add(context.coordinator,name:"lifeForgeTimer")
         config.userContentController.add(context.coordinator,name:"lifeForgeSleep")
+        config.userContentController.add(context.coordinator,name:"lifeForgeWidgets")
         config.userContentController.add(context.coordinator,name:"lifeForgeLocation")
         let view=WKWebView(frame:.zero,configuration:config)
         view.isOpaque=false;view.backgroundColor = .black;view.scrollView.backgroundColor = .black
@@ -38,7 +40,7 @@ struct ForgeWebView: UIViewRepresentable {
             context.coordinator.lastRequest=request.id;context.coordinator.pendingRoute=request.route;context.coordinator.navigate()
         }
     }
-    static func dismantleUIView(_ view:WKWebView,coordinator:Coordinator) { view.configuration.userContentController.removeScriptMessageHandler(forName:"lifeForgeTimer");view.configuration.userContentController.removeScriptMessageHandler(forName:"lifeForgeSleep");view.configuration.userContentController.removeScriptMessageHandler(forName:"lifeForgeLocation") }
+    static func dismantleUIView(_ view:WKWebView,coordinator:Coordinator) { view.configuration.userContentController.removeScriptMessageHandler(forName:"lifeForgeTimer");view.configuration.userContentController.removeScriptMessageHandler(forName:"lifeForgeSleep");view.configuration.userContentController.removeScriptMessageHandler(forName:"lifeForgeWidgets");view.configuration.userContentController.removeScriptMessageHandler(forName:"lifeForgeLocation") }
     final class Coordinator: NSObject,WKScriptMessageHandler,WKNavigationDelegate,WKUIDelegate {
         weak var webView: WKWebView?
         var lastVersion=""
@@ -69,12 +71,22 @@ struct ForgeWebView: UIViewRepresentable {
             navigate()
             DispatchQueue.main.asyncAfter(deadline:.now()+0.7) { self.navigate() }
         }
+        // ChatGPT sign-in opens its authorization step in a new browsing
+        // context. WKWebView does nothing with that request unless the UI
+        // delegate supplies another view, so continue it in this same view.
+        func webView(_ webView:WKWebView,createWebViewWith configuration:WKWebViewConfiguration,for navigationAction:WKNavigationAction,windowFeatures:WKWindowFeatures) -> WKWebView? {
+            if navigationAction.targetFrame == nil {
+                webView.load(navigationAction.request)
+            }
+            return nil
+        }
         func observe() { NotificationCenter.default.addObserver(self,selector:#selector(wake),name:UIApplication.didBecomeActiveNotification,object:nil) }
         deinit { NotificationCenter.default.removeObserver(self) }
         @objc func wake() { navigate();Task { await TimerAccess.shared.flush();await MainActor.run { self.webView?.evaluateJavaScript("window.dispatchEvent(new Event('online'))",completionHandler:nil) } } }
         func userContentController(_ userContentController:WKUserContentController,didReceive message:WKScriptMessage) {
             guard message.frameInfo.isMainFrame,message.frameInfo.request.url?.scheme == "https",message.frameInfo.request.url?.host == TimerAccess.site.host,
                   let payload=message.body as? [String:Any] else { return }
+            if message.name=="lifeForgeWidgets" { WidgetCenter.shared.reloadAllTimelines();publishWidgetStatus();return }
             if message.name=="lifeForgeSleep" { ForgeSleep.shared.schedule(payload);return }
             if message.name=="lifeForgeLocation" {
                 webView?.configuration.websiteDataStore.httpCookieStore.getAllCookies { cookies in
@@ -103,6 +115,16 @@ struct ForgeWebView: UIViewRepresentable {
                     do { _=try Activity.request(attributes:ForgeActivity(entryId:id),content:ActivityContent(state:state,staleDate:nil),pushType:nil) }
                     catch { self.lastVersion="";self.showError("Live Activity: "+error.localizedDescription) }
                 } else { self.showError("Увімкни Live Activities для Life Forge у налаштуваннях iPhone.") }
+            }
+        }
+        func publishWidgetStatus() {
+            let urls=(try? FileManager.default.contentsOfDirectory(at:Bundle.main.builtInPlugInsURL ?? Bundle.main.bundleURL,includingPropertiesForKeys:nil)) ?? []
+            let present=urls.contains { $0.pathExtension=="appex" && Bundle(url:$0)?.object(forInfoDictionaryKey:"NSExtension") is [String:Any] }
+            WidgetCenter.shared.getCurrentConfigurations { result in
+                var info:[String:Any] = ["version":Bundle.main.object(forInfoDictionaryKey:"CFBundleShortVersionString") as? String ?? "?","extensionPresent":present,"liveActivities":ActivityAuthorizationInfo().areActivitiesEnabled]
+                switch result { case .success(let widgets):info["configured"]=widgets.count;case .failure(let error):info["error"]=error.localizedDescription }
+                guard let data=try? JSONSerialization.data(withJSONObject:info),let json=String(data:data,encoding:.utf8) else { return }
+                DispatchQueue.main.async { self.webView?.evaluateJavaScript("window.dispatchEvent(new CustomEvent('life-forge-widget-status',{detail:"+json+"}))",completionHandler:nil) }
             }
         }
         func parse(_ value:String) -> Date? { let f=ISO8601DateFormatter();f.formatOptions=[.withInternetDateTime,.withFractionalSeconds];return f.date(from:value) ?? ISO8601DateFormatter().date(from:value) }

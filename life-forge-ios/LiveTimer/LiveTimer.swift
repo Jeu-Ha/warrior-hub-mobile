@@ -3,7 +3,7 @@ import WidgetKit
 import ActivityKit
 import AppIntents
 
-@main struct ForgeWidgetBundle: WidgetBundle { var body: some Widget { ForgeTimerWidget();ForgeDayWidget();ForgeNowWidget() } }
+@main struct ForgeWidgetBundle: WidgetBundle { var body: some Widget { ForgeDayWidget();ForgeNowWidget();ForgeTimerWidget() } }
 struct ForgeLinkEntry:TimelineEntry { let date:Date }
 struct ForgeLinkProvider:TimelineProvider {
     func placeholder(in context:Context) -> ForgeLinkEntry { ForgeLinkEntry(date:Date()) }
@@ -15,16 +15,23 @@ struct ForgeLinkView:View {
     @Environment(\.widgetFamily) var family
     var body:some View {
         Group {
-            if family == .accessoryInline {
+            switch family {
+            case .accessoryInline:
                 Label(route=="day" ? "Мій день":"Роблю зараз",systemImage:route=="day" ? "calendar":"bolt.fill")
-            } else {
-                ZStack {
-                    AccessoryWidgetBackground()
-                    CutPaper().stroke(.white,lineWidth:2).padding(4).rotationEffect(.degrees(-8))
-                    Image(systemName:route=="day" ? "calendar":"bolt.fill").font(.system(size:23,weight:.black)).widgetAccentable()
-                }
+            case .accessoryCircular:
+                ZStack { AccessoryWidgetBackground();Image(systemName:route=="day" ? "calendar":"bolt.fill").font(.system(size:23,weight:.black)).widgetAccentable() }
+            case .accessoryRectangular:
+                HStack { Image(systemName:route=="day" ? "calendar":"bolt.fill");VStack(alignment:.leading) { Text("LIFE FORGE").font(.caption2.bold());Text(route=="day" ? "Мій день":"Роблю зараз").font(.headline) } }
+            default:
+                VStack(alignment:.leading,spacing:10) {
+                    HStack { ForgeBolt().fill(ForgeTheme.red).frame(width:15,height:22);Text("LIFE FORGE").font(.system(size:11,weight:.black)).tracking(1);Spacer() }
+                    Spacer(minLength:0)
+                    Image(systemName:route=="day" ? "calendar":"bolt.fill").font(.system(size:30,weight:.black)).foregroundStyle(ForgeTheme.red)
+                    Text(route=="day" ? "Мій день":"Роблю зараз").font(.system(size:20,weight:.black)).minimumScaleFactor(0.7).lineLimit(1)
+                    Text(route=="day" ? "Відкрити календар":"Почати заняття").font(.caption).opacity(0.7)
+                }.frame(maxWidth:.infinity,maxHeight:.infinity,alignment:.leading).foregroundStyle(ForgeTheme.paper)
             }
-        }.containerBackground(for:.widget) { Color.clear }
+        }.containerBackground(for:.widget) { if family == .systemSmall || family == .systemMedium { ForgeTheme.ink } else { Color.clear } }
             .widgetURL(URL(string:"lifeforge://"+route)!)
             .accessibilityLabel(route=="day" ? "Відкрити розклад сьогодні":"Відкрити Роблю зараз")
     }
@@ -34,7 +41,7 @@ struct ForgeDayWidget:Widget {
     var body:some WidgetConfiguration {
         StaticConfiguration(kind:kind,provider:ForgeLinkProvider()) { _ in ForgeLinkView(route:"day") }
             .configurationDisplayName("Мій день").description("Сьогоднішній розклад одним дотиком.")
-            .supportedFamilies([.accessoryCircular,.accessoryInline])
+            .supportedFamilies([.systemSmall,.systemMedium,.accessoryCircular,.accessoryRectangular,.accessoryInline])
     }
 }
 struct ForgeNowWidget:Widget {
@@ -42,7 +49,7 @@ struct ForgeNowWidget:Widget {
     var body:some WidgetConfiguration {
         StaticConfiguration(kind:kind,provider:ForgeLinkProvider()) { _ in ForgeLinkView(route:"now") }
             .configurationDisplayName("Роблю зараз").description("Одразу відкриває вибір заняття й таймер.")
-            .supportedFamilies([.accessoryCircular,.accessoryInline])
+            .supportedFamilies([.systemSmall,.systemMedium,.accessoryCircular,.accessoryRectangular,.accessoryInline])
     }
 }
 struct CutPaper: Shape {
