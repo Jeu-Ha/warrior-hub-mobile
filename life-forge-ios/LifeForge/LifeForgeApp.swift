@@ -43,7 +43,10 @@ struct ForgeWebView: UIViewRepresentable {
     static func dismantleUIView(_ view:WKWebView,coordinator:Coordinator) { view.configuration.userContentController.removeScriptMessageHandler(forName:"lifeForgeTimer");view.configuration.userContentController.removeScriptMessageHandler(forName:"lifeForgeSleep");view.configuration.userContentController.removeScriptMessageHandler(forName:"lifeForgeWidgets");view.configuration.userContentController.removeScriptMessageHandler(forName:"lifeForgeLocation") }
     final class Coordinator: NSObject,WKScriptMessageHandler,WKNavigationDelegate,WKUIDelegate {
         weak var webView: WKWebView?
-        var lastVersion=""
+        var timerSnapshot:[String:Any]?
+        var hasTimerSnapshot=false
+        var timerGeneration=0
+        var timerSyncing=false
         var lastRequest:UUID?
         var pendingRoute:ForgeRoute?
         // Reuse the iOS camera decision; WebKit's default is to prompt for each view.
@@ -93,29 +96,64 @@ struct ForgeWebView: UIViewRepresentable {
                     do { try TimerAccess.shared.save(cookies);ForgeLocation.shared.setEnabled(payload["enabled"] as? Bool == true) } catch { self.showError(error.localizedDescription) }
                 };return
             }
-            TimerAccess.shared.rememberActive(payload["active"] as? [String:Any])
+            timerSnapshot=payload["active"] as? [String:Any];hasTimerSnapshot=true;timerGeneration+=1
+            TimerAccess.shared.rememberActive(timerSnapshot)
             webView?.configuration.websiteDataStore.httpCookieStore.getAllCookies { cookies in
                 do { try TimerAccess.shared.save(cookies) } catch { self.showError(error.localizedDescription) }
             }
-            guard let data=payload["active"] as? [String:Any],let id=data["id"] as? String else {
-                lastVersion="";Task { @MainActor in guard self.lastVersion.isEmpty else { return };for activity in Activity<ForgeActivity>.activities where activity.content.state.category != "sleep-prompt" { await activity.end(nil,dismissalPolicy:.immediate) } };return
-            }
-            let version=id+":"+String(describing:data["version"] ?? 0)
-            guard version != lastVersion else { return };lastVersion=version
-            guard let title=data["title"] as? String,let category=data["category"] as? String,
-                  let raw=data["startedAt"] as? String,let started=parse(raw) else { return }
-            let paused=(data["pausedAt"] as? String).flatMap(parse)
-            let state=ForgeActivity.ContentState(title:title,category:category,startedAt:started,pausedAt:paused,pausedSeconds:(data["pausedMs"] as? Double ?? 0)/1000,stoppedAt:TimerAccess.shared.pendingAt(id:id),pending:TimerAccess.shared.pendingAt(id:id) != nil)
+            synchronizeTimer()
+        }
+        // Serialize snapshots: a late "no timer" must not erase a newly started sleep.
+        // A failed/background request is retried with the next fresh web snapshot.
+        func synchronizeTimer() {
+            guard hasTimerSnapshot,!timerSyncing else { return };timerSyncing=true
             Task { @MainActor in
-                guard self.lastVersion == version else { return }
-                for activity in Activity<ForgeActivity>.activities where activity.attributes.entryId != id { await activity.end(nil,dismissalPolicy:.immediate) }
-                guard self.lastVersion == version else { return }
-                if let activity=Activity<ForgeActivity>.activities.first(where:{$0.attributes.entryId == id}) { await activity.update(ActivityContent(state:state,staleDate:nil)) }
-                else if ActivityAuthorizationInfo().areActivitiesEnabled {
-                    do { _=try Activity.request(attributes:ForgeActivity(entryId:id),content:ActivityContent(state:state,staleDate:nil),pushType:nil) }
-                    catch { self.lastVersion="";self.showError("Live Activity: "+error.localizedDescription) }
-                } else { self.showError("Увімкни Live Activities для Life Forge у налаштуваннях iPhone.") }
+                defer { self.timerSyncing=false }
+                while true {
+                    let generation=self.timerGeneration
+                    guard let data=self.timerSnapshot,let id=data["id"] as? String else {
+                        for activity in Activity<ForgeActivity>.activities where activity.content.state.category != "sleep-prompt" {
+                            if generation != self.timerGeneration { break }
+                            await activity.end(nil,dismissalPolicy:.immediate)
+                        }
+                        if generation != self.timerGeneration { continue }
+                        self.publishTimerStatus("idle","Активного таймера немає.");return
+                    }
+                    guard let title=data["title"] as? String,let category=data["category"] as? String,let raw=data["startedAt"] as? String,let started=self.parse(raw) else {
+                        self.publishTimerStatus("error","Не вдалося прочитати активний таймер.",id:id);return
+                    }
+                    guard self.widgetExtensionPresent() else { self.publishTimerStatus("missing-extension","В установленій копії немає модуля картки. Встанови IPA зі збереженим LiveTimer.",id:id);return }
+                    guard ActivityAuthorizationInfo().areActivitiesEnabled else { self.publishTimerStatus("disabled","Дозволь Live Activities («Дії наживо») у Параметрах iPhone → Life Forge.",id:id);return }
+                    let state=ForgeActivity.ContentState(title:title,category:category,startedAt:started,pausedAt:(data["pausedAt"] as? String).flatMap(self.parse),pausedSeconds:(data["pausedMs"] as? Double ?? 0)/1000,stoppedAt:TimerAccess.shared.pendingAt(id:id),pending:TimerAccess.shared.pendingAt(id:id) != nil)
+                    let existing=Activity<ForgeActivity>.activities.first { $0.attributes.entryId==id && ($0.activityState == .active || $0.activityState == .stale) }
+                    guard existing != nil || UIApplication.shared.applicationState == .active else { self.publishTimerStatus("waiting","Відкрий Life Forge, щоб показати таймер на екрані блокування.",id:id);return }
+                    for activity in Activity<ForgeActivity>.activities where activity.attributes.entryId != id || (activity.activityState != .active && activity.activityState != .stale) {
+                        if generation != self.timerGeneration { break }
+                        await activity.end(nil,dismissalPolicy:.immediate)
+                    }
+                    if generation != self.timerGeneration { continue }
+                    do {
+                        if let activity=existing { await activity.update(ActivityContent(state:state,staleDate:nil)) }
+                        else {
+                            guard UIApplication.shared.applicationState == .active else { self.publishTimerStatus("waiting","Відкрий Life Forge для запуску картки.",id:id);return }
+                            _=try Activity.request(attributes:ForgeActivity(entryId:id),content:ActivityContent(state:state,staleDate:nil),pushType:nil)
+                        }
+                        if generation != self.timerGeneration { continue }
+                        self.publishTimerStatus("active","Таймер передано iOS · на екрані блокування є кнопка завершення.",id:id)
+                    } catch { self.publishTimerStatus("error","iOS не запустила картку: "+error.localizedDescription,id:id) }
+                    if generation == self.timerGeneration { return }
+                }
             }
+        }
+        func widgetExtensionPresent() -> Bool {
+            guard let folder=Bundle.main.builtInPlugInsURL else { return false }
+            return ((try? FileManager.default.contentsOfDirectory(at:folder,includingPropertiesForKeys:nil)) ?? []).contains { $0.pathExtension=="appex" && Bundle(url:$0)?.object(forInfoDictionaryKey:"NSExtension") is [String:Any] }
+        }
+        func publishTimerStatus(_ state:String,_ message:String,id:String?=nil) {
+            var info:[String:Any] = ["state":state,"message":message,"version":Bundle.main.object(forInfoDictionaryKey:"CFBundleShortVersionString") as? String ?? "?"]
+            if let id { info["entryId"]=id }
+            guard let data=try? JSONSerialization.data(withJSONObject:info),let json=String(data:data,encoding:.utf8) else { return }
+            webView?.evaluateJavaScript("window.dispatchEvent(new CustomEvent('life-forge-timer-status',{detail:"+json+"}))",completionHandler:nil)
         }
         func publishWidgetStatus() {
             let urls=(try? FileManager.default.contentsOfDirectory(at:Bundle.main.builtInPlugInsURL ?? Bundle.main.bundleURL,includingPropertiesForKeys:nil)) ?? []
