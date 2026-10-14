@@ -16,7 +16,7 @@ async function cloudRoute(route){
 }
 (async()=>{
   await new Promise(r=>server.listen(0,'127.0.0.1',r));const url=`http://127.0.0.1:${server.address().port}`;
-  const browser=await(process.env.NOTES_WEBKIT?webkit:chromium).launch({headless:true}),errors=[];
+  const browser=await(process.env.NOTES_WEBKIT?webkit:chromium).launch({headless:true,...(process.env.NOTES_CHROME_CHANNEL&&!process.env.NOTES_WEBKIT?{channel:process.env.NOTES_CHROME_CHANNEL}:{})}),errors=[];
   const open=async(viewport,device)=>{const c=await browser.newContext({viewport,hasTouch:true,serviceWorkers:'block'});await c.route('https://graph.microsoft.com/**',cloudRoute);const p=await c.newPage();p.on('pageerror',e=>errors.push(e.message));await p.addInitScript(()=>localStorage.setItem('warriorAutoAuthRetryAfter',String(Date.now()+86400000)));await p.goto(url+'/#notes');await p.waitForFunction(()=>window.__sync&&document.querySelector('#notesLibrary')&&!document.querySelector('#notesLibrary').hidden);await p.waitForFunction(()=>__sync.get().state==='auth');await p.evaluate(async id=>{__sync.device(id);await __sync.token()},device);return{c,p}};
   const tablet=await open({width:1024,height:768},'tablet');
   await tablet.p.click('#newNotebookBtn');await tablet.p.fill('#newNotebookName','Shared Calculus');await tablet.p.click('#newNotebookForm button[type=submit]');await tablet.p.locator('#notesEditor').waitFor({state:'visible'});await tablet.p.waitForFunction(()=>__sync.get().activePage?.notebookTitle==='Shared Calculus');
