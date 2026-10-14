@@ -73,3 +73,8 @@ assert(html.includes('<option value="graded">Graded</option>'));
 assert(css.includes('Canvas grades on assignment cards and calendar'));
 
 
+
+assert(app.includes('function courseOverallGrade'));
+assert(app.includes('function classOverallGrade'));
+assert(app.includes('class-grade-row'));
+assert(css.includes('current Canvas course grade beside every class'));
