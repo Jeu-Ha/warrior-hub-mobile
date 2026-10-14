@@ -134,3 +134,10 @@ body.notes-workspace-mode #view-notes{display:flex!important}
 .badge.grade-badge{color:#ffe795;border-color:#756225;background:rgba(255,216,89,.08);font-weight:800}
 .graded-card{border-color:rgba(255,216,89,.16)}
 .calendar-day .calendar-grade-mark{position:absolute;right:5px;top:4px;font-size:8px;line-height:1;color:#f4ce58}
+
+/* v0.8.4 — current Canvas course grade beside every class */
+.class-row.class-grade-row{grid-template-columns:64px minmax(0,1fr) auto;align-items:center}
+.class-grade-copy{min-width:0}
+.class-overall-grade{justify-self:end;align-self:center;white-space:nowrap;border:1px solid rgba(255,216,89,.34);background:rgba(255,216,89,.08);color:#ffe28a;border-radius:999px;padding:5px 8px;font-size:11px;font-weight:850;font-variant-numeric:tabular-nums}
+.next-class-grade-card{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center}.next-class-copy{min-width:0}.next-grade{font-size:12px}
+@media(max-width:430px){.class-row.class-grade-row{grid-template-columns:56px minmax(0,1fr) auto}.class-overall-grade{font-size:10px;padding:4px 6px}}
