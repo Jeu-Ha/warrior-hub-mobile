@@ -1,7 +1,7 @@
 (() => {
 'use strict';
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
-const FILE_NAME='warrior-hub-sync.json', DEVICE_DIR='warrior-hub-sync-devices', SCHEMA=1, APP_VERSION='0.11.3';
+const FILE_NAME='warrior-hub-sync.json', DEVICE_DIR='warrior-hub-sync-devices', SCHEMA=1, APP_VERSION='0.11.4';
 const CALCULUS_URL='https://archive.org/details/stewart-j.-clegg-d.-watson-s.-calculus.-early-transcendentals-9ed-2020/page/425/mode/2up';
 const ETHICS_URL='./resources/being-good-simon-blackburn.pdf';
 const CHEM2_LAB_URL='https://canvas.wayne.edu/courses/244636/modules/items/6576907';
@@ -22,10 +22,12 @@ if(cfg.clientId==='f8cdef31-a31e-4b4a-93e4-5f571e91255a'){cfg={...cfg,clientId:D
 let state=cloud?.warriorState||{}, currentView='today', selectedDay=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][new Date().getDay()], calCursor=new Date(new Date().getFullYear(),new Date().getMonth(),1), calSelected=localDateKey(new Date());
 let timer=loadJson(TIMER_KEY,{remainingMs:50*60*1000,running:false,endAt:0}), timerHandle=null, pushTimer=null, noteCloudTimer=null;
 let remoteLive=null, remotePollTimer=null, remoteFetchBusy=false, remoteLastError='', remoteCommandBusy=false, remoteCommandFolderReady=false, remoteSpotifyOptimistic=null, remoteStudyOptimistic=null;
-let drawCourse='', drawDate=localDateKey(new Date()), drawPages=[], activePage=null, activePageIndex=0, activePageChanged=false, drawTool='pen', drawColor='#11151d', drawWidth=4, fingerDraw=loadJson(STYLUS_TOUCH_KEY,false)===true, drawing=false, liveStroke=null, undoStack=[], redoStack=[], lastCheckpointAt=0, selectedItemId='', itemGesture=null;
+let drawCourse='', drawDate=localDateKey(new Date()), drawPages=[], activePage=null, activePageIndex=0, activePageChanged=false, drawTool='pen', drawColor='#11151d', drawWidth=4, fingerDraw=loadJson('warriorNotesTouchWritingV11',false)===true, drawing=false, liveStroke=null, undoStack=[], redoStack=[], lastCheckpointAt=0, selectedItemId='', itemGesture=null;
 let noteDbPromise=null,segmentObserver=null,segmentGrowBusy=false,lastStrokeSafetySaveAt=0; const assetDecodePromises=new Map(),assetBitmapCache=new Map(), assetBitmapOrder=[], assetLoadPending=new Set();
 let notesScreen='library',notebookZoom=1,noteSaveQueue=Promise.resolve(),noteCloudBusy=null,inkPointerId=null,inkStart=null,inkBefore=null,lassoPath=[],selectedStrokeIds=new Set(),strokeMove=null;
 const noteTouchPoints=new Map(), NOTE_JOURNAL_KEY='warriorNotesRecoveryJournalV1';
+let lastPenAt=-Infinity;
+const activePenPointers=new Set(),blockedNoteTouches=new Set();
 let notePinch=null,noteGestureLocked=false,penDetected=false,inkUndoPushed=false,inkBeforeChanged=false;
 let noteMomentumFrame=0,actionNotebookKey='',showNotebookTrash=false,notesConnectionBusy=null,notesConnectionState='connecting',notesConnectionError='',notesPullAt=0,notesAuthRefresh=null,notesBootReady=false;
 
@@ -241,10 +243,49 @@ async function finishNoteInteraction(){if(drawing){drawing=false;inkPointerId=nu
 function applyNotebookWidth(){const vp=$('#drawingViewport'),paper=$('#infinitePaper');if(!vp||!paper||vp.clientWidth===0)return;const base=Math.min(980,Math.max(240,vp.clientWidth-32));paper.style.setProperty('width',`${base*notebookZoom}px`,'important');$('#zoomResetBtn').textContent=`${Math.round(notebookZoom*100)}%`}
 function setNotebookZoom(value,anchor){const vp=$('#drawingViewport'),paper=$('#infinitePaper'),old=paper.getBoundingClientRect();if(!old.width)return;const r=vp.getBoundingClientRect(),x=anchor?.x??r.left+vp.clientWidth/2,y=anchor?.y??r.top+vp.clientHeight/2,px=(x-old.left)/old.width,py=(y-old.top)/old.width;notebookZoom=Math.max(.35,Math.min(4,value));applyNotebookWidth();const next=paper.getBoundingClientRect();vp.scrollLeft+=next.left+px*next.width-x;vp.scrollTop+=next.top+py*next.width-y;maybeGrowInfinitePaper().catch(()=>{})}
 function selectNoteTool(tool){drawTool=tool;selectedItemId='';selectedStrokeIds.clear();itemGesture=null;$$('.draw-tool').forEach(x=>x.classList.toggle('active',x.dataset.tool===tool));updateCanvasInputMode();updateItemTools();const c=activeCanvas();if(c)drawPageToCanvas(activePage,c)}
+function protectedNoteEditor(){return currentView==='notes'&&notesScreen==='editor'}
+function penIsNearby(){return activePenPointers.size>0||performance.now()-lastPenAt<700}
+function blockNoteTouch(e){
+  if(!protectedNoteEditor()||e.pointerType!=='touch')return false;
+  if(blockedNoteTouches.has(e.pointerId)||penIsNearby())return true;
+  // These two explicit controls let a finger leave pen-only mode.
+  if(e.target.closest('#fingerDrawBtn, .draw-tool[data-tool="hand"]'))return false;
+  return !fingerDraw&&drawTool!=='hand';
+}
+function bindNotePalmProtection(){
+  const stop=e=>{if(e.cancelable)e.preventDefault();e.stopImmediatePropagation()};
+  document.addEventListener('pointerdown',e=>{
+    if(!protectedNoteEditor())return;
+    if(e.pointerType==='pen'){
+      // A palm may already be resting on the paper before the pen arrives.
+      if(drawing&&fingerDraw)cancelInkForPinch();
+      for(const id of noteTouchPoints.keys())blockedNoteTouches.add(id);
+      noteTouchPoints.clear();notePinch=null;noteGestureLocked=false;stopNotebookMomentum();
+      activePenPointers.add(e.pointerId);lastPenAt=performance.now();penDetected=true;
+      fingerDraw=false;saveJson('warriorNotesTouchWritingV11',false);updateCanvasInputMode();
+    }else if(blockNoteTouch(e)){blockedNoteTouches.add(e.pointerId);stop(e)}
+  },{capture:true,passive:false});
+  document.addEventListener('pointermove',e=>{
+    if(e.pointerType==='pen'&&protectedNoteEditor())lastPenAt=performance.now();
+    if(blockNoteTouch(e)){blockedNoteTouches.add(e.pointerId);stop(e)}
+  },{capture:true,passive:false});
+  for(const type of ['pointerup','pointercancel','lostpointercapture'])document.addEventListener(type,e=>{
+    if(e.pointerType==='pen'){activePenPointers.delete(e.pointerId);lastPenAt=performance.now()}
+    const blocked=blockNoteTouch(e);blockedNoteTouches.delete(e.pointerId);if(blocked)stop(e);
+  },{capture:true,passive:false});
+  for(const type of ['click','dblclick','contextmenu'])document.addEventListener(type,e=>{
+    // Older browsers expose touch-generated clicks as MouseEvents.
+    if(blockNoteTouch(e)||(protectedNoteEditor()&&e.sourceCapabilities?.firesTouchEvents&&
+       (penIsNearby()||(!fingerDraw&&drawTool!=='hand'&&!e.target.closest('#fingerDrawBtn, .draw-tool[data-tool="hand"]')))))stop(e);
+  },{capture:true,passive:false});
+  const reset=()=>{activePenPointers.clear();blockedNoteTouches.clear();noteTouchPoints.clear();notePinch=null;noteGestureLocked=false};
+  window.addEventListener('blur',reset);window.addEventListener('pagehide',reset);
+  document.addEventListener('visibilitychange',()=>{if(document.hidden)reset()});
+}
 function cancelInkForPinch(){if(drawing&&inkPointerId!==null){if(inkBefore)applyUndoState(inkBefore);if(inkUndoPushed&&undoStack.length)undoStack.pop();activePageChanged=inkBeforeChanged;clearDrawingJournal({...activePage,rev:(Number(activePage.rev)||0)+1});drawing=false;liveStroke=null;inkPointerId=null;itemGesture=null;strokeMove=null;lassoPath=[];const c=activeCanvas();if(c)drawPageToCanvas(activePage,c)}}
 function stopNotebookMomentum(){if(noteMomentumFrame)cancelAnimationFrame(noteMomentumFrame);noteMomentumFrame=0}
 function startNotebookMomentum(vx,vy){stopNotebookMomentum();const vp=$('#drawingViewport');vx=Math.max(-3,Math.min(3,vx));vy=Math.max(-3,Math.min(3,vy));let last=performance.now();const step=now=>{const dt=Math.min(32,Math.max(1,now-last));last=now;const x=vp.scrollLeft,y=vp.scrollTop;vp.scrollLeft+=vx*dt;vp.scrollTop+=vy*dt;const decay=Math.exp(-dt/220);vx*=decay;vy*=decay;if(vp.scrollLeft===x)vx=0;if(vp.scrollTop===y)vy=0;if(Math.hypot(vx,vy)>.025&&currentView==='notes'&&notesScreen==='editor')noteMomentumFrame=requestAnimationFrame(step);else noteMomentumFrame=0};noteMomentumFrame=requestAnimationFrame(step)}
-let lastPenInputAt=0,inkPointerType='';
+let lastPenInputAt=-Infinity,inkPointerType='';
 function preparePenInput(){
   lastPenInputAt=performance.now();stopNotebookMomentum();
   if(drawing&&inkPointerType!=='pen')cancelInkForPinch();
@@ -313,23 +354,24 @@ async function openSelectedItem(){const it=findActiveItem();if(!it)return;const 
 
 function emergencyDrawingSnapshot(){if(!activePage||!activePageChanged)return;journalDrawing({...structuredClone(activePage),rev:(Number(activePage.rev)||0)+1,dirty:true,updatedAt:new Date().toISOString()});lastStrokeSafetySaveAt=Date.now()}
 function updateCanvasInputMode(){
+  document.body.classList.toggle('notes-pen-protected',protectedNoteEditor()&&!fingerDraw&&drawTool!=='hand');
   const inkTouch=fingerDraw&&drawTool!=='hand';
   for(const c of $$('#infinitePaper canvas')){
     c.classList.toggle('finger-draw',inkTouch);
     c.classList.toggle('select-mode',['select','lasso','text','line','rectangle','ellipse'].includes(drawTool));
     c.classList.toggle('hand-mode',drawTool==='hand');
   }
-  const hint=$('#penDetectionState');if(hint)hint.textContent=penDetected?'Active pen detected · palm ignored while writing':fingerDraw?'Touch writing · this pen cannot be separated from your hand':'Pen only · fingers navigate';
-  const sb=$('#fingerDrawBtn');if(sb){sb.setAttribute('aria-pressed',String(fingerDraw));sb.textContent=fingerDraw?'✎ Touch: write':'✋ Touch: pan';sb.classList.toggle('active',fingerDraw)}
+  const hint=$('#penDetectionState');if(hint)hint.textContent=drawTool==='hand'?'Hand · drag / pinch to navigate':fingerDraw?'Touch writing · palm protection unavailable':'Pen only · palm and finger taps blocked';
+  const sb=$('#fingerDrawBtn');if(sb){sb.setAttribute('aria-pressed',String(fingerDraw));sb.textContent=fingerDraw?'✎ Touch writing':'✒ Pen only';sb.classList.toggle('active',fingerDraw)}
 }
 function bindCanvas(c){
   c.addEventListener('pointerdown',e=>{
     if(e.pointerType==='pen'&&drawTool!=='hand')preparePenInput();
-    if(drawTool==='hand'||noteGestureLocked||noteTouchPoints.size>1||inkPointerId!==null)return;
+    if(blockNoteTouch(e)||drawTool==='hand'||noteGestureLocked||noteTouchPoints.size>1||inkPointerId!==null)return;
     const touchInk=e.pointerType==='touch'&&fingerDraw;
     if(!(e.pointerType==='pen'||e.pointerType==='mouse'||touchInk)||(e.pointerType==='mouse'&&e.button!==0))return;
     if(activePage?.key!==c.dataset.pageKey&&!setActivePageByKey(c.dataset.pageKey))return;
-    if(e.pointerType==='pen'){penDetected=true;fingerDraw=false;saveJson(STYLUS_TOUCH_KEY,false);updateCanvasInputMode();$('#penDetectionState').textContent='Active pen detected · fingers only navigate'}
+    if(e.pointerType==='pen'){penDetected=true;fingerDraw=false;saveJson('warriorNotesTouchWritingV11',false);updateCanvasInputMode();$('#penDetectionState').textContent='Pen only · palm and finger taps blocked'}
     e.preventDefault();const p=canvasPoint(e,c);inkBefore=pageUndoState();inkBeforeChanged=activePageChanged;inkUndoPushed=false;inkStart=p;
     if(drawTool==='text'){addTextAt(p).catch(err=>noteStatus(String(err),'error'));return}
     drawing=true;inkPointerType=e.pointerType;inkPointerId=e.pointerId;try{c.setPointerCapture?.(e.pointerId)}catch(_){};lastStrokeSafetySaveAt=Date.now();
@@ -561,12 +603,13 @@ async function refreshPhoneAlertStatus(){const status=$('#phoneAlertsStatus'),bt
 
 
 function bind(){
+  bindNotePalmProtection();
   const nav=$('.tabs');nav?.addEventListener('click',e=>{const b=e.target.closest('.tab[data-view]');if(!b)return;e.preventDefault();setView(b.dataset.view)});$('#syncNowBtn').addEventListener('click',syncNow);
   $('#todoAddBtn')?.addEventListener('click',openTodoComposer);$('#todayTodoAdd')?.addEventListener('click',()=>{setView('todos');openTodoComposer()});$('#todoCancelBtn')?.addEventListener('click',closeTodoComposer);$('#todoSaveBtn')?.addEventListener('click',saveTodoComposer);$('#todoText')?.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();saveTodoComposer()}});
   document.addEventListener('click',e=>{const td=e.target.closest('[data-todo-toggle]');if(td){e.preventDefault();e.stopPropagation();toggleTodoMobile(td.dataset.todoToggle);return}const ts=e.target.closest('[data-todo-subadd]');if(ts){e.preventDefault();e.stopPropagation();addSubTodoMobile(ts.dataset.todoSubadd);return}const ad=e.target.closest('[data-assignment-done]');if(ad){e.preventDefault();e.stopPropagation();toggleAssignmentDoneMobile(ad.dataset.assignmentDone);return}});
 $('#assignmentFilter').addEventListener('change',renderAssignments);$('#assignmentSearch').addEventListener('input',renderAssignments);$('#calPrev').addEventListener('click',()=>{calCursor=new Date(calCursor.getFullYear(),calCursor.getMonth()-1,1);renderCalendar()});$('#calNext').addEventListener('click',()=>{calCursor=new Date(calCursor.getFullYear(),calCursor.getMonth()+1,1);renderCalendar()});$('#calendarGrid').addEventListener('click',e=>{const b=e.target.closest('[data-date]');if(b){calSelected=b.dataset.date;renderCalendar()}});$('#dayTabs').addEventListener('click',e=>{const b=e.target.closest('[data-day]');if(b){selectedDay=b.dataset.day;renderSchedule()}});
   $('#exitNotesBtn')?.addEventListener('click',()=>{if(notesScreen==='editor')showNotebookFiles().catch(e=>noteStatus(String(e),'error'));else setView('today')});$('#quickSyncNotesBtn')?.addEventListener('click',()=>connectNotes({forcePull:true}).catch(e=>noteStatus(String(e.message||e),'error')));$('#notesCourse').addEventListener('change',()=>switchDrawContext($('#notesCourse').value,drawDate));$('#notesDate').addEventListener('change',()=>switchDrawContext(drawCourse,$('#notesDate').value));$('#prevNoteDayBtn').addEventListener('click',()=>switchDrawContext(drawCourse,addDays(drawDate,-1)));$('#nextNoteDayBtn').addEventListener('click',()=>switchDrawContext(drawCourse,addDays(drawDate,1)));$('#todayNoteBtn').addEventListener('click',()=>switchDrawContext(drawCourse,localDateKey(new Date())));$('#noteDayChips').addEventListener('click',e=>{const b=e.target.closest('[data-note-date]');if(b)switchDrawContext(drawCourse,b.dataset.noteDate)});$('#prevCourseBtn').addEventListener('click',()=>cycleCourse(-1));$('#nextCourseBtn').addEventListener('click',()=>cycleCourse(1));
-  $$('.draw-tool').forEach(b=>b.addEventListener('click',()=>selectNoteTool(b.dataset.tool)));$('#drawColor').addEventListener('input',e=>drawColor=e.target.value);$('#drawWidth').addEventListener('input',e=>drawWidth=Number(e.target.value)||4);$('#paperStyle').addEventListener('change',async e=>{if(!activePage)return;activePage.paper=e.target.value;activePageChanged=true;const c=activeCanvas();if(c)drawPageToCanvas(activePage,c);await saveActiveDrawing({checkpoint:true})});$('#fingerDrawBtn').addEventListener('click',()=>{fingerDraw=!fingerDraw;saveJson(STYLUS_TOUCH_KEY,fingerDraw);updateCanvasInputMode()});$('#undoDrawBtn').addEventListener('click',undoDrawing);$('#redoDrawBtn').addEventListener('click',redoDrawing);
+  $$('.draw-tool').forEach(b=>b.addEventListener('click',()=>selectNoteTool(b.dataset.tool)));$('#drawColor').addEventListener('input',e=>drawColor=e.target.value);$('#drawWidth').addEventListener('input',e=>drawWidth=Number(e.target.value)||4);$('#paperStyle').addEventListener('change',async e=>{if(!activePage)return;activePage.paper=e.target.value;activePageChanged=true;const c=activeCanvas();if(c)drawPageToCanvas(activePage,c);await saveActiveDrawing({checkpoint:true})});$('#fingerDrawBtn').addEventListener('click',()=>{fingerDraw=!fingerDraw;saveJson('warriorNotesTouchWritingV11',fingerDraw);updateCanvasInputMode()});$('#undoDrawBtn').addEventListener('click',undoDrawing);$('#redoDrawBtn').addEventListener('click',redoDrawing);
   $('#insertNoteItemBtn').addEventListener('click',openInsertSheet);$('#closeInsertBtn').addEventListener('click',closeInsertSheet);$('#closeInsertBackdrop').addEventListener('click',closeInsertSheet);$('#pickPhotosBtn').addEventListener('click',()=>$('#photoPickerInput').click());$('#takePhotoBtn').addEventListener('click',()=>$('#cameraPickerInput').click());$('#pickFilesBtn').addEventListener('click',()=>$('#noteFilePickerInput').click());$('#pasteImageBtn').addEventListener('click',pasteFromClipboard);$('#deleteItemBtn').addEventListener('click',deleteSelectedItem);$('#fitItemBtn').addEventListener('click',fitSelectedItem);$('#openItemBtn').addEventListener('click',()=>openSelectedItem().catch(e=>noteStatus(String(e.message||e),'error')));
   for(const [id,source] of [['photoPickerInput','photos'],['cameraPickerInput','camera'],['noteFilePickerInput','files']]){$(`#${id}`).addEventListener('change',e=>{const files=e.target.files;if(files?.length)insertFiles(files,{source}).catch(err=>noteStatus(String(err.message||err),'error'));e.target.value=''})}
   const vp=$('#drawingViewport');vp.addEventListener('dragover',e=>{e.preventDefault();vp.classList.add('drag-over')});vp.addEventListener('dragleave',()=>vp.classList.remove('drag-over'));vp.addEventListener('drop',e=>{e.preventDefault();vp.classList.remove('drag-over');if(e.dataTransfer?.files?.length)insertFiles(e.dataTransfer.files,{source:'drop'}).catch(err=>noteStatus(String(err.message||err),'error'))});document.addEventListener('paste',e=>{const files=[...(e.clipboardData?.files||[])].filter(f=>f.type.startsWith('image/'));if(files.length&&currentView==='notes'){e.preventDefault();insertFiles(files,{source:'paste-event'}).catch(err=>noteStatus(String(err.message||err),'error'))}});
