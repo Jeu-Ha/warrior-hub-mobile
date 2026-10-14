@@ -8,15 +8,15 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Warrior Hub">
   <title>Warrior Hub Mobile</title>
-  <link rel="manifest" href="manifest.webmanifest?v=0.11.4">
+  <link rel="manifest" href="manifest.webmanifest?v=0.11.5">
   <link rel="apple-touch-icon" href="icons/icon192.png">
-  <link rel="stylesheet" href="app.css?v=0.11.4">
-  <link rel="stylesheet" href="notes.css?v=0.11.4">
+  <link rel="stylesheet" href="app.css?v=0.11.5">
+  <link rel="stylesheet" href="notes.css?v=0.11.5">
 </head>
 <body>
   <div id="appShell">
     <header class="topbar">
-      <div><div class="eyebrow" id="todayLabel">WARRIOR HUB MOBILE · v0.11.4</div><h1>Warrior Hub</h1></div>
+      <div><div class="eyebrow" id="todayLabel">WARRIOR HUB MOBILE · v0.11.5</div><h1>Warrior Hub</h1></div>
       <button id="syncNowBtn" class="sync-btn" type="button">↻ Sync</button>
     </header>
     <div id="statusBanner" class="status-banner">Not connected</div>
@@ -176,12 +176,12 @@
                 <button id="deleteItemBtn" class="danger-soft" disabled>Delete</button>
               </div>
 
-              <div class="notes-quickbar"><div class="ink-presets" aria-label="Quick colors"><button data-ink="#11151d" style="--ink:#11151d" aria-label="Black ink"></button><button data-ink="#2855c5" style="--ink:#2855c5" aria-label="Blue ink"></button><button data-ink="#c53e3e" style="--ink:#c53e3e" aria-label="Red ink"></button><button data-ink="#298256" style="--ink:#298256" aria-label="Green ink"></button></div><span id="penDetectionState">Pen only · palm and finger taps blocked</span><div class="notes-zoom"><button id="zoomOutBtn" aria-label="Zoom out">−</button><button id="zoomResetBtn" title="Fit to width">100%</button><button id="zoomInBtn" aria-label="Zoom in">＋</button></div></div>
+              <div class="notes-quickbar"><div class="ink-presets" aria-label="Quick colors"><button data-ink="#11151d" style="--ink:#11151d" aria-label="Black ink"></button><button data-ink="#2855c5" style="--ink:#2855c5" aria-label="Blue ink"></button><button data-ink="#c53e3e" style="--ink:#c53e3e" aria-label="Red ink"></button><button data-ink="#298256" style="--ink:#298256" aria-label="Green ink"></button></div><span id="penDetectionState">Pen writes · fingers pan / pinch</span><div class="notes-zoom"><button id="zoomOutBtn" aria-label="Zoom out">−</button><button id="zoomResetBtn" title="Fit to width">100%</button><button id="zoomInBtn" aria-label="Zoom in">＋</button></div></div>
 
               <div id="drawingViewport" class="drawing-viewport apple-paper-viewport" aria-label="Infinite drawing notebook">
                 <div id="infinitePaper" class="infinite-paper"></div>
               </div>
-              <div class="infinite-note-hint"><span>∞ Continuous paper</span><span>Pen only: palm protected · Hand: drag / pinch · H: hand · P: pen · ⌘Z: undo</span></div>
+              <div class="infinite-note-hint"><span>∞ Continuous paper</span><span>Finger: pan · Two fingers: zoom · Pen: write · H: hand · P: pen · ⌘Z: undo</span></div>
 
               <div id="insertSheet" class="insert-sheet" hidden>
                 <button class="insert-sheet-backdrop" id="closeInsertBackdrop" aria-label="Close insert menu"></button>
@@ -205,7 +205,7 @@
           </main>
         </div>
         <div id="newNotebookDialog" class="notes-modal" role="dialog" aria-modal="true" aria-labelledby="newNotebookHeading" hidden><form id="newNotebookForm" class="notes-modal-card"><h2 id="newNotebookHeading">New notebook</h2><label>Name<input id="newNotebookName" required maxlength="100" placeholder="e.g. Calculus — Chapter 7"></label><label>Subject<select id="newNotebookSubject"></select></label><label>Paper<select id="newNotebookPaper"><option value="ruled">Ruled</option><option value="blank">Blank</option></select></label><div><button id="cancelNotebookBtn" type="button">Cancel</button><button class="notes-primary" type="submit">Create notebook</button></div></form></div>
-        <div id="noteActionsDialog" class="notes-modal" role="dialog" aria-modal="true" aria-labelledby="noteActionsHeading" hidden><div class="notes-modal-card"><h2 id="noteActionsHeading">Notebook</h2><button id="editNotebookBtn" type="button">Open / edit notebook</button><button id="renameNotebookBtn" type="button">Rename notebook</button><button id="exportNotebookBtn" type="button">↓ Export editable file</button><button id="shareNotebookBtn" type="button">↗ Save / share to Files</button><button id="exportNotebookPdfBtn" type="button">Save PDF</button><button id="shareNotebookPdfBtn" type="button">Share PDF / save to Files</button><button id="printNotebookBtn" type="button">Print</button><button id="deleteNotebookBtn" type="button" class="notes-danger">Move to Trash</button><button id="restoreDeletedNotebookBtn" type="button" hidden>Restore notebook</button><button id="exportAllNotebooksBtn" type="button">↓ Back up all notebooks</button><button id="restoreNotebookRevisionsBtn" type="button">↶ Recover a local checkpoint</button><p id="noteActionsStatus" role="status"></p><p class="notes-modal-help">P pen · E eraser · H hand · L lasso · T text<br>⌘/Ctrl Z undo · ⇧⌘/Ctrl Z redo · ⌘/Ctrl S backup<br>Pen only blocks palm and finger input across the editor. Use Hand to scroll or pinch, then select Pen. Use Touch writing only for a stylus reported as touch; palm protection is unavailable in that mode.</p><button id="closeNoteActionsBtn" type="button">Done</button></div></div>
+        <div id="noteActionsDialog" class="notes-modal" role="dialog" aria-modal="true" aria-labelledby="noteActionsHeading" hidden><div class="notes-modal-card"><h2 id="noteActionsHeading">Notebook</h2><button id="editNotebookBtn" type="button">Open / edit notebook</button><button id="renameNotebookBtn" type="button">Rename notebook</button><button id="exportNotebookBtn" type="button">↓ Export editable file</button><button id="shareNotebookBtn" type="button">↗ Save / share to Files</button><button id="exportNotebookPdfBtn" type="button">Save PDF</button><button id="shareNotebookPdfBtn" type="button">Share PDF / save to Files</button><button id="printNotebookBtn" type="button">Print</button><button id="deleteNotebookBtn" type="button" class="notes-danger">Move to Trash</button><button id="restoreDeletedNotebookBtn" type="button" hidden>Restore notebook</button><button id="exportAllNotebooksBtn" type="button">↓ Back up all notebooks</button><button id="restoreNotebookRevisionsBtn" type="button">↶ Recover a local checkpoint</button><p id="noteActionsStatus" role="status"></p><p class="notes-modal-help">P pen · E eraser · H hand · L lasso · T text<br>⌘/Ctrl Z undo · ⇧⌘/Ctrl Z redo · ⌘/Ctrl S backup<br>In Pen mode, drag with a finger to scroll and pinch with two fingers to zoom between strokes. Palm contacts are ignored during pen strokes. Use Touch writing only for a stylus reported as touch; palm protection is unavailable in that mode.</p><button id="closeNoteActionsBtn" type="button">Done</button></div></div>
       <div id="notesConnectionBar" class="notes-connection-bar" role="status" hidden><span id="notesConnectionMessage">Connecting OneDrive…</span><button id="notesReconnectBtn" type="button">Connect OneDrive</button></div>
       </section>
 
@@ -234,15 +234,15 @@
         </div>
         <div class="setup-card">
           <h2>Install on iPhone / iPad</h2>
-          <p>Safari → Share → <b>Add to Home Screen</b>. Open that Home Screen icon afterward. On iPad, use Pen only for protected writing. Select Hand to scroll or pinch, then Pen to write again.</p>
+          <p>Safari → Share → <b>Add to Home Screen</b>. Open that Home Screen icon afterward. On iPad, write with your pen, drag with a finger to scroll, and pinch with two fingers to zoom between strokes.</p>
         </div>
         <div class="setup-card danger-zone"><h2>Diagnostics</h2><button id="exportMobileDebug">Export mobile debug</button></div>
       </section>
     </main>
   </div>
-  <script src="notes-pdf.js?v=0.11.4"></script>
-  <script src="life-forge-client.js?v=0.11.4"></script>
-  <script src="app.js?v=0.11.4"></script>
+  <script src="notes-pdf.js?v=0.11.5"></script>
+  <script src="life-forge-client.js?v=0.11.5"></script>
+  <script src="app.js?v=0.11.5"></script>
 </body>
 </html>
 

@@ -1,7 +1,7 @@
 (() => {
 'use strict';
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
-const FILE_NAME='warrior-hub-sync.json', DEVICE_DIR='warrior-hub-sync-devices', SCHEMA=1, APP_VERSION='0.11.4';
+const FILE_NAME='warrior-hub-sync.json', DEVICE_DIR='warrior-hub-sync-devices', SCHEMA=1, APP_VERSION='0.11.5';
 const CALCULUS_URL='https://archive.org/details/stewart-j.-clegg-d.-watson-s.-calculus.-early-transcendentals-9ed-2020/page/425/mode/2up';
 const ETHICS_URL='./resources/being-good-simon-blackburn.pdf';
 const CHEM2_LAB_URL='https://canvas.wayne.edu/courses/244636/modules/items/6576907';
@@ -26,7 +26,7 @@ let drawCourse='', drawDate=localDateKey(new Date()), drawPages=[], activePage=n
 let noteDbPromise=null,segmentObserver=null,segmentGrowBusy=false,lastStrokeSafetySaveAt=0; const assetDecodePromises=new Map(),assetBitmapCache=new Map(), assetBitmapOrder=[], assetLoadPending=new Set();
 let notesScreen='library',notebookZoom=1,noteSaveQueue=Promise.resolve(),noteCloudBusy=null,inkPointerId=null,inkStart=null,inkBefore=null,lassoPath=[],selectedStrokeIds=new Set(),strokeMove=null;
 const noteTouchPoints=new Map(), NOTE_JOURNAL_KEY='warriorNotesRecoveryJournalV1';
-let lastPenAt=-Infinity;
+
 const activePenPointers=new Set(),blockedNoteTouches=new Set();
 let notePinch=null,noteGestureLocked=false,penDetected=false,inkUndoPushed=false,inkBeforeChanged=false;
 let noteMomentumFrame=0,actionNotebookKey='',showNotebookTrash=false,notesConnectionBusy=null,notesConnectionState='connecting',notesConnectionError='',notesPullAt=0,notesAuthRefresh=null,notesBootReady=false;
@@ -244,11 +244,14 @@ function applyNotebookWidth(){const vp=$('#drawingViewport'),paper=$('#infiniteP
 function setNotebookZoom(value,anchor){const vp=$('#drawingViewport'),paper=$('#infinitePaper'),old=paper.getBoundingClientRect();if(!old.width)return;const r=vp.getBoundingClientRect(),x=anchor?.x??r.left+vp.clientWidth/2,y=anchor?.y??r.top+vp.clientHeight/2,px=(x-old.left)/old.width,py=(y-old.top)/old.width;notebookZoom=Math.max(.35,Math.min(4,value));applyNotebookWidth();const next=paper.getBoundingClientRect();vp.scrollLeft+=next.left+px*next.width-x;vp.scrollTop+=next.top+py*next.width-y;maybeGrowInfinitePaper().catch(()=>{})}
 function selectNoteTool(tool){drawTool=tool;selectedItemId='';selectedStrokeIds.clear();itemGesture=null;$$('.draw-tool').forEach(x=>x.classList.toggle('active',x.dataset.tool===tool));updateCanvasInputMode();updateItemTools();const c=activeCanvas();if(c)drawPageToCanvas(activePage,c)}
 function protectedNoteEditor(){return currentView==='notes'&&notesScreen==='editor'}
-function penIsNearby(){return activePenPointers.size>0||performance.now()-lastPenAt<700}
+function penIsActive(){return activePenPointers.size>0}
 function blockNoteTouch(e){
   if(!protectedNoteEditor()||e.pointerType!=='touch')return false;
-  if(blockedNoteTouches.has(e.pointerId)||penIsNearby())return true;
-  // These two explicit controls let a finger leave pen-only mode.
+  if(blockedNoteTouches.has(e.pointerId)||penIsActive())return true;
+  // Broad contacts are palms; normal fingers navigate between pen strokes.
+  if(Math.max(Number(e.width)||0,Number(e.height)||0)>30)return true;
+  if(e.target.closest('#drawingViewport'))return false;
+  // Explicit controls let a finger leave pen-only mode.
   if(e.target.closest('#fingerDrawBtn, .draw-tool[data-tool="hand"]'))return false;
   return !fingerDraw&&drawTool!=='hand';
 }
@@ -261,22 +264,21 @@ function bindNotePalmProtection(){
       if(drawing&&fingerDraw)cancelInkForPinch();
       for(const id of noteTouchPoints.keys())blockedNoteTouches.add(id);
       noteTouchPoints.clear();notePinch=null;noteGestureLocked=false;stopNotebookMomentum();
-      activePenPointers.add(e.pointerId);lastPenAt=performance.now();penDetected=true;
+      activePenPointers.add(e.pointerId);penDetected=true;
       fingerDraw=false;saveJson('warriorNotesTouchWritingV11',false);updateCanvasInputMode();
     }else if(blockNoteTouch(e)){blockedNoteTouches.add(e.pointerId);stop(e)}
   },{capture:true,passive:false});
   document.addEventListener('pointermove',e=>{
-    if(e.pointerType==='pen'&&protectedNoteEditor())lastPenAt=performance.now();
     if(blockNoteTouch(e)){blockedNoteTouches.add(e.pointerId);stop(e)}
   },{capture:true,passive:false});
   for(const type of ['pointerup','pointercancel','lostpointercapture'])document.addEventListener(type,e=>{
-    if(e.pointerType==='pen'){activePenPointers.delete(e.pointerId);lastPenAt=performance.now()}
-    const blocked=blockNoteTouch(e);blockedNoteTouches.delete(e.pointerId);if(blocked)stop(e);
+    if(e.pointerType==='pen'){activePenPointers.delete(e.pointerId)}
+    const blocked=blockNoteTouch(e);blockedNoteTouches.delete(e.pointerId);if(blocked){noteTouchPoints.delete(e.pointerId);if(noteTouchPoints.size<2)notePinch=null;if(!noteTouchPoints.size)noteGestureLocked=false;stop(e)};
   },{capture:true,passive:false});
   for(const type of ['click','dblclick','contextmenu'])document.addEventListener(type,e=>{
     // Older browsers expose touch-generated clicks as MouseEvents.
     if(blockNoteTouch(e)||(protectedNoteEditor()&&e.sourceCapabilities?.firesTouchEvents&&
-       (penIsNearby()||(!fingerDraw&&drawTool!=='hand'&&!e.target.closest('#fingerDrawBtn, .draw-tool[data-tool="hand"]')))))stop(e);
+       (penIsActive()||(!fingerDraw&&drawTool!=='hand'&&!e.target.closest('#fingerDrawBtn, .draw-tool[data-tool="hand"]')))))stop(e);
   },{capture:true,passive:false});
   const reset=()=>{activePenPointers.clear();blockedNoteTouches.clear();noteTouchPoints.clear();notePinch=null;noteGestureLocked=false};
   window.addEventListener('blur',reset);window.addEventListener('pagehide',reset);
@@ -294,8 +296,8 @@ function preparePenInput(){
 function bindNotebookGestures(){const vp=$('#drawingViewport');
   vp.addEventListener('selectstart',e=>e.preventDefault());
   vp.addEventListener('contextmenu',e=>e.preventDefault());
-  vp.addEventListener('pointerdown',e=>{if(e.pointerType==='pen'&&drawTool!=='hand'){preparePenInput();return}if(e.pointerType==='touch'&&(drawing&&penDetected||performance.now()-lastPenInputAt<500))return;stopNotebookMomentum();const onPaper=Boolean(e.target.closest('canvas[data-page-key]')),pan=!onPaper||drawTool==='hand'||(e.pointerType==='touch'&&!fingerDraw);if((e.pointerType!=='touch'&&!pan)||(e.pointerType==='mouse'&&e.button!==0)||(drawing&&penDetected))return;noteTouchPoints.set(e.pointerId,{x:e.clientX,y:e.clientY,t:performance.now(),vx:0,vy:0,pan});if(noteTouchPoints.size===2){cancelInkForPinch();noteGestureLocked=true;const [a,b]=[...noteTouchPoints.values()];notePinch={distance:Math.hypot(a.x-b.x,a.y-b.y),zoom:notebookZoom,x:(a.x+b.x)/2,y:(a.y+b.y)/2}}if(pan)try{vp.setPointerCapture?.(e.pointerId)}catch(_){}},{capture:true});
-  vp.addEventListener('pointermove',e=>{if(e.pointerType==='pen'){lastPenInputAt=performance.now();return}if(drawing&&penDetected||performance.now()-lastPenInputAt<500)return;if(!noteTouchPoints.has(e.pointerId))return;const last=noteTouchPoints.get(e.pointerId),t=performance.now(),dt=Math.max(8,t-last.t),dx=last.x-e.clientX,dy=last.y-e.clientY;noteTouchPoints.set(e.pointerId,{...last,x:e.clientX,y:e.clientY,t,vx:dx/dt,vy:dy/dt});if(noteTouchPoints.size>=2&&notePinch){e.preventDefault();const [a,b]=[...noteTouchPoints.values()],x=(a.x+b.x)/2,y=(a.y+b.y)/2;setNotebookZoom(notePinch.zoom*Math.hypot(a.x-b.x,a.y-b.y)/Math.max(1,notePinch.distance),{x:notePinch.x,y:notePinch.y});vp.scrollLeft+=notePinch.x-x;vp.scrollTop+=notePinch.y-y;notePinch={distance:Math.hypot(a.x-b.x,a.y-b.y),zoom:notebookZoom,x,y}}else if(!noteGestureLocked&&last.pan){e.preventDefault();vp.scrollLeft+=dx;vp.scrollTop+=dy}}, {capture:true,passive:false});
+  vp.addEventListener('pointerdown',e=>{if(e.pointerType==='pen'&&drawTool!=='hand'){preparePenInput();return}if(e.pointerType==='touch'&&penIsActive())return;stopNotebookMomentum();const onPaper=Boolean(e.target.closest('canvas[data-page-key]')),pan=!onPaper||drawTool==='hand'||(e.pointerType==='touch'&&!fingerDraw);if((e.pointerType!=='touch'&&!pan)||(e.pointerType==='mouse'&&e.button!==0)||(drawing&&penDetected))return;noteTouchPoints.set(e.pointerId,{x:e.clientX,y:e.clientY,t:performance.now(),vx:0,vy:0,pan});if(noteTouchPoints.size===2){cancelInkForPinch();noteGestureLocked=true;const [a,b]=[...noteTouchPoints.values()];notePinch={distance:Math.hypot(a.x-b.x,a.y-b.y),zoom:notebookZoom,x:(a.x+b.x)/2,y:(a.y+b.y)/2}}if(pan)try{vp.setPointerCapture?.(e.pointerId)}catch(_){}},{capture:true});
+  vp.addEventListener('pointermove',e=>{if(e.pointerType==='pen'){lastPenInputAt=performance.now();return}if(penIsActive())return;if(!noteTouchPoints.has(e.pointerId))return;const last=noteTouchPoints.get(e.pointerId),t=performance.now(),dt=Math.max(8,t-last.t),dx=last.x-e.clientX,dy=last.y-e.clientY;noteTouchPoints.set(e.pointerId,{...last,x:e.clientX,y:e.clientY,t,vx:dx/dt,vy:dy/dt});if(noteTouchPoints.size>=2&&notePinch){e.preventDefault();const [a,b]=[...noteTouchPoints.values()],x=(a.x+b.x)/2,y=(a.y+b.y)/2;setNotebookZoom(notePinch.zoom*Math.hypot(a.x-b.x,a.y-b.y)/Math.max(1,notePinch.distance),{x:notePinch.x,y:notePinch.y});vp.scrollLeft+=notePinch.x-x;vp.scrollTop+=notePinch.y-y;notePinch={distance:Math.hypot(a.x-b.x,a.y-b.y),zoom:notebookZoom,x,y}}else if(!noteGestureLocked&&last.pan){e.preventDefault();vp.scrollLeft+=dx;vp.scrollTop+=dy}}, {capture:true,passive:false});
   const end=e=>{if(e.pointerType==='pen'){lastPenInputAt=performance.now();return}const last=noteTouchPoints.get(e.pointerId),wasPinch=noteGestureLocked;noteTouchPoints.delete(e.pointerId);if(noteTouchPoints.size<2)notePinch=null;if(!noteTouchPoints.size){noteGestureLocked=false;notePinch=null;if(e.type==='pointerup'&&last?.pan&&!wasPinch&&performance.now()-last.t<100)startNotebookMomentum(last.vx,last.vy)}};vp.addEventListener('pointerup',end,{capture:true});vp.addEventListener('pointercancel',end,{capture:true});
   vp.addEventListener('wheel',e=>{stopNotebookMomentum();if(e.ctrlKey||e.metaKey){e.preventDefault();setNotebookZoom(notebookZoom*Math.exp(-e.deltaY*.008),{x:e.clientX,y:e.clientY})}},{passive:false});window.addEventListener('resize',applyNotebookWidth)
 }
@@ -361,7 +363,7 @@ function updateCanvasInputMode(){
     c.classList.toggle('select-mode',['select','lasso','text','line','rectangle','ellipse'].includes(drawTool));
     c.classList.toggle('hand-mode',drawTool==='hand');
   }
-  const hint=$('#penDetectionState');if(hint)hint.textContent=drawTool==='hand'?'Hand · drag / pinch to navigate':fingerDraw?'Touch writing · palm protection unavailable':'Pen only · palm and finger taps blocked';
+  const hint=$('#penDetectionState');if(hint)hint.textContent=drawTool==='hand'?'Hand · drag / pinch to navigate':fingerDraw?'Touch writing · palm protection unavailable':'Pen writes · fingers pan / pinch · palm blocked during strokes';
   const sb=$('#fingerDrawBtn');if(sb){sb.setAttribute('aria-pressed',String(fingerDraw));sb.textContent=fingerDraw?'✎ Touch writing':'✒ Pen only';sb.classList.toggle('active',fingerDraw)}
 }
 function bindCanvas(c){
@@ -371,7 +373,7 @@ function bindCanvas(c){
     const touchInk=e.pointerType==='touch'&&fingerDraw;
     if(!(e.pointerType==='pen'||e.pointerType==='mouse'||touchInk)||(e.pointerType==='mouse'&&e.button!==0))return;
     if(activePage?.key!==c.dataset.pageKey&&!setActivePageByKey(c.dataset.pageKey))return;
-    if(e.pointerType==='pen'){penDetected=true;fingerDraw=false;saveJson('warriorNotesTouchWritingV11',false);updateCanvasInputMode();$('#penDetectionState').textContent='Pen only · palm and finger taps blocked'}
+    if(e.pointerType==='pen'){penDetected=true;fingerDraw=false;saveJson('warriorNotesTouchWritingV11',false);updateCanvasInputMode();$('#penDetectionState').textContent='Pen writes · fingers pan / pinch · palm blocked during strokes'}
     e.preventDefault();const p=canvasPoint(e,c);inkBefore=pageUndoState();inkBeforeChanged=activePageChanged;inkUndoPushed=false;inkStart=p;
     if(drawTool==='text'){addTextAt(p).catch(err=>noteStatus(String(err),'error'));return}
     drawing=true;inkPointerType=e.pointerType;inkPointerId=e.pointerId;try{c.setPointerCapture?.(e.pointerId)}catch(_){};lastStrokeSafetySaveAt=Date.now();
