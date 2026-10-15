@@ -76,12 +76,20 @@
     const percent=earned/possible*100,grade=letter(percent);
     return {score:percent,grade,label:`${+percent.toFixed(2)}% · ${grade}`,earned,possible,totalPossible:665,parts,source:'calculated',detail:`Calculated CHM 1140: ${+earned.toFixed(2)}/${+possible.toFixed(2)} graded points · course total 665. Ungraded work excluded.`};
   }
+  const GROUP3=[{date:'2026-10-15',title:'Group 3 · Project Meeting 1',notes:'Each group member: correct answers and all your own work.'},{date:'2026-11-03',title:'Group 3 · Project Meeting 2',notes:'Bring a rough draft of your journal, completed PowerPoint, and questions.'},{date:'2026-11-19',title:'Group 3 · Project Presentation',notes:'Group 3 presentation during workshop.'}];
+  function applyGroup3(state,assignments){
+    const workshop=(state.schedule||[]).find(c=>/MAT\s*2120/i.test(c.code||'')||/calculus.*(?:wk|workshop)/i.test(c.title||''));
+    const course=(state.courses||[]).find(c=>/MAT\s*2120/i.test(c.code||''));
+    const rows=assignments.map(a=>({...a}));
+    for(const e of GROUP3){const id='group3-project-f26-'+e.date;if(rows.some(a=>a.id===id))continue;const time=/^\d{2}:\d{2}$/.test(workshop?.startTime||'')?workshop.startTime:null,offset=e.date<'2026-11-01'?'-04:00':'-05:00';rows.push({id,title:e.title,courseCode:workshop?.code||'MAT 2120',courseName:workshop?.title||'Calculus workshop',courseId:course?.id||'',dueAt:time?e.date+'T'+time+':00'+offset:e.date+'T12:00:00'+offset,allDay:!time,timeNote:time?'During your scheduled workshop':'During workshop · time not provided in the calendar',description:e.notes,source:'group3-project-calendar-f26',majorKind:e.title.includes('Presentation')?'presentation':'project meeting',importanceScore:95,completed:false,submitted:false})}
+    return rows;
+  }
   function apply(state){
     if(!state||typeof state!=='object')return state;
     const courses=(Array.isArray(state.courses)?state.courses:[]).map(c=>({...c}));
     let course=courses.find(isChem);
     if(!course){course={id:COURSE_ID,code:'CHM 1140',name:'General Chemistry II',term:'Fall 2026',source:'syllabus',url:`https://canvas.wayne.edu/courses/${COURSE_ID}`};courses.push(course)}
-    const assignments=enrichAssignments(state.assignments,course);course.calculatedGrade=summary(course,assignments);return {...state,courses,assignments};
+    const assignments=applyGroup3(state,enrichAssignments(state.assignments,course));course.calculatedGrade=summary(course,assignments);return {...state,courses,assignments};
   }
-  globalThis.WarriorCourseRules={apply,summary,isChem,examNumber,category,EXAMS,POLICY};
+  globalThis.WarriorCourseRules={apply,summary,isChem,examNumber,category,EXAMS,POLICY,GROUP3};
 })();

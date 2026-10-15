@@ -51,3 +51,18 @@ body.notes-editor-mode .notes-connection-bar button{pointer-events:auto}
 #view-notes .paper-segment{filter:none!important;content-visibility:visible;contain:none}
 #drawingViewport.note-zoom-preview #infinitePaper{visibility:hidden!important}
 #noteZoomPreview{position:fixed;display:block;pointer-events:none;z-index:20;margin:0;padding:0;border:0;border-radius:0;filter:none!important;transform:none!important;will-change:auto;box-shadow:none;background:#c7c7cc}
+
+/* Permanent notebooks: subject, folder, touch-friendly ordering and clear PDF export. */
+.notes-sidebar .notes-sticky-head[hidden]{display:none!important}
+.notebook-subject{display:block;font-size:12px;color:#5e6475;margin:5px 0}
+.notebook-move{display:flex;gap:8px;margin-top:5px}.notebook-move button{min-width:42px;min-height:36px;border:1px solid #d6d9e3;border-radius:9px;background:#fff;color:#333}
+.notebook-permanent-tip{font-size:12px;line-height:1.5;color:#666;padding:8px}
+.notebook-topline{gap:8px!important;flex-wrap:wrap}.notebook-topline>div{min-width:0;flex:1}
+#exportPdfQuickBtn{min-height:44px;white-space:nowrap;padding:9px 13px;border:0;border-radius:10px;background:#435bc0!important;color:#fff!important;font-weight:700}
+#quickEraserBtn[aria-pressed=true]{background:#1c1c1e;color:#fff}
+.home-notebook-grid{display:flex;gap:8px;overflow-x:auto;padding-bottom:8px}.home-notebook-grid button{flex:0 0 180px;min-height:75px;text-align:left;padding:12px;background:#171b25;color:#fff;border:1px solid #343b50;border-radius:13px}.home-notebook-grid small{display:block;font-size:10px;color:#afb5c4;margin-top:6px}
+.notes-library-filters{flex-wrap:wrap}#notebookSort{min-width:130px}
+
+#notesEditor:not(.show-extra-tools) [data-tool=pencil],#notesEditor:not(.show-extra-tools) [data-tool=select],#notesEditor:not(.show-extra-tools) [data-tool=lasso],#notesEditor:not(.show-extra-tools) [data-tool=text],#notesEditor:not(.show-extra-tools) [data-tool=line],#notesEditor:not(.show-extra-tools) [data-tool=rectangle],#notesEditor:not(.show-extra-tools) [data-tool=ellipse]{display:none!important}
+
+#manageActiveNotebookBtn{min-height:44px;margin:10px;padding:8px 12px;border:1px solid #d6d9e3;border-radius:10px;background:#fff;color:#343947;font-weight:650}

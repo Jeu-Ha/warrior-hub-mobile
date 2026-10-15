@@ -3,7 +3,7 @@ const ctx=vm.createContext({});vm.runInContext(fs.readFileSync(require('path').j
 const course={id:244611,code:'CHM 1140',name:'General Chemistry II'};
 const row=(id,title,score,pointsPossible,extra={})=>({id,title,courseId:244611,score,pointsPossible,...extra});
 const apply=assignments=>JSON.parse(JSON.stringify(rules.apply({courses:[course],assignments})));
-let s=apply([]);assert.equal(s.assignments.length,5);assert.equal(s.assignments.find(a=>a.syllabusExamNumber===2).dueAt,'2026-10-23T11:30:00-04:00');assert.equal(s.assignments.find(a=>a.syllabusExamNumber===5).pointsPossible,200);
+let s=apply([]);assert.equal(s.assignments.filter(a=>rules.isChem(a)).length,5);assert.equal(s.assignments.find(a=>a.syllabusExamNumber===2).dueAt,'2026-10-23T11:30:00-04:00');assert.equal(s.assignments.find(a=>a.syllabusExamNumber===5).pointsPossible,200);
 assert.equal(JSON.stringify(rules.apply(s)),JSON.stringify(s),'rules must be idempotent');
 assert.equal(rules.summary(course,s.assignments),null,'future/missing grades must never become zeros');
 s=apply([row('real-exam-1','Exam 1',82,1),row('hw1','Homework 1',4,5),row('hw2','Chapter 13 homework',90,100),row('attendance','Attendance',10,10),row('practice','Exam 2 practice',100,100)]);

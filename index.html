@@ -8,15 +8,15 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Warrior Hub">
   <title>Warrior Hub Mobile</title>
-  <link rel="manifest" href="manifest.webmanifest?v=0.13.1">
+  <link rel="manifest" href="manifest.webmanifest?v=0.14.0">
   <link rel="apple-touch-icon" href="icons/icon192.png">
-  <link rel="stylesheet" href="app.css?v=0.13.1">
-  <link rel="stylesheet" href="notes.css?v=0.13.1">
+  <link rel="stylesheet" href="app.css?v=0.14.0">
+  <link rel="stylesheet" href="notes.css?v=0.14.0">
 </head>
 <body>
   <div id="appShell">
     <header class="topbar">
-      <div><div class="eyebrow" id="todayLabel">WARRIOR HUB MOBILE · v0.13.1</div><h1>Warrior Hub</h1></div>
+      <div><div class="eyebrow" id="todayLabel">WARRIOR HUB MOBILE · v0.14.0</div><h1>Warrior Hub</h1></div>
       <button id="syncNowBtn" class="sync-btn" type="button">↻ Sync</button>
     </header>
     <div id="statusBanner" class="status-banner">Not connected</div>
@@ -35,7 +35,7 @@
     </nav>
 
     <main>
-      <section class="view active" id="view-today">
+      <section class="view active" id="view-today"><section class="home-notebooks"><div class="section-head"><h2>My notebooks</h2><button id="openHomeNotebooksBtn" type="button">All notebooks</button></div><div id="homeNotebookGrid" class="home-notebook-grid"></div></section>
         <button id="launchNotesBtn" class="notes-launch" type="button"><span class="notes-launch-icon">✎</span><span><b>Warrior Notes</b><small>Open your notebooks</small></span><span>↗</span></button>
         <div id="nextClass"></div>
         <div class="section-head"><h2>Checklist</h2><button id="todayTodoAdd" class="mini-add" type="button">＋</button></div>
@@ -109,8 +109,8 @@
         </div>
 
         <div id="notesLibrary" class="notes-library">
-          <div class="notes-library-heading"><div><div class="eyebrow">YOUR WORKSPACE</div><h2>Notebooks</h2><p>Choose a file and start writing.</p></div><button id="newNotebookBtn" type="button" class="notes-primary">＋ New notebook</button></div>
-          <div class="notes-library-filters"><input id="notebookSearch" type="search" placeholder="Search notebooks" aria-label="Search notebooks"><select id="notebookFilter" aria-label="Filter by subject"><option value="">All subjects</option></select></div>
+          <div class="notes-library-heading"><div><div class="eyebrow">YOUR WORKSPACE</div><h2>Notebooks</h2><p>All your notebooks stay here, across days.</p></div><button id="newNotebookBtn" type="button" class="notes-primary">＋ New notebook</button></div>
+          <div class="notes-library-filters"><input id="notebookSearch" type="search" placeholder="Search notebooks" aria-label="Search notebooks"><select id="notebookFilter" aria-label="Filter by subject"><option value="">All subjects</option></select><select id="notebookSort" aria-label="Sort notebooks"><option value="manual">My order</option><option value="subject">By subject</option><option value="folder">By folder</option><option value="recent">Recently edited</option><option value="title">By name</option></select></div>
           <button id="toggleNotebookTrashBtn" type="button" aria-pressed="false">Trash</button>
           <div id="notebookGrid" class="notebook-grid"></div>
           <div class="notes-library-safety"><div><b>Saved on this device</b><p id="librarySafetyStatus" role="status">Checking backups…</p></div><button id="libraryRestoreBtn" type="button">↻ Restore OneDrive</button><button id="libraryExportBtn" type="button">↓ Back up all</button><button id="libraryImportBtn" type="button">↑ Import backup</button></div>
@@ -119,7 +119,7 @@
         <div id="notesEditor" class="notes-workspace" hidden>
           <aside class="notes-sidebar">
             <div class="notes-sidebar-label">Notebook</div>
-            <div class="notes-sticky-head apple-notes-head">
+            <button id="manageActiveNotebookBtn" type="button">Change subject / folder</button><p class="notebook-permanent-tip">This notebook stays here every day. Return to Notebooks to open another.</p><div class="notes-sticky-head apple-notes-head" hidden>
               <div class="course-switcher">
                 <button id="prevCourseBtn" aria-label="Previous course">‹</button>
                 <select id="notesCourse" aria-label="Course"></select>
@@ -144,7 +144,7 @@
           <main class="notes-canvas-column">
             <div class="notebook-shell apple-notebook-shell">
               <div class="notebook-topline">
-                <button id="toggleNoteSidebarBtn" class="note-small-button" type="button" aria-expanded="false">☷ Details</button>
+                <button id="exportPdfQuickBtn" class="notes-primary" type="button">↓ PDF to PC</button><button id="quickEraserBtn" type="button" aria-pressed="false">Eraser</button><button id="toggleNoteSidebarBtn" class="note-small-button" type="button" aria-expanded="false">☷ Details</button>
                 <div>
                   <div class="eyebrow">NOTEBOOK</div>
                   <div id="notebookContext" class="notebook-context">Course · Today</div>
@@ -156,7 +156,7 @@
                 <button class="draw-tool active" data-tool="pen">✒ Pen</button>
                 <button class="draw-tool" data-tool="pencil">✎ Pencil</button>
                 <button class="draw-tool" data-tool="highlighter">▰ Highlight</button>
-                <button class="draw-tool" data-tool="eraser">⌫ Eraser</button>
+                <button class="draw-tool" data-tool="eraser">⌫ Eraser</button><button id="moreNoteToolsBtn" type="button" aria-expanded="false">More tools</button>
                 <button class="draw-tool" data-tool="select">↖ Select</button>
                 <button class="draw-tool" data-tool="lasso" title="Circle handwriting to select and move it">◌ Lasso</button>
                 <button class="draw-tool" data-tool="text">T Text</button>
@@ -205,7 +205,8 @@
           </main>
         </div>
         <div id="newNotebookDialog" class="notes-modal" role="dialog" aria-modal="true" aria-labelledby="newNotebookHeading" hidden><form id="newNotebookForm" class="notes-modal-card"><h2 id="newNotebookHeading">New notebook</h2><label>Name<input id="newNotebookName" required maxlength="100" placeholder="e.g. Calculus — Chapter 7"></label><label>Subject<select id="newNotebookSubject"></select></label><label>Paper<select id="newNotebookPaper"><option value="ruled">Ruled</option><option value="blank">Blank</option></select></label><div><button id="cancelNotebookBtn" type="button">Cancel</button><button class="notes-primary" type="submit">Create notebook</button></div></form></div>
-        <div id="noteActionsDialog" class="notes-modal" role="dialog" aria-modal="true" aria-labelledby="noteActionsHeading" hidden><div class="notes-modal-card"><h2 id="noteActionsHeading">Notebook</h2><button id="editNotebookBtn" type="button">Open / edit notebook</button><button id="renameNotebookBtn" type="button">Rename notebook</button><button id="exportNotebookBtn" type="button">↓ Export editable file</button><button id="shareNotebookBtn" type="button">↗ Save / share to Files</button><button id="exportNotebookPdfBtn" type="button">Save PDF</button><button id="shareNotebookPdfBtn" type="button">Share PDF / save to Files</button><button id="printNotebookBtn" type="button">Print</button><button id="deleteNotebookBtn" type="button" class="notes-danger">Move to Trash</button><button id="restoreDeletedNotebookBtn" type="button" hidden>Restore notebook</button><button id="exportAllNotebooksBtn" type="button">↓ Back up all notebooks</button><button id="restoreNotebookRevisionsBtn" type="button">↶ Recover a local checkpoint</button><p id="noteActionsStatus" role="status"></p><p class="notes-modal-help">P pen · E eraser · H hand · L lasso · T text<br>⌘/Ctrl Z undo · ⇧⌘/Ctrl Z redo · ⌘/Ctrl S backup<br>In Pen mode, drag with a finger to scroll and pinch with two fingers to zoom between strokes. Palm contacts are ignored during pen strokes. Use Touch writing only for a stylus reported as touch; palm protection is unavailable in that mode.</p><button id="closeNoteActionsBtn" type="button">Done</button></div></div>
+        <div id="manageNotebookDialog" class="notes-modal" role="dialog" aria-modal="true" aria-labelledby="manageNotebookHeading" hidden><form id="manageNotebookForm" class="notes-modal-card"><h2 id="manageNotebookHeading">Organize notebook</h2><label>Subject<input id="manageNotebookSubject" list="notebookSubjectOptions" required maxlength="150"></label><datalist id="notebookSubjectOptions"></datalist><label>Folder<input id="manageNotebookFolder" placeholder="e.g. Homework" maxlength="100"></label><p>Changing the subject or folder keeps every page and stroke.</p><div><button id="cancelManageNotebookBtn" type="button">Cancel</button><button class="notes-primary" type="submit">Save changes</button></div></form></div>
+        <div id="noteActionsDialog" class="notes-modal" role="dialog" aria-modal="true" aria-labelledby="noteActionsHeading" hidden><div class="notes-modal-card"><h2 id="noteActionsHeading">Notebook</h2><button id="editNotebookBtn" type="button">Open / edit notebook</button><button id="renameNotebookBtn" type="button">Rename notebook</button><button id="manageNotebookBtn" type="button">Change subject / move to folder</button><button id="exportNotebookBtn" type="button">↓ Export editable file</button><button id="shareNotebookBtn" type="button">↗ Save / share to Files</button><button id="exportNotebookPdfBtn" type="button">↓ Export PDF to PC</button><button id="shareNotebookPdfBtn" type="button">Save PDF on this device</button><button id="printNotebookBtn" type="button">Print</button><button id="deleteNotebookBtn" type="button" class="notes-danger">Move to Trash</button><button id="restoreDeletedNotebookBtn" type="button" hidden>Restore notebook</button><button id="exportAllNotebooksBtn" type="button">↓ Back up all notebooks</button><button id="restoreNotebookRevisionsBtn" type="button">↶ Recover a local checkpoint</button><p id="noteActionsStatus" role="status"></p><p class="notes-modal-help">P pen · E eraser · H hand · L lasso · T text<br>⌘/Ctrl Z undo · ⇧⌘/Ctrl Z redo · ⌘/Ctrl S backup<br>In Pen mode, drag with a finger to scroll and pinch with two fingers to zoom between strokes. Palm contacts are ignored during pen strokes. Use Touch writing only for a stylus reported as touch; palm protection is unavailable in that mode.</p><button id="closeNoteActionsBtn" type="button">Done</button></div></div>
       <div id="notesConnectionBar" class="notes-connection-bar" role="status" hidden><span id="notesConnectionMessage">Connecting OneDrive…</span><button id="notesReconnectBtn" type="button">Connect OneDrive</button></div>
       </section>
 
@@ -240,10 +241,10 @@
       </section>
     </main>
   </div>
-  <script src="course_rules.js?v=0.13.1"></script>
-  <script src="notes-pdf.js?v=0.13.1"></script>
-  <script src="life-forge-client.js?v=0.13.1"></script>
-  <script src="app.js?v=0.13.1"></script>
+  <script src="course_rules.js?v=0.14.0"></script>
+  <script src="notes-pdf.js?v=0.14.0"></script>
+  <script src="life-forge-client.js?v=0.14.0"></script>
+  <script src="app.js?v=0.14.0"></script>
 </body>
 </html>
 

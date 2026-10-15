@@ -18,11 +18,13 @@ jobs:
       - run: npx playwright install --with-deps chromium webkit
       - run: node --check app.js && node --check service-worker.js
       - run: node tests/course-rules.cjs
+      - run: node tests/project-calendar.cjs
       - run: node tests/chemistry-browser.cjs
       - run: node tests/regression.cjs
       - run: node tests/notes-browser.cjs
       - run: node tests/notes-input.cjs
       - run: node tests/notes-zoom.cjs
+      - run: node tests/notebooks.cjs
       - if: success() || failure()
         run: node tests/notes-sync.cjs
       - if: success() || failure()
@@ -33,6 +35,8 @@ jobs:
         run: NOTES_WEBKIT=1 node tests/notes-input.cjs
       - if: success() || failure()
         run: NOTES_WEBKIT=1 node tests/notes-zoom.cjs
+      - if: success() || failure()
+        run: NOTES_WEBKIT=1 node tests/notebooks.cjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
