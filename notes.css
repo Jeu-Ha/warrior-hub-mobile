@@ -43,3 +43,6 @@ body.notes-pen-protected #view-notes{touch-action:none}
 body.notes-editor-mode .notes-connection-bar{position:absolute;left:0;right:0;bottom:0;z-index:30;pointer-events:none}
 body.notes-editor-mode .notes-connection-bar button{pointer-events:auto}
 #view-notes{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}#view-notes input,#view-notes textarea,#view-notes [contenteditable=true]{-webkit-user-select:text;user-select:text;-webkit-touch-callout:default}
+
+/* Avoid retaining a second compositor image of the same ink on iPad zoom. */
+#view-notes .paper-segment canvas{will-change:auto!important;transform:none!important}

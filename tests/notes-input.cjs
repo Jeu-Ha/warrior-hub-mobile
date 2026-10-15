@@ -6,7 +6,7 @@ const server=http.createServer((req,res)=>{
   const url=new URL(req.url,'http://localhost'),file=path.resolve(root,'.'+decodeURIComponent(url.pathname.replace(/\/$/,'/index.html')));
   if(!file.startsWith(root+path.sep)){res.writeHead(403).end();return}
   if(process.env.NOTES_DESKTOP&&url.pathname==='/notes/desktop.js'){res.setHeader('Content-Type','text/javascript');res.end('window.WarriorNotesDesktop={loadState:async()=>({}),getTokens:async()=>null,accessToken:async()=>null,onAuthChange:()=>{},back:async()=>{},clearTokens:async()=>{}}');return}
-  try{let data=fs.readFileSync(file);if(file.endsWith('/app.js')||file.endsWith('\\app.js'))data=data.toString().replace('boot().catch(e=>',`window.__notesTest={snapshot:()=>({ready:notesBootReady,strokes:activePage?.strokes?.length||0,points:liveStroke?.points.length||0,drawing,inkPointerId,zoom:notebookZoom,touches:noteTouchPoints.size,tool:drawTool,fingerDraw}),pages:()=>noteAll('pages'),save:()=>finishNoteInteraction(),flush:flushDrawingCloud,restore:()=>restoreCloudNotes({background:true}),cloud:fn=>{accessToken=async()=>'fixture';graph=fn},connection:setNotesConnection,holdEnsure:()=>{const original=pagesFor;window.__releaseEnsure=null;pagesFor=async(...args)=>{const rows=await original(...args);await new Promise(r=>window.__releaseEnsure=r);return rows};window.__pendingEnsure=ensurePages({preserveEditing:true}).finally(()=>pagesFor=original)}};\nboot().catch(e=>`);
+  try{let data=fs.readFileSync(file);if(file.endsWith('/app.js')||file.endsWith('\\app.js'))data=data.toString().replace('boot().catch(e=>',`window.__notesTest={snapshot:()=>({ready:notesBootReady,strokes:activePage?.strokes?.length||0,points:liveStroke?.points.length||0,drawing,inkPointerId,zoom:notebookZoom,touches:noteTouchPoints.size,tool:drawTool,fingerDraw}),pages:()=>noteAll('pages'),save:()=>finishNoteInteraction(),flush:flushDrawingCloud,restore:()=>restoreCloudNotes({background:true}),cloud:fn=>{accessToken=async()=>'fixture';graph=fn},zoom:setNotebookZoom,connection:setNotesConnection,holdEnsure:()=>{const original=pagesFor;window.__releaseEnsure=null;pagesFor=async(...args)=>{const rows=await original(...args);await new Promise(r=>window.__releaseEnsure=r);return rows};window.__pendingEnsure=ensurePages({preserveEditing:true}).finally(()=>pagesFor=original)}};\nboot().catch(e=>`);
     const ext=path.extname(file);res.setHeader('Content-Type',({'.js':'text/javascript','.html':'text/html','.css':'text/css','.json':'application/json','.webmanifest':'application/manifest+json','.png':'image/png'})[ext]||'application/octet-stream');res.end(data);
   }catch{res.writeHead(404).end()}
 });
@@ -21,6 +21,7 @@ const server=http.createServer((req,res)=>{
     await page.waitForFunction(()=>window.__notesTest?.snapshot().ready);
     await page.locator('#newNotebookBtn').click();await page.locator('#newNotebookName').fill('Palm regression');await page.locator('#newNotebookForm button[type=submit]').click();
     await page.waitForSelector('#notesEditor:not([hidden]) canvas');
+    const gap=await page.evaluate(()=>document.querySelector('#infinitePaper').getBoundingClientRect().top-document.querySelector('#drawingViewport').getBoundingClientRect().top);assert(gap<=21&&gap>=0);
     const snap=()=>page.evaluate(()=>window.__notesTest.snapshot());
     const fire=(selector,type,pointerType,id,x=80,y=280)=>page.evaluate(({selector,type,pointerType,id,x,y})=>{
       const el=document.querySelector(selector);el.dispatchEvent(new PointerEvent(type,{bubbles:true,cancelable:true,pointerType,pointerId:id,clientX:x,clientY:y,width:id===1?50:8,height:id===1?50:8,pressure:.5,button:0,buttons:type==='pointerup'?0:1}));
@@ -116,6 +117,12 @@ const server=http.createServer((req,res)=>{
     });assert(duringUpload.same&&duringUpload.drawing);
     await fire(canvas,'pointermove','pen',112,210,400);assert((await snap()).points>2);
     await fire(canvas,'pointerup','pen',112);await page.evaluate(()=>__notesTest.save());
+    // The user's 66% -> 118% -> 87% zoom sequence must never clone paper or ink.
+    await page.locator('#zoomResetBtn').click();await page.evaluate(()=>__notesTest.zoom(1));await page.waitForTimeout(170);
+    const beforeZoom=await page.evaluate(async()=>({ink:JSON.stringify((await __notesTest.pages()).map(p=>[p.key,p.strokes])),bitmap:document.querySelector('#infinitePaper canvas').toDataURL(),pages:(await __notesTest.pages()).length}));
+    for(const scale of [.66,1.18,.87,1]){await page.evaluate(scale=>__notesTest.zoom(scale),scale);await page.waitForTimeout(170)}
+    const afterZoom=await page.evaluate(async()=>({ink:JSON.stringify((await __notesTest.pages()).map(p=>[p.key,p.strokes])),bitmap:document.querySelector('#infinitePaper canvas').toDataURL(),pages:(await __notesTest.pages()).length,keys:[...document.querySelectorAll('#infinitePaper canvas')].map(c=>c.dataset.pageKey)}));
+    assert.equal(afterZoom.ink,beforeZoom.ink);assert.equal(afterZoom.bitmap,beforeZoom.bitmap);assert.equal(afterZoom.pages,beforeZoom.pages);assert.equal(new Set(afterZoom.keys).size,afterZoom.keys.length);
     assert.equal(await page.evaluate(()=>window.getSelection().toString()),'');
     assert.deepEqual(errors,[]);
     await page.screenshot({path:path.join(root,'test-output/notes-input-verified.png'),fullPage:true});
