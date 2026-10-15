@@ -46,3 +46,8 @@ body.notes-editor-mode .notes-connection-bar button{pointer-events:auto}
 
 /* Avoid retaining a second compositor image of the same ink on iPad zoom. */
 #view-notes .paper-segment canvas{will-change:auto!important;transform:none!important}
+
+/* Keep Safari's filtered/contained page tiles out of live zoom compositing. */
+#view-notes .paper-segment{filter:none!important;content-visibility:visible;contain:none}
+#drawingViewport.note-zoom-preview #infinitePaper{visibility:hidden!important}
+#noteZoomPreview{position:fixed;display:block;pointer-events:none;z-index:20;margin:0;padding:0;border:0;border-radius:0;filter:none!important;transform:none!important;will-change:auto;box-shadow:none;background:#c7c7cc}

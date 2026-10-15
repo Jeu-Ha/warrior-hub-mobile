@@ -1,7 +1,7 @@
 (() => {
 'use strict';
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
-const FILE_NAME='warrior-hub-sync.json', DEVICE_DIR='warrior-hub-sync-devices', SCHEMA=1, APP_VERSION='0.13.0';
+const FILE_NAME='warrior-hub-sync.json', DEVICE_DIR='warrior-hub-sync-devices', SCHEMA=1, APP_VERSION='0.13.1';
 const CALCULUS_URL='https://archive.org/details/stewart-j.-clegg-d.-watson-s.-calculus.-early-transcendentals-9ed-2020/page/425/mode/2up';
 const ETHICS_URL='./resources/being-good-simon-blackburn.pdf';
 const CHEM2_LAB_URL='https://canvas.wayne.edu/courses/244636/modules/items/6576907';
@@ -28,7 +28,7 @@ let notesScreen='library',notebookZoom=1,noteSaveQueue=Promise.resolve(),noteClo
 const noteTouchPoints=new Map(), NOTE_JOURNAL_KEY='warriorNotesRecoveryJournalV1';
 
 const activePenPointers=new Set(),blockedNoteTouches=new Set(),rejectedNativeTouches=new Set();
-let noteZoomGestureUntil=0,noteZoomRepaintTimer=null;
+let noteZoomGestureUntil=0,noteZoomPreview=null;
 let noteCameraNeedsCenter=true,noteInputEpoch=0,lastNoteInputAt=-Infinity;
 function notesBusyWriting(){return drawing||Date.now()-lastNoteInputAt<1200}
 let notePinch=null,noteGestureLocked=false,penDetected=false,inkUndoPushed=false,inkBeforeChanged=false;
@@ -152,7 +152,7 @@ function pageItems(page){return [...(page?.images||[]).map(x=>({...x,kind:'image
 function drawAttachmentCard(ctx,it){if(it.kind==='text'){ctx.save();ctx.fillStyle=it.color||'#11151d';ctx.font=`${it.fontSize||38}px system-ui`;String(it.text||it.name||'').split('\n').forEach((line,i)=>ctx.fillText(line,it.x,it.y+(i+1)*(it.fontSize||38)*1.3,Math.max(20,it.w||800)));ctx.restore();return}const x=Number(it.x)||120,y=Number(it.y)||120,w=Math.max(240,Number(it.w)||620),h=Math.max(120,Number(it.h)||170);ctx.save();ctx.fillStyle='#ffffff';ctx.strokeStyle='#d6d9df';ctx.lineWidth=3;ctx.beginPath();if(ctx.roundRect)ctx.roundRect(x,y,w,h,24);else ctx.rect(x,y,w,h);ctx.fill();ctx.stroke();ctx.fillStyle='#272b34';ctx.font='700 48px system-ui';ctx.fillText(it.type==='application/pdf'?'PDF':'FILE',x+34,y+68);ctx.fillStyle='#575d69';ctx.font='34px system-ui';const name=String(it.name||'Attachment');ctx.fillText(name.length>30?name.slice(0,29)+'…':name,x+34,y+122);ctx.restore()}
 function drawItemSelection(ctx,it){if(!it||it.id!==selectedItemId)return;const x=Number(it.x)||0,y=Number(it.y)||0,w=Number(it.w)||0,h=Number(it.h)||0;ctx.save();ctx.strokeStyle='#596cff';ctx.lineWidth=5;ctx.setLineDash([14,10]);ctx.strokeRect(x,y,w,h);ctx.setLineDash([]);ctx.fillStyle='#596cff';for(const [hx,hy] of [[x,y],[x+w,y],[x,y+h],[x+w,y+h]]){ctx.beginPath();ctx.arc(hx,hy,18,0,Math.PI*2);ctx.fill()}ctx.restore()}
 function requestAssetRerender(page,c){for(const it of page?.images||[]){if(!it.assetId||assetBitmapCache.has(it.assetId)||assetLoadPending.has(it.assetId))continue;assetRenderable(it.assetId).then(()=>{if(c?.isConnected){const hit=pageByKey(c.dataset.pageKey),p=hit?.index===activePageIndex&&activePage?.key===hit?.page?.key?activePage:hit?.page;if(p)drawPageToCanvas(p,c)}}).catch(e=>log('note-image-render-error',{assetId:it.assetId,error:String(e)}))}}
-function drawPageToCanvas(page,c,{exporting=false}={}){if(!page||!c)return;const ctx=c.getContext('2d');renderPaper(ctx,page.paper||'ruled');for(const it of pageItems(page)){if(it.kind==='image'){const bmp=assetBitmapCache.get(it.assetId);if(bmp){ctx.save();const x=Number(it.x)||0,y=Number(it.y)||0,w=Math.max(20,Number(it.w)||500),h=Math.max(20,Number(it.h)||350),r=Number(it.rotation)||0;ctx.translate(x+w/2,y+h/2);ctx.rotate(r*Math.PI/180);ctx.globalAlpha=Number.isFinite(Number(it.opacity))?Number(it.opacity):1;ctx.drawImage(bmp,-w/2,-h/2,w,h);ctx.restore()}}else drawAttachmentCard(ctx,it);if(!exporting)drawItemSelection(ctx,it)}for(const st of page.strokes||[])drawStroke(ctx,st);if(!exporting&&page.key===activePage?.key)drawInkSelection(ctx);if(!exporting)requestAssetRerender(page,c)}
+function drawPageToCanvas(page,c,{exporting=false}={}){if(!page||!c)return;const ctx=c.getContext('2d');renderPaper(ctx,page.paper||'ruled');for(const it of pageItems(page)){if(it.kind==='image'){const bmp=assetBitmapCache.get(it.assetId);if(bmp){ctx.save();const x=Number(it.x)||0,y=Number(it.y)||0,w=Math.max(20,Number(it.w)||500),h=Math.max(20,Number(it.h)||350),r=Number(it.rotation)||0;ctx.translate(x+w/2,y+h/2);ctx.rotate(r*Math.PI/180);ctx.globalAlpha=Number.isFinite(Number(it.opacity))?Number(it.opacity):1;ctx.drawImage(bmp,-w/2,-h/2,w,h);ctx.restore()}}else drawAttachmentCard(ctx,it);if(!exporting)drawItemSelection(ctx,it)}for(const st of page.strokes||[])drawStroke(ctx,st);if(!exporting&&page.key===activePage?.key)drawInkSelection(ctx);if(!exporting){requestAssetRerender(page,c);if(noteZoomPreview)paintNoteZoomPreview()}}
 function pageByKey(key){const i=drawPages.findIndex(p=>p.key===key);return i>=0?{page:drawPages[i],index:i}:null}
 function setActivePageByKey(key){const hit=pageByKey(key);if(!hit||hit.page._unloaded)return false;if(activePageChanged)saveActiveDrawing({checkpoint:true}).catch(()=>{});activePageIndex=hit.index;activePage=structuredClone(hit.page);activePage.strokes=Array.isArray(activePage.strokes)?activePage.strokes:[];activePage.images=Array.isArray(activePage.images)?activePage.images:[];activePage.attachments=Array.isArray(activePage.attachments)?activePage.attachments:[];activePageChanged=false;selectedItemId='';selectedStrokeIds.clear();itemGesture=null;undoStack=[];redoStack=[];const ps=$('#paperStyle');if(ps)ps.value=activePage.paper==='grid'?'blank':activePage.paper||'ruled';updateItemTools();return true}
 function renderDrawing(){for(const c of $$('#infinitePaper canvas[data-page-key]')){const hit=pageByKey(c.dataset.pageKey);if(hit)drawPageToCanvas(hit.index===activePageIndex&&activePage?.key===hit.page.key?activePage:hit.page,c)}}
@@ -199,7 +199,7 @@ async function appendBlankSegment(){
   }finally{segmentGrowBusy=false}
 }
 async function maybeGrowInfinitePaper(){
-  const vp=$('#drawingViewport');if(!vp||segmentGrowBusy||Date.now()<noteZoomGestureUntil)return;
+  const vp=$('#drawingViewport');if(!vp||segmentGrowBusy||noteZoomPreview||Date.now()<noteZoomGestureUntil)return;
   // Keep a small paper buffer below the writer without re-rendering the whole notebook.
   if(vp.scrollHeight-vp.scrollTop-vp.clientHeight<1200)await appendBlankSegment();
 }
@@ -244,7 +244,7 @@ async function recoverLocalDrawing(){
   const drafts=Object.values(loadJson(NOTE_JOURNAL_KEY,{}));if(navigator.storage?.getDirectory){try{const dir=await(await navigator.storage.getDirectory()).getDirectoryHandle('warrior-notes-recovery');for await(const handle of dir.values()){if(handle.kind==='file'&&handle.name.endsWith('.json')){try{drafts.push(JSON.parse(await(await handle.getFile()).text()))}catch(_){} }}}catch(_){} }
   for(const p of drafts){if(!p?.key||!Array.isArray(p.strokes))continue;const old=await noteGet('pages',p.key);if(!old||Number(p.rev)>Number(old.rev)||Date.parse(p.updatedAt)>Date.parse(old.updatedAt)){p.dirty=true;await notePut('pages',p)}clearDrawingJournal(p)}
 }
-async function finishNoteInteraction(){if(drawing){drawing=false;inkPointerId=null;liveStroke=null;itemGesture=null;strokeMove=null;lassoPath=[]}if(activePageChanged)await saveActiveDrawing({checkpoint:true});await noteSaveQueue}
+async function finishNoteInteraction(){endNoteZoomPreview();if(drawing){drawing=false;inkPointerId=null;liveStroke=null;itemGesture=null;strokeMove=null;lassoPath=[]}if(activePageChanged)await saveActiveDrawing({checkpoint:true});await noteSaveQueue}
 function applyNotebookWidth(){
   const vp=$('#drawingViewport'),paper=$('#infinitePaper');if(!vp||!paper||!vp.clientWidth)return;
   let stage=$('#noteCameraSpace');if(!stage){stage=document.createElement('div');stage.id='noteCameraSpace';paper.before(stage);stage.append(paper)}
@@ -260,6 +260,34 @@ function centerNotebookCamera(){
   vp.scrollLeft=parseFloat(stage.style.paddingLeft)+(paper.offsetWidth-vp.clientWidth)/2;
   vp.scrollTop=Math.max(0,parseFloat(stage.style.paddingTop)-20);noteCameraNeedsCenter=false;
 }
+function beginNoteZoomPreview(){
+  if(noteZoomPreview||drawing)return;
+  const vp=$('#drawingViewport'),r=vp.getBoundingClientRect();if(!r.width||!r.height)return;
+  const canvas=document.createElement('canvas'),ratio=Math.min(2,window.devicePixelRatio||1);
+  canvas.id='noteZoomPreview';canvas.setAttribute('aria-hidden','true');
+  canvas.width=Math.ceil(r.width*ratio);canvas.height=Math.ceil(r.height*ratio);
+  Object.assign(canvas.style,{left:r.left+'px',top:r.top+'px',width:r.width+'px',height:r.height+'px'});
+  noteZoomPreview={canvas,ratio,left:r.left,top:r.top};
+  $('#view-notes').append(canvas);paintNoteZoomPreview();
+  vp.classList.add('note-zoom-preview');
+}
+function paintNoteZoomPreview(){
+  if(!noteZoomPreview)return;
+  const {canvas,ratio,left,top}=noteZoomPreview,ctx=canvas.getContext('2d',{alpha:false});
+  // One opaque, fixed-size surface is redrawn in full, never CSS-scaled during a pinch.
+  ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle='#c7c7cc';ctx.fillRect(0,0,canvas.width,canvas.height);
+  ctx.setTransform(ratio,0,0,ratio,0,0);
+  for(const source of $$('#infinitePaper canvas[data-page-key]')){
+    const r=source.getBoundingClientRect();if(r.bottom<top||r.top>top+canvas.height/ratio||r.right<left||r.left>left+canvas.width/ratio)continue;
+    ctx.drawImage(source,r.left-left,r.top-top,r.width,r.height);
+  }
+}
+function endNoteZoomPreview(){
+  if(!noteZoomPreview)return;
+  repaintNoteAfterZoom();
+  $('#drawingViewport').classList.remove('note-zoom-preview');
+  noteZoomPreview.canvas.remove();noteZoomPreview=null;
+}
 function setNotebookZoom(value,anchor){
   if(drawing)return;noteZoomGestureUntil=Date.now()+300;
   const vp=$('#drawingViewport'),paper=$('#infinitePaper'),old=paper.getBoundingClientRect();if(!old.width)return;
@@ -267,7 +295,7 @@ function setNotebookZoom(value,anchor){
   const px=(x-old.left)/old.width,py=(y-old.top)/old.width;
   notebookZoom=Math.max(.15,Math.min(5,value));applyNotebookWidth();
   const next=paper.getBoundingClientRect();vp.scrollLeft+=next.left+px*next.width-x;vp.scrollTop+=next.top+py*next.width-y;
-  clearTimeout(noteZoomRepaintTimer);noteZoomRepaintTimer=setTimeout(repaintNoteAfterZoom,140);
+  if(noteZoomPreview)paintNoteZoomPreview();else repaintNoteAfterZoom();
 }
 function repaintNoteAfterZoom(){
   if(drawing)return;
@@ -280,7 +308,7 @@ function repaintNoteAfterZoom(){
     c.width=c.width;drawPageToCanvas(page,c);
   }
 }
-function resetNotebookView(){stopNotebookMomentum();notebookZoom=1;noteCameraNeedsCenter=true;applyNotebookWidth();centerNotebookCamera()}
+function resetNotebookView(){endNoteZoomPreview();stopNotebookMomentum();notebookZoom=1;noteCameraNeedsCenter=true;applyNotebookWidth();centerNotebookCamera()}
 function selectNoteTool(tool){drawTool=tool;selectedItemId='';selectedStrokeIds.clear();itemGesture=null;$$('.draw-tool').forEach(x=>x.classList.toggle('active',x.dataset.tool===tool));updateCanvasInputMode();updateItemTools();const c=activeCanvas();if(c)drawPageToCanvas(activePage,c)}
 function protectedNoteEditor(){return currentView==='notes'&&notesScreen==='editor'}
 function penIsActive(){return activePenPointers.size>0}
@@ -294,6 +322,7 @@ function bindNotePalmProtection(){
   document.addEventListener('pointerdown',e=>{
     if(!protectedNoteEditor())return;
     if(e.pointerType==='pen'){
+      endNoteZoomPreview();
       // A palm may already be resting on the paper before the pen arrives.
       if(drawing&&fingerDraw)cancelInkForPinch();
       for(const id of noteTouchPoints.keys()){blockedNoteTouches.add(id);rejectedNativeTouches.add(id)}
@@ -313,7 +342,7 @@ function bindNotePalmProtection(){
     // Older browsers expose touch-generated clicks as MouseEvents.
     if(blockNoteTouch(e)||(protectedNoteEditor()&&((rejectedClicks.get(e.target)||0)>performance.now()||e.sourceCapabilities?.firesTouchEvents&&penIsActive())))stop(e);
   },{capture:true,passive:false});
-  const reset=()=>{activePenPointers.clear();blockedNoteTouches.clear();rejectedNativeTouches.clear();noteTouchPoints.clear();notePinch=null;noteGestureLocked=false};
+  const reset=()=>{endNoteZoomPreview();activePenPointers.clear();blockedNoteTouches.clear();rejectedNativeTouches.clear();noteTouchPoints.clear();notePinch=null;noteGestureLocked=false};
   window.addEventListener('blur',reset);window.addEventListener('pagehide',reset);
   document.addEventListener('visibilitychange',()=>{if(document.hidden)reset()});
 }
@@ -322,7 +351,7 @@ function stopNotebookMomentum(){if(noteMomentumFrame)cancelAnimationFrame(noteMo
 function startNotebookMomentum(vx,vy){stopNotebookMomentum();const vp=$('#drawingViewport');vx=Math.max(-3,Math.min(3,vx));vy=Math.max(-3,Math.min(3,vy));let last=performance.now();const step=now=>{const dt=Math.min(32,Math.max(1,now-last));last=now;const x=vp.scrollLeft,y=vp.scrollTop;vp.scrollLeft+=vx*dt;vp.scrollTop+=vy*dt;const decay=Math.exp(-dt/220);vx*=decay;vy*=decay;if(vp.scrollLeft===x)vx=0;if(vp.scrollTop===y)vy=0;if(Math.hypot(vx,vy)>.025&&currentView==='notes'&&notesScreen==='editor')noteMomentumFrame=requestAnimationFrame(step);else noteMomentumFrame=0};noteMomentumFrame=requestAnimationFrame(step)}
 let lastPenInputAt=-Infinity,inkPointerType='';
 function preparePenInput(){
-  lastPenInputAt=performance.now();stopNotebookMomentum();
+  endNoteZoomPreview();lastPenInputAt=performance.now();stopNotebookMomentum();
   if(drawing&&inkPointerType!=='pen')cancelInkForPinch();
   noteTouchPoints.clear();notePinch=null;noteGestureLocked=false;
 }
@@ -331,7 +360,7 @@ function bindNotebookGestures(){
   const stopDefault=e=>{if(e.cancelable)e.preventDefault()};
   const contactsStart=()=>{
     stopNotebookMomentum();if(noteTouchPoints.size>=2){
-      if(drawing&&!penIsActive())cancelInkForPinch();noteGestureLocked=true;
+      if(drawing&&!penIsActive())cancelInkForPinch();noteGestureLocked=true;beginNoteZoomPreview();
       const [a,b]=[...noteTouchPoints.values()];notePinch={distance:Math.hypot(a.x-b.x,a.y-b.y),zoom:notebookZoom,x:(a.x+b.x)/2,y:(a.y+b.y)/2};
     }
   };
@@ -342,14 +371,14 @@ function bindNotebookGestures(){
     if(noteTouchPoints.size>=2&&notePinch){
       const [a,b]=[...noteTouchPoints.values()],cx=(a.x+b.x)/2,cy=(a.y+b.y)/2;
       setNotebookZoom(notePinch.zoom*Math.hypot(a.x-b.x,a.y-b.y)/Math.max(1,notePinch.distance),{x:notePinch.x,y:notePinch.y});
-      vp.scrollLeft+=notePinch.x-cx;vp.scrollTop+=notePinch.y-cy;
+      vp.scrollLeft+=notePinch.x-cx;vp.scrollTop+=notePinch.y-cy;paintNoteZoomPreview();
       notePinch={distance:Math.hypot(a.x-b.x,a.y-b.y),zoom:notebookZoom,x:cx,y:cy};
     }else if(!noteGestureLocked&&last.pan){vp.scrollLeft+=dx;vp.scrollTop+=dy}
   };
   const end=(id,cancel=false)=>{
     const last=noteTouchPoints.get(id),pinched=noteGestureLocked;noteTouchPoints.delete(id);
     if(noteTouchPoints.size<2)notePinch=null;
-    if(!noteTouchPoints.size){noteGestureLocked=false;if(!cancel&&last?.pan&&!pinched&&performance.now()-last.t<100)startNotebookMomentum(last.vx,last.vy)}
+    if(!noteTouchPoints.size){endNoteZoomPreview();noteGestureLocked=false;if(!cancel&&last?.pan&&!pinched&&performance.now()-last.t<100)startNotebookMomentum(last.vx,last.vy)}
   };
   // Safari exposes native touch lists even when pointer capture/width reporting differs.
   vp.addEventListener('touchstart',e=>{
@@ -368,7 +397,7 @@ function bindNotebookGestures(){
       for(const t of changed){const last=noteTouchPoints.get(t.identifier);noteTouchPoints.set(t.identifier,{...last,x:t.clientX,y:t.clientY,t:performance.now()})}
       const [a,b]=[...noteTouchPoints.values()],cx=(a.x+b.x)/2,cy=(a.y+b.y)/2;
       setNotebookZoom(notePinch.zoom*Math.hypot(a.x-b.x,a.y-b.y)/Math.max(1,notePinch.distance),{x:notePinch.x,y:notePinch.y});
-      vp.scrollLeft+=notePinch.x-cx;vp.scrollTop+=notePinch.y-cy;
+      vp.scrollLeft+=notePinch.x-cx;vp.scrollTop+=notePinch.y-cy;paintNoteZoomPreview();
       notePinch={distance:Math.hypot(a.x-b.x,a.y-b.y),zoom:notebookZoom,x:cx,y:cy};
     }else for(const t of changed)move(t.identifier,t.clientX,t.clientY,e);
   },{passive:false});
@@ -389,7 +418,8 @@ function bindNotebookGestures(){
   for(const type of ['gesturestart','gesturechange','gestureend'])vp.addEventListener(type,e=>{if(e.cancelable)e.preventDefault()},{passive:false});
   vp.addEventListener('selectstart',e=>e.preventDefault());vp.addEventListener('contextmenu',e=>e.preventDefault());
   vp.addEventListener('wheel',e=>{stopNotebookMomentum();if(e.ctrlKey||e.metaKey){stopDefault(e);setNotebookZoom(notebookZoom*Math.exp(-e.deltaY*.008),{x:e.clientX,y:e.clientY})}},{passive:false});
-  window.addEventListener('resize',()=>{if(!drawing)applyNotebookWidth()});
+  window.addEventListener('resize',()=>{endNoteZoomPreview();if(!drawing)applyNotebookWidth()});
+  vp.addEventListener('scroll',paintNoteZoomPreview,{passive:true});
 }
 function shapePoints(tool,a,b){if(tool==='line')return[a,b];if(tool==='rectangle')return[a,{x:b.x,y:a.y,p:.5},b,{x:a.x,y:b.y,p:.5},a];const cx=(a.x+b.x)/2,cy=(a.y+b.y)/2,rx=Math.abs(b.x-a.x)/2,ry=Math.abs(b.y-a.y)/2;return Array.from({length:81},(_,i)=>({x:cx+rx*Math.cos(i/80*Math.PI*2),y:cy+ry*Math.sin(i/80*Math.PI*2),p:.5}))}
 function pointInLasso(p,poly){let inside=false;for(let i=0,j=poly.length-1;i<poly.length;j=i++){const a=poly[i],b=poly[j];if((a.y>p.y)!==(b.y>p.y)&&p.x<(b.x-a.x)*(p.y-a.y)/(b.y-a.y)+a.x)inside=!inside}return inside}
