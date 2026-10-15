@@ -270,14 +270,11 @@ function selectNoteTool(tool){drawTool=tool;selectedItemId='';selectedStrokeIds.
 function protectedNoteEditor(){return currentView==='notes'&&notesScreen==='editor'}
 function penIsActive(){return activePenPointers.size>0}
 function blockNoteTouch(e){
-  if(!protectedNoteEditor()||e.pointerType!=='touch')return false;
-  if(blockedNoteTouches.has(e.pointerId)||penIsActive())return true;
-  if(e.target.closest('#drawingViewport'))return false;
-  // Explicit controls let a finger leave pen-only mode.
-  if(e.target.closest('#fingerDrawBtn, .draw-tool[data-tool="hand"]'))return false;
-  return !fingerDraw&&drawTool!=='hand';
+  return protectedNoteEditor()&&e.pointerType==='touch'&&(blockedNoteTouches.has(e.pointerId)||penIsActive());
 }
 function bindNotePalmProtection(){
+  const rejectedClicks=new WeakMap();
+  document.addEventListener('selectstart',e=>{if(protectedNoteEditor()&&!e.target.closest('input,textarea,[contenteditable=true]'))e.preventDefault()});
   const stop=e=>{if(e.cancelable)e.preventDefault();e.stopImmediatePropagation()};
   document.addEventListener('pointerdown',e=>{
     if(!protectedNoteEditor())return;
@@ -288,19 +285,18 @@ function bindNotePalmProtection(){
       noteTouchPoints.clear();notePinch=null;noteGestureLocked=false;stopNotebookMomentum();
       activePenPointers.add(e.pointerId);penDetected=true;
       fingerDraw=false;saveJson('warriorNotesTouchWritingV11',false);updateCanvasInputMode();
-    }else if(blockNoteTouch(e)){blockedNoteTouches.add(e.pointerId);stop(e)}
+    }else if(blockNoteTouch(e)){blockedNoteTouches.add(e.pointerId);stop(e)}else if(e.pointerType==='touch')rejectedClicks.delete(e.target)
   },{capture:true,passive:false});
   document.addEventListener('pointermove',e=>{
     if(blockNoteTouch(e)){blockedNoteTouches.add(e.pointerId);stop(e)}
   },{capture:true,passive:false});
   for(const type of ['pointerup','pointercancel','lostpointercapture'])document.addEventListener(type,e=>{
     if(e.pointerType==='pen'){activePenPointers.delete(e.pointerId)}
-    const blocked=blockNoteTouch(e);blockedNoteTouches.delete(e.pointerId);if(blocked){noteTouchPoints.delete(e.pointerId);if(noteTouchPoints.size<2)notePinch=null;if(!noteTouchPoints.size)noteGestureLocked=false;stop(e)};
+    const blocked=blockNoteTouch(e);blockedNoteTouches.delete(e.pointerId);if(blocked){rejectedClicks.set(e.target,performance.now()+1200);noteTouchPoints.delete(e.pointerId);if(noteTouchPoints.size<2)notePinch=null;if(!noteTouchPoints.size)noteGestureLocked=false;stop(e)};
   },{capture:true,passive:false});
   for(const type of ['click','dblclick','contextmenu'])document.addEventListener(type,e=>{
     // Older browsers expose touch-generated clicks as MouseEvents.
-    if(blockNoteTouch(e)||(protectedNoteEditor()&&e.sourceCapabilities?.firesTouchEvents&&
-       (penIsActive()||(!fingerDraw&&drawTool!=='hand'&&!e.target.closest('#fingerDrawBtn, .draw-tool[data-tool="hand"]')))))stop(e);
+    if(blockNoteTouch(e)||(protectedNoteEditor()&&((rejectedClicks.get(e.target)||0)>performance.now()||e.sourceCapabilities?.firesTouchEvents&&penIsActive())))stop(e);
   },{capture:true,passive:false});
   const reset=()=>{activePenPointers.clear();blockedNoteTouches.clear();rejectedNativeTouches.clear();noteTouchPoints.clear();notePinch=null;noteGestureLocked=false};
   window.addEventListener('blur',reset);window.addEventListener('pagehide',reset);

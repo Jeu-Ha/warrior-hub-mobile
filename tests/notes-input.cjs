@@ -85,6 +85,7 @@ const server=http.createServer((req,res)=>{
       await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
       assert((await snap()).zoom<1);assert.equal((await snap()).strokes,2);await cdp.detach();
     }
+    await page.locator('#zoomResetBtn').tap();assert.equal((await snap()).zoom,1);
     // Zooming out leaves horizontal AND vertical room to move the paper.
     await page.locator('#zoomOutBtn').click();
     assert(await page.locator('#drawingViewport').evaluate(e=>e.scrollWidth>e.clientWidth&&e.scrollHeight>e.clientHeight));
