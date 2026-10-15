@@ -1,5 +1,5 @@
-const CACHE='warrior-mobile-v0.11.5';
-const SHELL=['./','./index.html','./app.css?v=0.11.5','./notes.css?v=0.11.5','./life-forge-client.js?v=0.11.5','./app.js?v=0.11.5','./notes-pdf.js?v=0.11.5','./manifest.webmanifest?v=0.11.5','./icons/icon192.png','./icons/icon512.png'];
+const CACHE='warrior-mobile-v0.12.0';
+const SHELL=['./','./index.html','./app.css?v=0.12.0','./notes.css?v=0.12.0','./life-forge-client.js?v=0.12.0','./app.js?v=0.12.0','./notes-pdf.js?v=0.12.0','./manifest.webmanifest?v=0.12.0','./icons/icon192.png','./icons/icon512.png'];
 self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(SHELL)).then(()=>self.skipWaiting())));
 self.addEventListener('activate',e=>e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k.startsWith('warrior-mobile-')&&k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim())));
 self.addEventListener('fetch',e=>{

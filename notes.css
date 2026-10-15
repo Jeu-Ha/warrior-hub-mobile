@@ -34,3 +34,12 @@ body.notes-workspace-mode #appShell>main{height:100dvh!important}body.notes-work
 #notesEditor input,#notesEditor textarea,#notesEditor [contenteditable="true"]{-webkit-user-select:text;user-select:text;-webkit-touch-callout:default}
 #drawingViewport canvas{-webkit-user-drag:none}
 body.notes-pen-protected #view-notes{touch-action:none}
+
+/* The camera has scrollable gutters even when the page is zoomed out. */
+#view-notes .apple-paper-viewport{padding:0!important;overflow:auto!important;overflow-anchor:none;touch-action:none!important;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+#noteCameraSpace{box-sizing:content-box;position:relative;margin:0;flex:none;min-height:100%}
+#view-notes #infinitePaper{margin:0!important;padding:0!important;flex-shrink:0}
+#view-notes .notes-appbar,#view-notes .notebook-topline,#view-notes .drawing-toolbar,#view-notes .notes-quickbar,#view-notes .infinite-note-hint{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+body.notes-editor-mode .notes-connection-bar{position:absolute;left:0;right:0;bottom:0;z-index:30;pointer-events:none}
+body.notes-editor-mode .notes-connection-bar button{pointer-events:auto}
+#view-notes{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}#view-notes input,#view-notes textarea,#view-notes [contenteditable=true]{-webkit-user-select:text;user-select:text;-webkit-touch-callout:default}
