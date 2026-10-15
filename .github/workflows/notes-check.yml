@@ -17,6 +17,8 @@ jobs:
       - run: npm install --no-save --package-lock=false playwright@1.62.1
       - run: npx playwright install --with-deps chromium webkit
       - run: node --check app.js && node --check service-worker.js
+      - run: node tests/course-rules.cjs
+      - run: node tests/chemistry-browser.cjs
       - run: node tests/regression.cjs
       - run: node tests/notes-browser.cjs
       - run: node tests/notes-input.cjs

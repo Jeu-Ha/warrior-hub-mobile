@@ -1,0 +1,20 @@
+const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
+const ctx=vm.createContext({});vm.runInContext(fs.readFileSync(require('path').join(__dirname,'../course_rules.js'),'utf8'),ctx);const rules=ctx.WarriorCourseRules;
+const course={id:244611,code:'CHM 1140',name:'General Chemistry II'};
+const row=(id,title,score,pointsPossible,extra={})=>({id,title,courseId:244611,score,pointsPossible,...extra});
+const apply=assignments=>JSON.parse(JSON.stringify(rules.apply({courses:[course],assignments})));
+let s=apply([]);assert.equal(s.assignments.length,5);assert.equal(s.assignments.find(a=>a.syllabusExamNumber===2).dueAt,'2026-10-23T11:30:00-04:00');assert.equal(s.assignments.find(a=>a.syllabusExamNumber===5).pointsPossible,200);
+assert.equal(JSON.stringify(rules.apply(s)),JSON.stringify(s),'rules must be idempotent');
+assert.equal(rules.summary(course,s.assignments),null,'future/missing grades must never become zeros');
+s=apply([row('real-exam-1','Exam 1',82,1),row('hw1','Homework 1',4,5),row('hw2','Chapter 13 homework',90,100),row('attendance','Attendance',10,10),row('practice','Exam 2 practice',100,100)]);
+assert.equal(s.assignments.filter(a=>rules.examNumber(a)===1).length,1);assert.equal(s.assignments.find(a=>a.id==='real-exam-1').pointsPossible,100);
+let g=rules.summary(course,s.assignments);assert.equal(g.earned,100.5);assert.equal(g.possible,120);assert.equal(g.score,83.75);assert.equal(g.grade,'B');assert.equal(g.totalPossible,665);
+s=apply([row('e1','Exam 1',0,100)]);g=rules.summary(course,s.assignments);assert.equal(g.score,0);assert.equal(g.possible,100);assert.equal(g.grade,'F');
+s=apply([row('e1','Exam 1',80,100),row('e2','Exam 2',null,100),row('final','Final Exam',160,200)]);g=rules.summary(course,s.assignments);assert.equal(g.possible,300);assert.equal(g.earned,240);assert.equal(g.score,80);
+s=apply([row('e1','Exam 1',80,100),row('duplicate','Exam 1 revised',80,100)]);assert.equal(rules.summary(course,s.assignments).possible,100,'duplicate exam entries cannot double the grade');
+s=apply([row('e1','Exam 1',80,100,{excused:true}),row('hw','Homework 1',5,5,{omitFromFinalGrade:true})]);assert.equal(rules.summary(course,s.assignments),null);
+assert.equal(rules.summary({id:244636,code:'CHM 1150'},[row('lab','Lab 1',5,10)]),null,'lab and other courses must not receive chemistry lecture policy');
+s=apply([row('e1','Exam 1',100,100),row('bonus','Discussion extra credit',5,0)]);assert.equal(rules.summary(course,s.assignments).score,105);
+assert.equal(rules.examNumber({title:'Exam IV'}),4);assert.equal(rules.examNumber({title:'Exam 3 answer key'}),null);
+for(const e of rules.EXAMS){const d=new Date(`${e.date}T12:00:00Z`);assert([1,3,5].includes(d.getUTCDay()))}
+console.log('PASS: five syllabus exams, no duplicate Canvas exams, 100/200 maxima, graded-only current percentage, scaled homework, true zero, exclusions and idempotent sync.');
