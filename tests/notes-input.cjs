@@ -106,7 +106,7 @@ const server=http.createServer((req,res)=>{
     await page.waitForTimeout(1250);
     await page.evaluate(()=>{
       window.__releaseBackup=null;
-      __notesTest.cloud(async(url,opts={})=>{if(opts.method==='PUT')await new Promise(r=>window.__releaseBackup=r);return new Response('{}',{status:200})});
+      __notesTest.cloud(async(url,opts={})=>{if(opts.method==='PUT'&&!window.__releaseBackup)await new Promise(r=>window.__releaseBackup=r);return new Response('{}',{status:200})});
       window.__pendingBackup=__notesTest.flush();
     });
     await page.waitForFunction(()=>typeof __releaseBackup==='function');

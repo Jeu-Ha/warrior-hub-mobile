@@ -22,6 +22,7 @@ jobs:
       - run: node tests/chemistry-browser.cjs
       - run: node tests/regression.cjs
       - run: node tests/notes-browser.cjs
+      - run: node tests/notes-backup-repair.cjs
       - run: node tests/notes-input.cjs
       - run: node tests/notes-zoom.cjs
       - run: node tests/notebooks.cjs
@@ -31,6 +32,8 @@ jobs:
         run: NOTES_WEBKIT=1 node tests/notes-browser.cjs
       - if: success() || failure()
         run: NOTES_WEBKIT=1 node tests/notes-sync.cjs
+      - if: success() || failure()
+        run: NOTES_WEBKIT=1 node tests/notes-backup-repair.cjs
       - if: success() || failure()
         run: NOTES_WEBKIT=1 node tests/notes-input.cjs
       - if: success() || failure()
