@@ -8,15 +8,16 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Warrior Hub">
   <title>Warrior Hub Mobile</title>
-  <link rel="manifest" href="manifest.webmanifest?v=0.14.1">
+  <link rel="manifest" href="manifest.webmanifest?v=0.15.0">
   <link rel="apple-touch-icon" href="icons/icon192.png">
-  <link rel="stylesheet" href="app.css?v=0.14.1">
-  <link rel="stylesheet" href="notes.css?v=0.14.1">
+  <link rel="stylesheet" href="app.css?v=0.15.0">
+  <link rel="stylesheet" href="notes.css?v=0.15.0">
+  <link rel="stylesheet" href="notebook-workspace.css?v=0.15.0">
 </head>
 <body>
   <div id="appShell">
     <header class="topbar">
-      <div><div class="eyebrow" id="todayLabel">WARRIOR HUB MOBILE · v0.14.1</div><h1>Warrior Hub</h1></div>
+      <div><div class="eyebrow" id="todayLabel">WARRIOR HUB MOBILE · v0.15.0</div><h1>Warrior Hub</h1></div>
       <button id="syncNowBtn" class="sync-btn" type="button">↻ Sync</button>
     </header>
     <div id="statusBanner" class="status-banner">Not connected</div>
@@ -110,10 +111,10 @@
 
         <div id="notesLibrary" class="notes-library">
           <div class="notes-library-heading"><div><div class="eyebrow">YOUR WORKSPACE</div><h2>Notebooks</h2><p>All your notebooks stay here, across days.</p></div><button id="newNotebookBtn" type="button" class="notes-primary">＋ New notebook</button></div>
-          <div class="notes-library-filters"><input id="notebookSearch" type="search" placeholder="Search notebooks" aria-label="Search notebooks"><select id="notebookFilter" aria-label="Filter by subject"><option value="">All subjects</option></select><select id="notebookSort" aria-label="Sort notebooks"><option value="manual">My order</option><option value="subject">By subject</option><option value="folder">By folder</option><option value="recent">Recently edited</option><option value="title">By name</option></select></div>
-          <button id="toggleNotebookTrashBtn" type="button" aria-pressed="false">Trash</button>
+          <div class="notes-library-filters"><input id="notebookSearch" type="search" placeholder="Search notebooks" aria-label="Search notebooks"><select id="notebookFilter" aria-label="Filter by subject"><option value="">All subjects</option></select><select id="notebookFolderFilter" aria-label="Filter by folder"><option value="">All folders</option></select><select id="notebookSort" aria-label="Sort notebooks"><option value="manual">My order</option><option value="subject">By subject</option><option value="folder">By folder</option><option value="recent">Recently edited</option><option value="title">By name</option></select></div>
+          <div class="notebook-library-tabs"><button id="notebookFavoritesBtn" type="button" aria-pressed="false">☆ Favorites</button><button id="notebookListBtn" type="button" aria-pressed="false">☷ List</button></div><button id="toggleNotebookTrashBtn" type="button" aria-pressed="false">Trash</button>
           <div id="notebookGrid" class="notebook-grid"></div>
-          <div class="notes-library-safety"><div><b>Saved on this device</b><p id="librarySafetyStatus" role="status">Checking backups…</p></div><button id="libraryRestoreBtn" type="button">↻ Restore OneDrive</button><button id="libraryExportBtn" type="button">↓ Back up all</button><button id="libraryImportBtn" type="button">↑ Import backup</button></div>
+          <div class="notes-library-safety"><div><b>Saved on this device</b><p id="librarySafetyStatus" role="status">Checking backups…</p></div><button id="libraryRestoreBtn" type="button">↻ Restore OneDrive</button><button id="libraryExportBtn" type="button">↓ Back up all</button><button id="libraryImportPdfBtn" type="button">↑ Import PDF</button><input id="libraryPdfInput" type="file" accept="application/pdf,.pdf" hidden><button id="libraryImportBtn" type="button">↑ Import backup</button></div>
         </div>
 
         <div id="notesEditor" class="notes-workspace" hidden>
@@ -144,7 +145,7 @@
           <main class="notes-canvas-column">
             <div class="notebook-shell apple-notebook-shell">
               <div class="notebook-topline">
-                <button id="exportPdfQuickBtn" class="notes-primary" type="button">↓ PDF to PC</button><button id="quickEraserBtn" type="button" aria-pressed="false">Eraser</button><button id="toggleNoteSidebarBtn" class="note-small-button" type="button" aria-expanded="false">☷ Details</button>
+                <button id="togglePagesBtn" type="button" aria-expanded="false">▦ Pages</button><button id="readOnlyNotesBtn" type="button" aria-pressed="false">Write</button><button id="exportPdfQuickBtn" class="notes-primary" type="button">↓ PDF to PC</button><button id="quickEraserBtn" type="button" aria-pressed="false">Eraser</button><button id="toggleNoteSidebarBtn" class="note-small-button" type="button" aria-expanded="false">☷ Details</button>
                 <div>
                   <div class="eyebrow">NOTEBOOK</div>
                   <div id="notebookContext" class="notebook-context">Course · Today</div>
@@ -168,20 +169,22 @@
                 <button id="redoDrawBtn" title="Redo">↷</button>
                 <label class="compact-control color-control"><span>Color</span><input id="drawColor" type="color" value="#11151d"></label>
                 <label class="compact-control width-control"><span>Size</span><input id="drawWidth" type="range" min="1" max="18" step="1" value="4"></label>
-                <select id="paperStyle" aria-label="Paper style"><option value="ruled">Ruled</option><option value="blank">Blank</option></select>
-                <button id="fingerDrawBtn" class="stylus-toggle" aria-pressed="false" title="A capacitive stylus is reported as touch, the same as a finger">✒ Pen only</button>
+                <select id="paperStyle" aria-label="Paper style"><option value="ruled">Ruled</option><option value="blank">Blank</option><option value="grid">Grid</option><option value="dots">Dotted</option></select>
+                <select id="pageFlow" aria-label="Page navigation"><option value="pages">Pages</option><option value="continuous">Continuous paper</option></select><select id="penStyle" aria-label="Pen style"><option value="ball">Ballpoint</option><option value="fountain">Fountain pen</option><option value="brush">Brush pen</option></select><select id="eraserMode" aria-label="Eraser mode"><option value="stroke">Stroke eraser</option><option value="precision">Precision eraser</option><option value="highlighter">Highlight eraser</option></select><button id="pasteInkBtn" type="button" disabled>Paste</button><button id="fingerDrawBtn" class="stylus-toggle" aria-pressed="false" title="A capacitive stylus is reported as touch, the same as a finger">✒ Pen only</button>
                 <button id="insertNoteItemBtn" class="insert-btn">＋ Insert</button>
                 <button id="fitItemBtn" class="soft" disabled>Fit width</button>
                 <button id="openItemBtn" class="soft" disabled>Open</button>
                 <button id="deleteItemBtn" class="danger-soft" disabled>Delete</button>
               </div>
 
-              <div class="notes-quickbar"><div class="ink-presets" aria-label="Quick colors"><button data-ink="#11151d" style="--ink:#11151d" aria-label="Black ink"></button><button data-ink="#2855c5" style="--ink:#2855c5" aria-label="Blue ink"></button><button data-ink="#c53e3e" style="--ink:#c53e3e" aria-label="Red ink"></button><button data-ink="#298256" style="--ink:#298256" aria-label="Green ink"></button></div><span id="penDetectionState">Pen writes · fingers pan / pinch</span><div class="notes-zoom"><button id="zoomOutBtn" aria-label="Zoom out">−</button><button id="zoomResetBtn" title="Return to page · fit width">100%</button><button id="zoomInBtn" aria-label="Zoom in">＋</button></div></div>
+              <div class="notes-quickbar"><div class="ink-presets" aria-label="Quick colors"><button data-ink="#11151d" style="--ink:#11151d" aria-label="Black ink"></button><button data-ink="#2855c5" style="--ink:#2855c5" aria-label="Blue ink"></button><button data-ink="#c53e3e" style="--ink:#c53e3e" aria-label="Red ink"></button><button data-ink="#298256" style="--ink:#298256" aria-label="Green ink"></button></div><div class="pen-width-presets" aria-label="Pen thickness"><button type="button" data-width="2" aria-label="Fine pen">●</button><button type="button" data-width="4" class="active" aria-label="Medium pen">●</button><button type="button" data-width="8" aria-label="Thick pen">●</button></div><span id="penDetectionState">Pen writes · fingers pan / pinch</span><div class="notes-zoom"><button id="zoomOutBtn" aria-label="Zoom out">−</button><button id="zoomResetBtn" title="Return to page · fit width">100%</button><button id="zoomInBtn" aria-label="Zoom in">＋</button></div></div>
 
+              <div id="noteSelectionBar" class="note-selection-bar" role="toolbar" aria-label="Edit selection" hidden><span id="noteSelectionCount"></span><button data-selection-action="cut">Cut</button><button data-selection-action="copy">Copy</button><button data-selection-action="duplicate">Duplicate</button><button data-selection-action="smaller" aria-label="Shrink selection">− Size</button><button data-selection-action="larger" aria-label="Enlarge selection">＋ Size</button><button data-selection-action="rotateLeft" aria-label="Rotate left">↶ 15°</button><button data-selection-action="rotateRight" aria-label="Rotate right">↷ 15°</button><button data-selection-action="recolor">Ink color</button><button data-selection-action="delete">Delete</button></div>
+              <aside id="notebookPagePanel" aria-label="Notebook pages" hidden><div class="page-panel-heading"><b id="notebookPageCount">Pages</b><button id="addNotebookPageBtn" type="button">＋ Add page</button></div><button id="toggleRemovedPagesBtn" type="button">Removed pages</button><div id="notebookPageList"></div><button id="restoreRemovedPageBtn" type="button" disabled>Restore removed page</button></aside>
               <div id="drawingViewport" class="drawing-viewport apple-paper-viewport" aria-label="Infinite drawing notebook">
                 <div id="infinitePaper" class="infinite-paper"></div>
               </div>
-              <div class="infinite-note-hint"><span>∞ Continuous paper</span><span>Finger: pan · Two fingers: zoom · Pen: write · H: hand · P: pen · ⌘Z: undo</span></div>
+              <div class="infinite-note-hint"><span>Pages · open ▦ Pages to add or organize</span><span>Finger: pan · Two fingers: zoom · Pen: write · H: hand · P: pen · ⌘Z: undo</span></div>
 
               <div id="insertSheet" class="insert-sheet" hidden>
                 <button class="insert-sheet-backdrop" id="closeInsertBackdrop" aria-label="Close insert menu"></button>
@@ -204,8 +207,9 @@
             </div>
           </main>
         </div>
-        <div id="newNotebookDialog" class="notes-modal" role="dialog" aria-modal="true" aria-labelledby="newNotebookHeading" hidden><form id="newNotebookForm" class="notes-modal-card"><h2 id="newNotebookHeading">New notebook</h2><label>Name<input id="newNotebookName" required maxlength="100" placeholder="e.g. Calculus — Chapter 7"></label><label>Subject<select id="newNotebookSubject"></select></label><label>Paper<select id="newNotebookPaper"><option value="ruled">Ruled</option><option value="blank">Blank</option></select></label><div><button id="cancelNotebookBtn" type="button">Cancel</button><button class="notes-primary" type="submit">Create notebook</button></div></form></div>
-        <div id="manageNotebookDialog" class="notes-modal" role="dialog" aria-modal="true" aria-labelledby="manageNotebookHeading" hidden><form id="manageNotebookForm" class="notes-modal-card"><h2 id="manageNotebookHeading">Organize notebook</h2><label>Subject<input id="manageNotebookSubject" list="notebookSubjectOptions" required maxlength="150"></label><datalist id="notebookSubjectOptions"></datalist><label>Folder<input id="manageNotebookFolder" placeholder="e.g. Homework" maxlength="100"></label><p>Changing the subject or folder keeps every page and stroke.</p><div><button id="cancelManageNotebookBtn" type="button">Cancel</button><button class="notes-primary" type="submit">Save changes</button></div></form></div>
+        <div id="pdfImportDialog" class="notes-modal" role="dialog" aria-modal="true" aria-label="Import PDF" hidden><div class="notes-modal-card"><h2>Import PDF</h2><p id="pdfImportProgress" role="status">Opening PDF…</p><p>Each page becomes a notebook page you can write on.</p><button id="cancelPdfImportBtn" type="button">Stop import</button></div></div>
+        <div id="newNotebookDialog" class="notes-modal" role="dialog" aria-modal="true" aria-labelledby="newNotebookHeading" hidden><form id="newNotebookForm" class="notes-modal-card"><h2 id="newNotebookHeading">New notebook</h2><label>Name<input id="newNotebookName" required maxlength="100" placeholder="e.g. Calculus — Chapter 7"></label><label>Subject<select id="newNotebookSubject"></select></label><label>Cover<input id="newNotebookCover" type="color" value="#5266b4"></label><label>Paper<select id="newNotebookPaper"><option value="ruled">Ruled</option><option value="blank">Blank</option><option value="grid">Grid</option><option value="dots">Dotted</option></select></label><div><button id="cancelNotebookBtn" type="button">Cancel</button><button class="notes-primary" type="submit">Create notebook</button></div></form></div>
+        <div id="manageNotebookDialog" class="notes-modal" role="dialog" aria-modal="true" aria-labelledby="manageNotebookHeading" hidden><form id="manageNotebookForm" class="notes-modal-card"><h2 id="manageNotebookHeading">Organize notebook</h2><label>Cover<input id="manageNotebookCover" type="color" value="#5266b4"></label><label>Subject<input id="manageNotebookSubject" list="notebookSubjectOptions" required maxlength="150"></label><datalist id="notebookSubjectOptions"></datalist><label>Folder<input id="manageNotebookFolder" placeholder="e.g. Homework" maxlength="100"></label><p>Changing the subject or folder keeps every page and stroke.</p><div><button id="cancelManageNotebookBtn" type="button">Cancel</button><button class="notes-primary" type="submit">Save changes</button></div></form></div>
         <div id="noteActionsDialog" class="notes-modal" role="dialog" aria-modal="true" aria-labelledby="noteActionsHeading" hidden><div class="notes-modal-card"><h2 id="noteActionsHeading">Notebook</h2><button id="editNotebookBtn" type="button">Open / edit notebook</button><button id="renameNotebookBtn" type="button">Rename notebook</button><button id="manageNotebookBtn" type="button">Change subject / move to folder</button><button id="exportNotebookBtn" type="button">↓ Export editable file</button><button id="shareNotebookBtn" type="button">↗ Save / share to Files</button><button id="exportNotebookPdfBtn" type="button">↓ Export PDF to PC</button><button id="shareNotebookPdfBtn" type="button">Save PDF on this device</button><button id="printNotebookBtn" type="button">Print</button><button id="deleteNotebookBtn" type="button" class="notes-danger">Move to Trash</button><button id="restoreDeletedNotebookBtn" type="button" hidden>Restore notebook</button><button id="exportAllNotebooksBtn" type="button">↓ Back up all notebooks</button><button id="restoreNotebookRevisionsBtn" type="button">↶ Recover a local checkpoint</button><p id="noteActionsStatus" role="status"></p><p class="notes-modal-help">P pen · E eraser · H hand · L lasso · T text<br>⌘/Ctrl Z undo · ⇧⌘/Ctrl Z redo · ⌘/Ctrl S backup<br>In Pen mode, drag with a finger to scroll and pinch with two fingers to zoom between strokes. Palm contacts are ignored during pen strokes. Use Touch writing only for a stylus reported as touch; palm protection is unavailable in that mode.</p><button id="closeNoteActionsBtn" type="button">Done</button></div></div>
       <div id="notesConnectionBar" class="notes-connection-bar" role="status" hidden><span id="notesConnectionMessage">Connecting OneDrive…</span><button id="notesReconnectBtn" type="button">Connect OneDrive</button></div>
       </section>
@@ -241,10 +245,12 @@
       </section>
     </main>
   </div>
-  <script src="course_rules.js?v=0.14.1"></script>
-  <script src="notes-pdf.js?v=0.14.1"></script>
-  <script src="life-forge-client.js?v=0.14.1"></script>
-  <script src="app.js?v=0.14.1"></script>
+  <script src="course_rules.js?v=0.15.0"></script>
+  <script src="notes-pdf.js?v=0.15.0"></script>
+  <script src="life-forge-client.js?v=0.15.0"></script>
+  <script src="pdf-import.js?v=0.15.0"></script>
+  <script src="notebook-core.js?v=0.15.0"></script>
+  <script src="app.js?v=0.15.0"></script>
 </body>
 </html>
 

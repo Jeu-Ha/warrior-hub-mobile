@@ -1,12 +1,12 @@
-const CACHE='warrior-mobile-v0.14.1';
-const SHELL=['./course_rules.js?v=0.14.1','./','./index.html','./app.css?v=0.14.1','./notes.css?v=0.14.1','./life-forge-client.js?v=0.14.1','./app.js?v=0.14.1','./notes-pdf.js?v=0.14.1','./manifest.webmanifest?v=0.14.1','./icons/icon192.png','./icons/icon512.png'];
+const CACHE='warrior-mobile-v0.15.0';
+const SHELL=['./notebook-core.js?v=0.15.0','./notebook-workspace.css?v=0.15.0','./pdf-import.js?v=0.15.0','./vendor/pdf-engine.js?v=5.6.205','./vendor/pdf-worker.js?v=5.6.205','./course_rules.js?v=0.15.0','./','./index.html','./app.css?v=0.15.0','./notes.css?v=0.15.0','./life-forge-client.js?v=0.15.0','./app.js?v=0.15.0','./notes-pdf.js?v=0.15.0','./manifest.webmanifest?v=0.15.0','./icons/icon192.png','./icons/icon512.png'];
 self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(SHELL)).then(()=>self.skipWaiting())));
 self.addEventListener('activate',e=>e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k.startsWith('warrior-mobile-')&&k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim())));
 self.addEventListener('fetch',e=>{
   const u=new URL(e.request.url);
   if(e.request.method!=='GET'||u.hostname.includes('microsoftonline.com')||u.hostname.includes('graph.microsoft.com'))return;
   if(u.origin===location.origin){
-    const req=(e.request.mode==='navigate'||/\/(?:index\.html|course_rules\.js|app\.js|life-forge-client\.js|notes-pdf\.js|app\.css|notes\.css|manifest\.webmanifest)$/.test(u.pathname))?new Request(e.request,{cache:'no-store'}):e.request;
+    const req=(e.request.mode==='navigate'||/\/(?:index\.html|course_rules\.js|app\.js|life-forge-client\.js|notes-pdf\.js|notebook-core\.js|pdf-import\.js|notebook-workspace\.css|app\.css|notes\.css|manifest\.webmanifest)$/.test(u.pathname))?new Request(e.request,{cache:'no-store'}):e.request;
     e.respondWith(fetch(req).then(async r=>{
       if(r.ok)try{await(await caches.open(CACHE)).put(e.request,r.clone())}catch(_){}
       return r;
