@@ -24,7 +24,8 @@ assert(app.includes('deleteSelectedItem'));
 assert(app.includes('fitSelectedItem'));
 assert(app.includes("CHEM2_LAB_URL='https://canvas.wayne.edu/courses/244636/modules/items/6576907'"));
 assert(!app.includes('addPageBtn'));
-assert(!html.includes('Add page'));
+assert(html.includes('id="addNotebookPageBtn"'));
+assert(html.includes('id="pageFlow"')); // Explicit pages and optional continuous paper are both supported.
 assert(html.includes('id="infinitePaper"'));
 assert(html.includes('Photos / screenshots'));
 assert(html.includes('id="cameraPickerInput"'));
