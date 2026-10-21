@@ -6,13 +6,17 @@ import AVFoundation
 import UserNotifications
 import WidgetKit
 
-enum ForgeRoute: String { case day,now }
+enum ForgeRoute: String { case day,now,principles }
 struct ForgeRouteRequest { let id=UUID();let route:ForgeRoute }
 @main struct LifeForgeApp: App {
     init() { _ = ForgeLocation.shared;_ = ForgeSleep.shared;WidgetCenter.shared.reloadAllTimelines() }
     @State private var routeRequest:ForgeRouteRequest?
     var body: some Scene { WindowGroup {
-        ForgeWebView(routeRequest:routeRequest).ignoresSafeArea(edges:.bottom).preferredColorScheme(.dark)
+        Group {
+            if routeRequest?.route == .principles || ProcessInfo.processInfo.arguments.contains("--widget-preview") {
+                ForgePrinciplesPreview().overlay(alignment:.bottomTrailing) { if !ProcessInfo.processInfo.arguments.contains("--widget-preview") { Button("Закрити") { routeRequest=nil }.padding().background(.ultraThinMaterial,in:Capsule()).padding() } }
+            } else { ForgeWebView(routeRequest:routeRequest).ignoresSafeArea(edges:.bottom).preferredColorScheme(.dark) }
+        }.onReceive(NotificationCenter.default.publisher(for:Notification.Name("forge.principles"))) { _ in routeRequest=ForgeRouteRequest(route:.principles) }
             .onOpenURL { url in
                 guard url.scheme=="lifeforge",let host=url.host,let route=ForgeRoute(rawValue:host) else { return }
                 routeRequest=ForgeRouteRequest(route:route)
@@ -89,7 +93,7 @@ struct ForgeWebView: UIViewRepresentable {
         func userContentController(_ userContentController:WKUserContentController,didReceive message:WKScriptMessage) {
             guard message.frameInfo.isMainFrame,message.frameInfo.request.url?.scheme == "https",message.frameInfo.request.url?.host == TimerAccess.site.host,
                   let payload=message.body as? [String:Any] else { return }
-            if message.name=="lifeForgeWidgets" { WidgetCenter.shared.reloadAllTimelines();publishWidgetStatus();return }
+            if message.name=="lifeForgeWidgets" { if (message.body as? [String:Any])?["action"] as? String == "preview" { NotificationCenter.default.post(name:Notification.Name("forge.principles"),object:nil) };WidgetCenter.shared.reloadAllTimelines();publishWidgetStatus();return }
             if message.name=="lifeForgeSleep" { ForgeSleep.shared.schedule(payload);return }
             if message.name=="lifeForgeLocation" {
                 webView?.configuration.websiteDataStore.httpCookieStore.getAllCookies { cookies in
@@ -157,9 +161,13 @@ struct ForgeWebView: UIViewRepresentable {
         }
         func publishWidgetStatus() {
             let urls=(try? FileManager.default.contentsOfDirectory(at:Bundle.main.builtInPlugInsURL ?? Bundle.main.bundleURL,includingPropertiesForKeys:nil)) ?? []
-            let present=urls.contains { $0.pathExtension=="appex" && Bundle(url:$0)?.object(forInfoDictionaryKey:"NSExtension") is [String:Any] }
+            let modules=urls.filter { $0.pathExtension=="appex" }.compactMap { url -> [String:Any]? in
+                guard let bundle=Bundle(url:url),let id=bundle.bundleIdentifier else { return nil }
+                return ["name":url.lastPathComponent,"id":id,"validPrefix":id.hasPrefix((Bundle.main.bundleIdentifier ?? "")+"."),"widgetKit":(bundle.object(forInfoDictionaryKey:"NSExtension") as? [String:Any])?["NSExtensionPointIdentifier"] as? String == "com.apple.widgetkit-extension"]
+            }
+            let present=modules.contains { ($0["widgetKit"] as? Bool)==true }
             WidgetCenter.shared.getCurrentConfigurations { result in
-                var info:[String:Any] = ["version":Bundle.main.object(forInfoDictionaryKey:"CFBundleShortVersionString") as? String ?? "?","extensionPresent":present,"liveActivities":ActivityAuthorizationInfo().areActivitiesEnabled]
+                var info:[String:Any] = ["version":Bundle.main.object(forInfoDictionaryKey:"CFBundleShortVersionString") as? String ?? "?","extensionPresent":present,"liveActivities":ActivityAuthorizationInfo().areActivitiesEnabled,"modules":modules,"osVersion":UIDevice.current.systemVersion,"bundleId":Bundle.main.bundleIdentifier ?? "?","philosophyPresent":modules.contains { ($0["name"] as? String)=="ForgeWidgets.appex" }]
                 switch result { case .success(let widgets):info["configured"]=widgets.count;case .failure(let error):info["error"]=error.localizedDescription }
                 guard let data=try? JSONSerialization.data(withJSONObject:info),let json=String(data:data,encoding:.utf8) else { return }
                 DispatchQueue.main.async { self.webView?.evaluateJavaScript("window.dispatchEvent(new CustomEvent('life-forge-widget-status',{detail:"+json+"}))",completionHandler:nil) }
