@@ -16,10 +16,8 @@ struct PrincipleWidgetView:View {
     let index:Int
     @Environment(\.widgetFamily) var family
     var body:some View {
-        Group {
-            if family == .accessoryRectangular { Text(ForgePrinciple.all[index].title).font(.headline) }
-            else { ForgePrincipleCard(index:index,compact:family == .systemSmall) }
-        }.containerBackground(for:.widget) { ForgePrinciple.paper }.widgetURL(URL(string:"lifeforge://principles")!)
+        ForgePrincipleCard(index:index,compact:family == .systemSmall)
+            .containerBackground(for:.widget) { ForgePrinciple.ink }.widgetURL(URL(string:"lifeforge://principles")!)
     }
 }
 
@@ -39,9 +37,7 @@ struct ForgeAllPrinciplesWidget:Widget {
 struct AllPrinciplesView:View {
     @Environment(\.widgetFamily) var family
     var body:some View {
-        Group {
-            if family == .systemLarge { ForgePrincipleArt(index:-1) }
-            else { HStack(spacing:10) { ForgePrincipleArt(index:-1,labels:false).frame(width:140);VStack(alignment:.leading,spacing:10) { ForEach(0..<3) { i in Text(ForgePrinciple.all[i].title).font(.system(size:17,weight:.black)).italic().foregroundStyle(ForgePrinciple.all[i].color) } } } }
-        }.containerBackground(for:.widget) { ForgePrinciple.paper }.widgetURL(URL(string:"lifeforge://principles")!)
+        ForgePrincipleArt(index:-1,labels:false)
+            .containerBackground(for:.widget) { ForgePrinciple.ink }.widgetURL(URL(string:"lifeforge://principles")!)
     }
 }
