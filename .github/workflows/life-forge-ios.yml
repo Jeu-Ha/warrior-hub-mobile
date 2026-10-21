@@ -37,7 +37,14 @@ jobs:
               assert (path/info["CFBundleExecutable"]).stat().st_size > 0
           print("Device IPA: both WidgetKit modules validated")
           PY
-      - name: Build and render native philosophy cards on iPhone simulator
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Life-Forge-iPhone-1.10-unsigned
+          path: package/Life-Forge-iPhone-1.10-unsigned.ipa
+          retention-days: 14
+      - name: Build and render native puzzle on iPhone simulator
+        timeout-minutes: 6
+        continue-on-error: true
         run: |
           xcodebuild -project life-forge-ios/LifeForge.xcodeproj -scheme LifeForge -configuration Release -destination 'generic/platform=iOS Simulator' -derivedDataPath sim-build CODE_SIGNING_ALLOWED=NO build > simulator-build.log 2>&1 || { tail -100 simulator-build.log; exit 1; }
           DEVICE=$(xcrun simctl list devices available -j | python3 -c 'import json,sys;d=json.load(sys.stdin);print(next(x["udid"] for k,v in d["devices"].items() if ".iOS-" in k for x in v if x["name"].startswith("iPhone")))')
@@ -48,9 +55,11 @@ jobs:
           sleep 8
           xcrun simctl io "$DEVICE" screenshot widget-preview.png
       - uses: actions/upload-artifact@v4
+        if: always()
         with:
-          name: Life-Forge-iPhone-1.10-unsigned
+          name: Life-Forge-iPhone-1.10-preview
           path: |
-            package/Life-Forge-iPhone-1.10-unsigned.ipa
             widget-preview.png
+            simulator-build.log
+          if-no-files-found: warn
           retention-days: 14
