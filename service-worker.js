@@ -1,5 +1,5 @@
-const CACHE='warrior-mobile-v0.15.0';
-const SHELL=['./notebook-core.js?v=0.15.0','./notebook-workspace.css?v=0.15.0','./pdf-import.js?v=0.15.0','./vendor/pdf-engine.js?v=5.6.205','./vendor/pdf-worker.js?v=5.6.205','./course_rules.js?v=0.15.0','./','./index.html','./app.css?v=0.15.0','./notes.css?v=0.15.0','./life-forge-client.js?v=0.15.0','./app.js?v=0.15.0','./notes-pdf.js?v=0.15.0','./manifest.webmanifest?v=0.15.0','./icons/icon192.png','./icons/icon512.png'];
+const CACHE='warrior-mobile-v0.15.1';
+const SHELL=['./notebook-core.js?v=0.15.1','./notebook-workspace.css?v=0.15.1','./pdf-import.js?v=0.15.1','./vendor/pdf-engine.js?v=5.6.205','./vendor/pdf-worker.js?v=5.6.205','./course_rules.js?v=0.15.1','./','./index.html','./app.css?v=0.15.1','./notes.css?v=0.15.1','./life-forge-client.js?v=0.15.1','./app.js?v=0.15.1','./notes-pdf.js?v=0.15.1','./manifest.webmanifest?v=0.15.1','./icons/icon192.png','./icons/icon512.png'];
 self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(SHELL)).then(()=>self.skipWaiting())));
 self.addEventListener('activate',e=>e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k.startsWith('warrior-mobile-')&&k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim())));
 self.addEventListener('fetch',e=>{

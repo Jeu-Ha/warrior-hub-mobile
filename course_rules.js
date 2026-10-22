@@ -11,7 +11,7 @@
   ];
   const number=v=>v===null||v===undefined||String(v).trim()===''||!Number.isFinite(Number(v))?null:Number(v);
   const text=a=>`${a.title||a.name||''} ${a.groupName||''}`;
-  const isChem=c=>[c?.id,c?.courseId].some(id=>String(id||'')===COURSE_ID)||/\bchm[\s_-]*1140\b/i.test(`${c?.code||c?.courseCode||''} ${c?.name||c?.courseName||''}`);
+  const isChem=c=>[c?.id,c?.courseId].some(id=>String(id||'')===COURSE_ID)||/\bchm[\s_-]*114[05]\b/i.test(`${c?.code||c?.courseCode||''} ${c?.name||c?.courseName||''}`);
   function examNumber(a){
     if(/practice|review|sample|answer|study.?guide/i.test(a.title||a.name||''))return null;
     const t=text(a);if(/\bfinal\b/i.test(t))return 5;
@@ -28,7 +28,7 @@
     const grade=a.grade??a.submission?.grade;if(typeof grade==='string'&&/^\s*\d+(?:\.\d+)?\s*%\s*$/.test(grade))return parseFloat(grade)*max/100;
     return number(grade);
   }
-  function assignmentBelongs(a,course){return String(a.courseId||'')===String(course.id||'')||isChem({...a,id:a.courseId})}
+  function assignmentBelongs(a,course){const aid=a.courseId??a.course_id,cid=course.id??course.courseId;if(aid!=null&&cid!=null&&String(aid)===String(cid))return true;return isChem({...a,id:aid})}
   function enrichAssignments(assignments,course){
     const rows=(Array.isArray(assignments)?assignments:[]).map(a=>({...a}));
     for(const e of EXAMS){

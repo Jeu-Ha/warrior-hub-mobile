@@ -19,6 +19,7 @@ jobs:
       - run: node --check app.js && node --check service-worker.js
       - run: node tests/notebook-core.cjs
       - run: node tests/notebook-workspace.cjs
+      - run: node tests/notes-import-recovery.cjs
       - run: node tests/course-rules.cjs
       - run: node tests/project-calendar.cjs
       - run: node tests/chemistry-browser.cjs
@@ -44,6 +45,8 @@ jobs:
         run: NOTES_WEBKIT=1 node tests/notebook-workspace.cjs
       - if: success() || failure()
         run: NOTES_WEBKIT=1 node tests/notebooks.cjs
+      - if: success() || failure()
+        run: NOTES_WEBKIT=1 node tests/notes-import-recovery.cjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
