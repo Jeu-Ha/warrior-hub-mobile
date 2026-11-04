@@ -1,7 +1,7 @@
 (() => {
 'use strict';
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
-const FILE_NAME='warrior-hub-sync.json', DEVICE_DIR='warrior-hub-sync-devices', SCHEMA=1, APP_VERSION='0.15.2';
+const FILE_NAME='warrior-hub-sync.json', DEVICE_DIR='warrior-hub-sync-devices', SCHEMA=1, APP_VERSION='0.15.3';
 const CALCULUS_URL='https://archive.org/details/stewart-j.-clegg-d.-watson-s.-calculus.-early-transcendentals-9ed-2020/page/425/mode/2up';
 const ETHICS_URL='./resources/being-good-simon-blackburn.pdf';
 const CHEM2_LAB_URL='https://canvas.wayne.edu/courses/244636/modules/items/6576907';
@@ -342,10 +342,9 @@ function resetNotebookView(){endNoteZoomPreview();stopNotebookMomentum();noteboo
 let markerLiveBase=null;
 function selectNoteTool(tool){if(drawing)recoverNoteInput();if(drawTool!==tool){saveJson(drawTool==='highlighter'?'warriorMarkerStyle':'warriorPenStyle',{color:drawColor,width:drawWidth});const settings=loadJson(tool==='highlighter'?'warriorMarkerStyle':'warriorPenStyle',tool==='highlighter'?{color:'#ffe45e',width:12}:{color:'#11151d',width:4});drawColor=settings.color;drawWidth=settings.width;$('#drawColor').value=drawColor;$('#drawWidth').value=drawWidth;}selectedItemIds.clear();if(['pencil','select','lasso','text','line','rectangle','ellipse'].includes(tool)){$('#notesEditor').classList.add('show-extra-tools');$('#moreNoteToolsBtn').setAttribute('aria-expanded','true');$('#moreNoteToolsBtn').textContent='Fewer tools'}drawTool=tool;selectedItemId='';selectedStrokeIds.clear();itemGesture=null;$$('.draw-tool').forEach(x=>x.classList.toggle('active',x.dataset.tool===tool));updateCanvasInputMode();updateItemTools();const c=activeCanvas();if(c)drawPageToCanvas(activePage,c)}
 function protectedNoteEditor(){return currentView==='notes'&&notesScreen==='editor'}
-function penIsActive(){return activePenPointers.size>0}
+function penIsActive(){return drawing&&inkPointerType==='pen'&&inkPointerId!==null&&activePenPointers.has(inkPointerId)}
 function blockNoteTouch(e){
-  if(e.target?.closest?.('#unlockNotesBtn'))return false;
-  return protectedNoteEditor()&&e.pointerType==='touch'&&(blockedNoteTouches.has(e.pointerId)||penIsActive());
+  return protectedNoteEditor()&&e.pointerType==='touch'&&(e.target?.closest?.('#drawingViewport')?blockedNoteTouches.has(e.pointerId)||penIsActive():penIsActive()&&Date.now()-lastNoteInputAt<250);
 }
 function bindNotePalmProtection(){
   const rejectedClicks=new WeakMap();
@@ -353,6 +352,8 @@ function bindNotePalmProtection(){
   const stop=e=>{if(e.cancelable)e.preventDefault();e.stopImmediatePropagation()};
   document.addEventListener('pointerdown',e=>{
     if(!protectedNoteEditor())return;
+    if(e.pointerType==='touch'&&!penIsActive()){blockedNoteTouches.delete(e.pointerId);rejectedClicks.delete(e.target)}
+    if(e.pointerType==='touch'&&!e.target.closest('#drawingViewport')&&(drawing||activePenPointers.size)&&Date.now()-lastNoteInputAt>250)recoverNoteInput();
     if(e.pointerType==='pen'){
       if(drawing&&fingerDraw)cancelInkForPinch();if(inkPointerId!==null&&inkPointerId!==e.pointerId)recoverNoteInput();
       endNoteZoomPreview();
@@ -375,7 +376,7 @@ function bindNotePalmProtection(){
   },{capture:true,passive:false});
   for(const type of ['click','dblclick','contextmenu'])document.addEventListener(type,e=>{
     // Older browsers expose touch-generated clicks as MouseEvents.
-    if(e.target?.closest?.('#unlockNotesBtn'))return;if(blockNoteTouch(e)||(protectedNoteEditor()&&((rejectedClicks.get(e.target)||0)>performance.now()||e.sourceCapabilities?.firesTouchEvents&&penIsActive())))stop(e);
+    if(blockNoteTouch(e)||(protectedNoteEditor()&&!!e.target?.closest?.('#drawingViewport')&&((rejectedClicks.get(e.target)||0)>performance.now()||e.sourceCapabilities?.firesTouchEvents&&penIsActive())))stop(e);
   },{capture:true,passive:false});
   const reset=()=>{recoverNoteInput();endNoteZoomPreview();activePenPointers.clear();blockedNoteTouches.clear();rejectedNativeTouches.clear();noteTouchPoints.clear();notePinch=null;noteGestureLocked=false};
   window.addEventListener('blur',reset);window.addEventListener('pagehide',reset);setInterval(()=>{if(protectedNoteEditor()&&(drawing||penIsActive())&&Date.now()-lastNoteInputAt>8000)reset()},1500);
@@ -420,6 +421,7 @@ function bindNotebookGestures(){
   // Safari exposes native touch lists even when pointer capture/width reporting differs.
   vp.addEventListener('touchstart',e=>{
     const fingers=[...e.touches].filter(t=>t.touchType!=='stylus');if(!fingers.length)return;
+    if(!penIsActive()&&!drawing)for(const t of e.changedTouches)rejectedNativeTouches.delete(t.identifier);
     stopDefault(e);
     if(penIsActive()||drawing&&!fingerDraw){for(const t of fingers)rejectedNativeTouches.add(t.identifier);return}
     if(fingerDraw&&drawTool!=='hand'&&fingers.length===1)return;
@@ -592,7 +594,7 @@ function bindCanvas(c){
   for(const type of ['pointerup','pointercancel','lostpointercapture'])c.addEventListener(type,e=>end(e).catch(err=>noteStatus(String(err.message||err),'error')),{passive:false});
   c.addEventListener('dblclick',e=>{if(drawTool!=='select')return;if(activePage?.key!==c.dataset.pageKey&&!setActivePageByKey(c.dataset.pageKey))return;const it=notebookItemAt(canvasPoint(e,c));if(it){selectedItemId=it.id;updateItemTools();if(it.kind==='text'){const text=prompt('Edit text',it.text||it.name);if(text!==null){pushUndo();Object.assign(findActiveItem(it.id),{text,name:text});activePageChanged=true;drawPageToCanvas(activePage,c);saveActiveDrawing().catch(()=>{})}}else openSelectedItem().catch(()=>{})}})
 }
-function bindDrawing(){if(loadJson('warriorPendingPDF',null)){renderPDFTransfer('PDF waiting for PC confirmation');setTimeout(()=>checkPDFDelivery().catch(()=>{}),2000)}if(globalThis.WarriorNotesDesktop?.pdfInbox){const inbox=document.createElement('button');inbox.type='button';inbox.textContent='Receive PDFs on this PC';inbox.onclick=async()=>{inbox.disabled=true;try{const status=await WarriorNotesDesktop.pdfInbox();renderPDFTransfer(status?.ok?'PDF inbox checked · '+(status.pending||0)+' queued · Downloads/Warrior Notes':status?.error||'Could not reach the PDF receiver')}catch(e){renderPDFTransfer(String(e.message||e))}finally{inbox.disabled=false}};$('#libraryRestoreBtn').after(inbox)}const unlock=document.createElement('button');unlock.id='unlockNotesBtn';unlock.type='button';unlock.textContent='↻ Unlock input';unlock.title='Recover pen and touch without reloading or losing ink';unlock.onclick=()=>{recoverNoteInput();saveActiveDrawing().catch(()=>{});noteStatus('Input recovered · notes preserved')};$('#exportPdfQuickBtn').after(unlock);const vp=$('#drawingViewport');vp?.addEventListener('scroll',()=>maybeGrowInfinitePaper().catch(()=>{}),{passive:true});renderInfiniteNotebook()}
+function bindDrawing(){if(loadJson('warriorPendingPDF',null)){renderPDFTransfer('PDF waiting for PC confirmation');setTimeout(()=>checkPDFDelivery().catch(()=>{}),2000)}if(globalThis.WarriorNotesDesktop?.pdfInbox){const inbox=document.createElement('button');inbox.type='button';inbox.textContent='Receive PDFs on this PC';inbox.onclick=async()=>{inbox.disabled=true;try{const status=await WarriorNotesDesktop.pdfInbox();renderPDFTransfer(status?.ok?'PDF inbox checked · '+(status.pending||0)+' queued · Downloads/Warrior Notes':status?.error||'Could not reach the PDF receiver')}catch(e){renderPDFTransfer(String(e.message||e))}finally{inbox.disabled=false}};$('#libraryRestoreBtn').after(inbox)}const vp=$('#drawingViewport');vp?.addEventListener('scroll',()=>maybeGrowInfinitePaper().catch(()=>{}),{passive:true});renderInfiniteNotebook()}
 function undoDrawing(){if(noteReadOnly)return;selectedItemIds.clear();selectedStrokeIds.clear();localStorage.removeItem(LIVE_INK_KEY);if(!activePage||!undoStack.length)return;redoStack.push(pageUndoState());applyUndoState(undoStack.pop());selectedItemId='';activePageChanged=true;const c=activeCanvas();if(c)drawPageToCanvas(activePage,c);updateItemTools();saveActiveDrawing({checkpoint:false})}
 function redoDrawing(){if(noteReadOnly)return;selectedItemIds.clear();selectedStrokeIds.clear();if(!activePage||!redoStack.length)return;undoStack.push(pageUndoState());applyUndoState(redoStack.pop());selectedItemId='';activePageChanged=true;const c=activeCanvas();if(c)drawPageToCanvas(activePage,c);updateItemTools();saveActiveDrawing({checkpoint:false})}
 
