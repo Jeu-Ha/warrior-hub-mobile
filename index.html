@@ -8,16 +8,16 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Warrior Hub">
   <title>Warrior Hub Mobile</title>
-  <link rel="manifest" href="manifest.webmanifest?v=0.15.1">
+  <link rel="manifest" href="manifest.webmanifest?v=0.15.2">
   <link rel="apple-touch-icon" href="icons/icon192.png">
-  <link rel="stylesheet" href="app.css?v=0.15.1">
-  <link rel="stylesheet" href="notes.css?v=0.15.1">
-  <link rel="stylesheet" href="notebook-workspace.css?v=0.15.1">
+  <link rel="stylesheet" href="app.css?v=0.15.2">
+  <link rel="stylesheet" href="notes.css?v=0.15.2">
+  <link rel="stylesheet" href="notebook-workspace.css?v=0.15.2">
 </head>
 <body>
   <div id="appShell">
     <header class="topbar">
-      <div><div class="eyebrow" id="todayLabel">WARRIOR HUB MOBILE · v0.15.1</div><h1>Warrior Hub</h1></div>
+      <div><div class="eyebrow" id="todayLabel">WARRIOR HUB MOBILE · v0.15.2</div><h1>Warrior Hub</h1></div>
       <button id="syncNowBtn" class="sync-btn" type="button">↻ Sync</button>
     </header>
     <div id="statusBanner" class="status-banner">Not connected</div>
@@ -53,8 +53,8 @@
 
       <section class="view" id="view-assignments">
         <div class="filter-row">
-          <select id="assignmentFilter"><option value="open">Open</option><option value="week">Next 7 days</option><option value="overdue">Overdue</option><option value="past">Past assignments</option><option value="graded">Graded</option><option value="all">All</option></select>
-          <input id="assignmentSearch" type="search" placeholder="Search assignments">
+          <select id="assignmentFilter"><option value="open">Open</option><option value="high">High importance · all dates</option><option value="week">Next 7 days</option><option value="overdue">Overdue</option><option value="past">Past assignments</option><option value="graded">Graded</option><option value="all">All</option></select>
+          <select id="assignmentImportance" aria-label="Importance"><option value="all">Any importance</option><option value="high">High and above</option><option value="critical">Critical</option><option value="very-high">Very high</option><option value="medium">Medium</option><option value="low">Low</option></select><select id="assignmentSort" aria-label="Sort assignments"><option value="due">Due date · earliest</option><option value="importance">Importance · highest</option><option value="newest">Due date · latest</option><option value="course">Subject</option><option value="title">Title</option></select><input id="assignmentSearch" type="search" placeholder="Search assignments">
         </div>
         <div id="assignmentList"></div>
       </section>
@@ -245,12 +245,13 @@
       </section>
     </main>
   </div>
-  <script src="course_rules.js?v=0.15.1"></script>
-  <script src="notes-pdf.js?v=0.15.1"></script>
-  <script src="life-forge-client.js?v=0.15.1"></script>
-  <script src="pdf-import.js?v=0.15.1"></script>
-  <script src="notebook-core.js?v=0.15.1"></script>
-  <script src="app.js?v=0.15.1"></script>
+  <script src="assignment-tools.js?v=0.15.2"></script>
+  <script src="course_rules.js?v=0.15.2"></script>
+  <script src="notes-pdf.js?v=0.15.2"></script>
+  <script src="life-forge-client.js?v=0.15.2"></script>
+  <script src="pdf-import.js?v=0.15.2"></script>
+  <script src="notebook-core.js?v=0.15.2"></script>
+  <script src="app.js?v=0.15.2"></script>
 </body>
 </html>
 
