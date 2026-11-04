@@ -68,7 +68,7 @@ assert(app.includes("$$('.view').forEach"));
 assert(app.includes("$$('.draw-tool').forEach"));
 
 assert(app.includes('function assignmentGradeInfo'));
-assert(app.includes("if(f==='graded')"));
+assert(app.includes('WarriorAssignments.query'));
 assert(app.includes('calendar-grade-mark'));
 assert(html.includes('<option value="graded">Graded</option>'));
 assert(css.includes('Canvas grades on assignment cards and calendar'));

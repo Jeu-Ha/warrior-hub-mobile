@@ -1,0 +1,7 @@
+const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');const ctx=vm.createContext({});vm.runInContext(fs.readFileSync('assignment-tools.js','utf8'),ctx);const api=ctx.WarriorAssignments;
+const rows=[{id:'exam',title:'Exam 2',importanceScore:95,dueAt:'2026-09-01',score:84,submitted:true},{id:'project',title:'Project presentation',dueAt:'2026-12-01'},{id:'hw',title:'Homework',pointsPossible:50},{id:'low',title:'Worksheet',importanceScore:0},{id:'hidden',title:'Final exam'}];
+let result=api.query(rows,{status:'high',hidden:['hidden'],sort:'importance',now:Date.parse('2026-11-04')});assert.deepEqual(Array.from(result,x=>x.id),['exam','project','hw'],'all high importance includes past graded work and higher tiers');
+assert.equal(api.importance(rows[3]).score,0,'real zero must survive fallback');assert.equal(api.importance(rows[1]).label,'Very high');
+assert.deepEqual(Array.from(api.query(rows,{search:'high importance',hidden:['hidden']}),x=>x.id).sort(),['exam','hw','project']);assert.equal(api.query(rows,{priority:'critical',hidden:['hidden']}).length,1);
+assert.equal(api.query(rows,{status:'open',priority:'high',hidden:['hidden']}).length,2);assert.equal(api.query(rows,{status:'graded'}).length,1);
+assert.deepEqual(rows.map(x=>x.id),['exam','project','hw','low','hidden'],'filter/sort never mutates shared assignment storage');console.log('PASS assignment tools: all-date high-and-above, text search by importance, explicit zero, status composition, stable non-mutating sort.');

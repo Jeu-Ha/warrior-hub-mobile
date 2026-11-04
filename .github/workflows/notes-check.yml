@@ -21,6 +21,7 @@ jobs:
       - run: node tests/notebook-workspace.cjs
       - run: node tests/notes-import-recovery.cjs
       - run: node tests/nov4-regression.cjs
+      - run: node tests/assignment-tools.cjs
       - run: node tests/course-rules.cjs
       - run: node tests/project-calendar.cjs
       - run: node tests/chemistry-browser.cjs
