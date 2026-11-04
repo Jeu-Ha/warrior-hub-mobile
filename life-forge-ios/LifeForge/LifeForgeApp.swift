@@ -6,7 +6,7 @@ import AVFoundation
 import UserNotifications
 import WidgetKit
 
-enum ForgeRoute: String { case day,now,principles }
+enum ForgeRoute: String { case day,now,principles,reflection,tomorrow }
 struct ForgeRouteRequest { let id=UUID();let route:ForgeRoute }
 @main struct LifeForgeApp: App {
     init() { _ = ForgeLocation.shared;_ = ForgeSleep.shared;WidgetCenter.shared.reloadAllTimelines() }
@@ -16,7 +16,9 @@ struct ForgeRouteRequest { let id=UUID();let route:ForgeRoute }
             if routeRequest?.route == .principles || ProcessInfo.processInfo.arguments.contains("--widget-preview") {
                 ForgePrinciplesPreview().overlay(alignment:.bottomTrailing) { if !ProcessInfo.processInfo.arguments.contains("--widget-preview") { Button("Закрити") { routeRequest=nil }.padding().background(.ultraThinMaterial,in:Capsule()).padding() } }
             } else { ForgeWebView(routeRequest:routeRequest).ignoresSafeArea(edges:.bottom).preferredColorScheme(.dark) }
-        }.onReceive(NotificationCenter.default.publisher(for:Notification.Name("forge.principles"))) { _ in routeRequest=ForgeRouteRequest(route:.principles) }
+        }.onReceive(NotificationCenter.default.publisher(for:Notification.Name("forge.route"))) { event in
+            if let name=event.object as? String,let route=ForgeRoute(rawValue:name) { routeRequest=ForgeRouteRequest(route:route);UserDefaults.standard.removeObject(forKey:"forge.pending-route") }
+        }.onAppear { if let name=UserDefaults.standard.string(forKey:"forge.pending-route"),let route=ForgeRoute(rawValue:name) { routeRequest=ForgeRouteRequest(route:route);UserDefaults.standard.removeObject(forKey:"forge.pending-route") } }.onReceive(NotificationCenter.default.publisher(for:Notification.Name("forge.principles"))) { _ in routeRequest=ForgeRouteRequest(route:.principles) }
             .onOpenURL { url in
                 guard url.scheme=="lifeforge",let host=url.host,let route=ForgeRoute(rawValue:host) else { return }
                 routeRequest=ForgeRouteRequest(route:route)
@@ -30,6 +32,7 @@ struct ForgeWebView: UIViewRepresentable {
         let config=WKWebViewConfiguration();config.websiteDataStore = .default()
         config.userContentController.add(context.coordinator,name:"lifeForgeTimer")
         config.userContentController.add(context.coordinator,name:"lifeForgeSleep")
+        config.userContentController.add(context.coordinator,name:"lifeForgeReminders")
         config.userContentController.add(context.coordinator,name:"lifeForgeWidgets")
         config.userContentController.add(context.coordinator,name:"lifeForgeLocation")
         let view=WKWebView(frame:.zero,configuration:config)
@@ -44,7 +47,7 @@ struct ForgeWebView: UIViewRepresentable {
             context.coordinator.lastRequest=request.id;context.coordinator.pendingRoute=request.route;context.coordinator.navigate()
         }
     }
-    static func dismantleUIView(_ view:WKWebView,coordinator:Coordinator) { view.configuration.userContentController.removeScriptMessageHandler(forName:"lifeForgeTimer");view.configuration.userContentController.removeScriptMessageHandler(forName:"lifeForgeSleep");view.configuration.userContentController.removeScriptMessageHandler(forName:"lifeForgeWidgets");view.configuration.userContentController.removeScriptMessageHandler(forName:"lifeForgeLocation") }
+    static func dismantleUIView(_ view:WKWebView,coordinator:Coordinator) { view.configuration.userContentController.removeScriptMessageHandler(forName:"lifeForgeTimer");view.configuration.userContentController.removeScriptMessageHandler(forName:"lifeForgeSleep");view.configuration.userContentController.removeScriptMessageHandler(forName:"lifeForgeReminders");view.configuration.userContentController.removeScriptMessageHandler(forName:"lifeForgeWidgets");view.configuration.userContentController.removeScriptMessageHandler(forName:"lifeForgeLocation") }
     final class Coordinator: NSObject,WKScriptMessageHandler,WKNavigationDelegate,WKUIDelegate {
         weak var webView: WKWebView?
         var timerSnapshot:[String:Any]?
@@ -95,6 +98,7 @@ struct ForgeWebView: UIViewRepresentable {
                   let payload=message.body as? [String:Any] else { return }
             if message.name=="lifeForgeWidgets" { if (message.body as? [String:Any])?["action"] as? String == "preview" { NotificationCenter.default.post(name:Notification.Name("forge.principles"),object:nil) };WidgetCenter.shared.reloadAllTimelines();publishWidgetStatus();return }
             if message.name=="lifeForgeSleep" { ForgeSleep.shared.schedule(payload);return }
+            if message.name=="lifeForgeReminders" { ForgeSleep.shared.scheduleReminders(payload);return }
             if message.name=="lifeForgeLocation" {
                 webView?.configuration.websiteDataStore.httpCookieStore.getAllCookies { cookies in
                     do { try TimerAccess.shared.save(cookies);ForgeLocation.shared.setEnabled(payload["enabled"] as? Bool == true) } catch { self.showError(error.localizedDescription) }
@@ -253,11 +257,14 @@ final class ForgeLocation:NSObject,CLLocationManagerDelegate {
 final class ForgeSleep:NSObject,UNUserNotificationCenterDelegate {
     static let shared=ForgeSleep()
     private var signature=""
+    private var reminderSignature=""
     override init() {
         super.init();let center=UNUserNotificationCenter.current();center.delegate=self
         let yes=UNNotificationAction(identifier:"forge.sleep.yes",title:"Так, спати",options:[.foreground])
         let later=UNNotificationAction(identifier:"forge.sleep.later",title:"Пізніше",options:[])
-        center.setNotificationCategories([UNNotificationCategory(identifier:"forge.sleep",actions:[yes,later],intentIdentifiers:[],options:[])])
+        let reflect=UNNotificationAction(identifier:"forge.reflection.open",title:"Записати враження",options:[.foreground])
+        let tomorrow=UNNotificationAction(identifier:"forge.tomorrow",title:"План на завтра",options:[.foreground])
+        center.setNotificationCategories([UNNotificationCategory(identifier:"forge.sleep",actions:[yes,later],intentIdentifiers:[],options:[]),UNNotificationCategory(identifier:"forge.reflection",actions:[reflect,tomorrow],intentIdentifiers:[],options:[])])
     }
     func schedule(_ payload:[String:Any]) {
         guard let entries=payload["schedule"] as? [[String:Any]],let bytes=try? JSONSerialization.data(withJSONObject:entries,options:.sortedKeys) else { return }
@@ -276,9 +283,42 @@ final class ForgeSleep:NSObject,UNUserNotificationCenterDelegate {
             }
         }
     }
+    func scheduleReminders(_ payload:[String:Any]) {
+        guard let entries=payload["schedule"] as? [[String:Any]],let bytes=try? JSONSerialization.data(withJSONObject:payload,options:.sortedKeys) else { return }
+        let next=bytes.base64EncodedString();guard next != reminderSignature else { return };reminderSignature=next
+        let center=UNUserNotificationCenter.current(),reflection=payload["reflection"] as? Bool == true
+        center.requestAuthorization(options:[.alert,.sound]) { allowed,_ in
+            guard allowed else { return }
+            center.getPendingNotificationRequests { pending in
+                DispatchQueue.main.async {
+                    guard self.reminderSignature==next else { return }
+                    center.removePendingNotificationRequests(withIdentifiers:pending.filter{$0.identifier.hasPrefix("forge.reminder.")}.map{$0.identifier})
+                    // One repeating alert survives long periods with the app closed.
+                    // 48 task alerts + 14 sleep alerts + this daily alert fit iOS's limit.
+                    if reflection {
+                        let content=UNMutableNotificationContent();content.title="Як минув день?";content.body="Запиши враження й переглянь план на завтра.";content.sound = .default;content.categoryIdentifier="forge.reflection";content.userInfo=["route":"reflection"]
+                        var date=DateComponents();date.timeZone=TimeZone(identifier:"America/New_York");date.hour=23;date.minute=0
+                        center.add(UNNotificationRequest(identifier:"forge.reminder.reflection",content:content,trigger:UNCalendarNotificationTrigger(dateMatching:date,repeats:true)))
+                    }
+                    for item in entries.prefix(48) {
+                        guard let id=item["id"] as? String,let ms=item["at"] as? Double,let title=item["title"] as? String,let body=item["body"] as? String else { continue }
+                        let interval=ms/1000-Date().timeIntervalSince1970;guard interval>1 else { continue }
+                        let content=UNMutableNotificationContent();content.title=title;content.body=body;content.sound = .default;content.userInfo=["route":"day"]
+                        center.add(UNNotificationRequest(identifier:"forge.reminder."+id,content:content,trigger:UNTimeIntervalNotificationTrigger(timeInterval:interval,repeats:false)))
+                    }
+                }
+            }
+        }
+    }
     func userNotificationCenter(_ center:UNUserNotificationCenter,willPresent notification:UNNotification,withCompletionHandler completionHandler:@escaping (UNNotificationPresentationOptions)->Void) { completionHandler([.banner,.sound]) }
     func userNotificationCenter(_ center:UNUserNotificationCenter,didReceive response:UNNotificationResponse,withCompletionHandler completionHandler:@escaping ()->Void) {
-        guard response.actionIdentifier=="forge.sleep.yes" else { completionHandler();return }
+        guard response.actionIdentifier=="forge.sleep.yes" else {
+            if response.actionIdentifier != UNNotificationDismissActionIdentifier {
+                let route=response.actionIdentifier=="forge.tomorrow" ? "tomorrow":(response.notification.request.content.userInfo["route"] as? String ?? "day")
+                UserDefaults.standard.set(route,forKey:"forge.pending-route")
+                DispatchQueue.main.async { NotificationCenter.default.post(name:Notification.Name("forge.route"),object:route) }
+            };completionHandler();return
+        }
         // Capture the tap, before authentication/network latency.
         UserDefaults.standard.set(["id":UUID().uuidString,"at":Date().timeIntervalSince1970],forKey:"forge.pending-sleep")
         Task { @MainActor in do { try await TimerAccess.shared.confirmSleep() } catch { } ;completionHandler() }
