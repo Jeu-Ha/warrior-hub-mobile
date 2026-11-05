@@ -66,3 +66,23 @@ body.notes-editor-mode .notes-connection-bar button{pointer-events:auto}
 #notesEditor:not(.show-extra-tools) [data-tool=pencil],#notesEditor:not(.show-extra-tools) [data-tool=select],#notesEditor:not(.show-extra-tools) [data-tool=lasso],#notesEditor:not(.show-extra-tools) [data-tool=text],#notesEditor:not(.show-extra-tools) [data-tool=line],#notesEditor:not(.show-extra-tools) [data-tool=rectangle],#notesEditor:not(.show-extra-tools) [data-tool=ellipse]{display:none!important}
 
 #manageActiveNotebookBtn{min-height:44px;margin:10px;padding:8px 12px;border:1px solid #d6d9e3;border-radius:10px;background:#fff;color:#343947;font-weight:650}
+
+.notebook-subject-heading{grid-column:1/-1;margin:14px 8px 0;padding-bottom:10px;border-bottom:1px solid #dcdfe8;color:#4a5269;font-size:17px}
+#notesEditor{position:relative}
+#subjectReviewTab{position:absolute;right:0;top:42%;z-index:15;writing-mode:vertical-rl;border:1px solid #c4cde7;border-right:0;border-radius:12px 0 0 12px;background:#eef1ff;color:#334a96;padding:18px 9px;font-weight:700;cursor:pointer;box-shadow:0 3px 12px #17254618}
+#subjectReviewPanel{position:absolute;right:0;top:0;bottom:0;z-index:20;width:min(470px,92%);background:#f8f9fc;border-left:1px solid #cdd3e2;box-shadow:-8px 0 30px #17254625;display:flex;flex-direction:column;min-height:0}
+#subjectReviewPanel>header{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 16px;color:#28354d}
+#subjectReviewPanel>header button{border:0;border-radius:10px;background:#e8ebf4;color:#33405b;font-size:24px;width:40px;height:40px;cursor:pointer}
+#subjectReviewPanel>p{margin:0;padding:0 16px 12px;font-size:12px;color:#69748a}
+#subjectReviewPanel iframe{border:0;flex:1;width:100%;min-height:0;background:#f5f5f8}
+.subject-review-child .notes-appbar,.subject-review-child .notes-topline,.subject-review-child .notes-sidebar,.subject-review-child .infinite-note-hint{display:none!important}
+.subject-review-child #notesEditor{grid-template-columns:1fr!important}
+.subject-review-child #subjectReviewChildHeader{padding:10px 12px;background:#f8f9fc;border-bottom:1px solid #dce0eb;color:#28354d}
+#subjectReviewChildHeader>strong{font-size:14px;display:block;margin-bottom:8px}
+#subjectReviewChildHeader>div{display:flex;flex-wrap:wrap;gap:6px}
+#subjectReviewChildHeader button{border:1px solid #cfd6e8;background:white;border-radius:8px;color:#364b7a;padding:8px 10px;font-size:12px;cursor:pointer}
+#reviewReferenceList,#reviewHistoryList{margin-top:6px;max-height:140px;overflow:auto}
+#subjectReviewChildHeader .review-reference{background:#edf1ff;color:#354f9c;text-align:left}
+.subject-review-child .apple-markup-toolbar{flex-wrap:nowrap!important;overflow-x:auto!important}
+
+.subject-review-child #subjectReviewChildHeader>strong{display:none}

@@ -8,16 +8,16 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Warrior Hub">
   <title>Warrior Hub Mobile</title>
-  <link rel="manifest" href="manifest.webmanifest?v=0.15.3">
+  <link rel="manifest" href="manifest.webmanifest?v=0.16.0">
   <link rel="apple-touch-icon" href="icons/icon192.png">
-  <link rel="stylesheet" href="app.css?v=0.15.3">
-  <link rel="stylesheet" href="notes.css?v=0.15.3">
-  <link rel="stylesheet" href="notebook-workspace.css?v=0.15.3">
+  <link rel="stylesheet" href="app.css?v=0.16.0">
+  <link rel="stylesheet" href="notes.css?v=0.16.0">
+  <link rel="stylesheet" href="notebook-workspace.css?v=0.16.0">
 </head>
 <body>
   <div id="appShell">
     <header class="topbar">
-      <div><div class="eyebrow" id="todayLabel">WARRIOR HUB MOBILE · v0.15.3</div><h1>Warrior Hub</h1></div>
+      <div><div class="eyebrow" id="todayLabel">WARRIOR HUB MOBILE · v0.16.0</div><h1>Warrior Hub</h1></div>
       <button id="syncNowBtn" class="sync-btn" type="button">↻ Sync</button>
     </header>
     <div id="statusBanner" class="status-banner">Not connected</div>
@@ -209,7 +209,7 @@
         </div>
         <div id="pdfImportDialog" class="notes-modal" role="dialog" aria-modal="true" aria-label="Import PDF" hidden><div class="notes-modal-card"><h2>Import PDF</h2><p id="pdfImportProgress" role="status">Opening PDF…</p><p>Each page becomes a notebook page you can write on.</p><button id="cancelPdfImportBtn" type="button">Stop import</button></div></div>
         <div id="newNotebookDialog" class="notes-modal" role="dialog" aria-modal="true" aria-labelledby="newNotebookHeading" hidden><form id="newNotebookForm" class="notes-modal-card"><h2 id="newNotebookHeading">New notebook</h2><label>Name<input id="newNotebookName" required maxlength="100" placeholder="e.g. Calculus — Chapter 7"></label><label>Subject<select id="newNotebookSubject"></select></label><label>Cover<input id="newNotebookCover" type="color" value="#5266b4"></label><label>Paper<select id="newNotebookPaper"><option value="ruled">Ruled</option><option value="blank">Blank</option><option value="grid">Grid</option><option value="dots">Dotted</option></select></label><div><button id="cancelNotebookBtn" type="button">Cancel</button><button class="notes-primary" type="submit">Create notebook</button></div></form></div>
-        <div id="manageNotebookDialog" class="notes-modal" role="dialog" aria-modal="true" aria-labelledby="manageNotebookHeading" hidden><form id="manageNotebookForm" class="notes-modal-card"><h2 id="manageNotebookHeading">Organize notebook</h2><label>Cover<input id="manageNotebookCover" type="color" value="#5266b4"></label><label>Subject<input id="manageNotebookSubject" list="notebookSubjectOptions" required maxlength="150"></label><datalist id="notebookSubjectOptions"></datalist><label>Folder<input id="manageNotebookFolder" placeholder="e.g. Homework" maxlength="100"></label><p>Changing the subject or folder keeps every page and stroke.</p><div><button id="cancelManageNotebookBtn" type="button">Cancel</button><button class="notes-primary" type="submit">Save changes</button></div></form></div>
+        <div id="manageNotebookDialog" class="notes-modal" role="dialog" aria-modal="true" aria-labelledby="manageNotebookHeading" hidden><form id="manageNotebookForm" class="notes-modal-card"><h2 id="manageNotebookHeading">Organize notebook</h2><label><span id="manageCoverLabel">Subject color</span><input id="manageNotebookCover" type="color" value="#5266b4"></label><label>Subject<input id="manageNotebookSubject" list="notebookSubjectOptions" required maxlength="150"></label><datalist id="notebookSubjectOptions"></datalist><label>Folder<input id="manageNotebookFolder" placeholder="e.g. Homework" maxlength="100"></label><p>Changing the subject or folder keeps every page and stroke.</p><div><button id="cancelManageNotebookBtn" type="button">Cancel</button><button class="notes-primary" type="submit">Save changes</button></div></form></div>
         <div id="noteActionsDialog" class="notes-modal" role="dialog" aria-modal="true" aria-labelledby="noteActionsHeading" hidden><div class="notes-modal-card"><h2 id="noteActionsHeading">Notebook</h2><button id="editNotebookBtn" type="button">Open / edit notebook</button><button id="renameNotebookBtn" type="button">Rename notebook</button><button id="manageNotebookBtn" type="button">Change subject / move to folder</button><button id="exportNotebookBtn" type="button">↓ Export editable file</button><button id="shareNotebookBtn" type="button">↗ Save / share to Files</button><button id="exportNotebookPdfBtn" type="button">↓ Export PDF to PC</button><button id="shareNotebookPdfBtn" type="button">Save PDF on this device</button><button id="printNotebookBtn" type="button">Print</button><button id="deleteNotebookBtn" type="button" class="notes-danger">Move to Trash</button><button id="restoreDeletedNotebookBtn" type="button" hidden>Restore notebook</button><button id="exportAllNotebooksBtn" type="button">↓ Back up all notebooks</button><button id="restoreNotebookRevisionsBtn" type="button">↶ Recover a local checkpoint</button><p id="noteActionsStatus" role="status"></p><p class="notes-modal-help">P pen · E eraser · H hand · L lasso · T text<br>⌘/Ctrl Z undo · ⇧⌘/Ctrl Z redo · ⌘/Ctrl S backup<br>In Pen mode, drag with a finger to scroll and pinch with two fingers to zoom between strokes. Palm contacts are ignored during pen strokes. Use Touch writing only for a stylus reported as touch; palm protection is unavailable in that mode.</p><button id="closeNoteActionsBtn" type="button">Done</button></div></div>
       <div id="notesConnectionBar" class="notes-connection-bar" role="status" hidden><span id="notesConnectionMessage">Connecting OneDrive…</span><button id="notesReconnectBtn" type="button">Connect OneDrive</button></div>
       </section>
@@ -245,13 +245,13 @@
       </section>
     </main>
   </div>
-  <script src="assignment-tools.js?v=0.15.3"></script>
-  <script src="course_rules.js?v=0.15.3"></script>
-  <script src="notes-pdf.js?v=0.15.3"></script>
-  <script src="life-forge-client.js?v=0.15.3"></script>
-  <script src="pdf-import.js?v=0.15.3"></script>
-  <script src="notebook-core.js?v=0.15.3"></script>
-  <script src="app.js?v=0.15.3"></script>
+  <script src="assignment-tools.js?v=0.16.0"></script>
+  <script src="course_rules.js?v=0.16.0"></script>
+  <script src="notes-pdf.js?v=0.16.0"></script>
+  <script src="life-forge-client.js?v=0.16.0"></script>
+  <script src="pdf-import.js?v=0.16.0"></script>
+  <script src="notebook-core.js?v=0.16.0"></script>
+  <script src="app.js?v=0.16.0"></script>
 </body>
 </html>
 

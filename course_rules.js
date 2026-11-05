@@ -89,7 +89,10 @@
     const courses=(Array.isArray(state.courses)?state.courses:[]).map(c=>({...c}));
     let course=courses.find(isChem);
     if(!course){course={id:COURSE_ID,code:'CHM 1140',name:'General Chemistry II',term:'Fall 2026',source:'syllabus',url:`https://canvas.wayne.edu/courses/${COURSE_ID}`};courses.push(course)}
-    const assignments=applyGroup3(state,enrichAssignments(state.assignments,course));course.calculatedGrade=summary(course,assignments);return {...state,courses,assignments};
+    const inventory=new Map();for(const a of [...(state.assignmentsOutsideSchedule||[]),...(state.assignments||[])])inventory.set(String(a.id),a);
+    const all=applyGroup3(state,enrichAssignments([...inventory.values()],course));
+    const assignments=globalThis.WarriorAssignments?.forSchedule(all,state.schedule,courses)||all,kept=new Set(assignments.map(a=>String(a.id))),assignmentsOutsideSchedule=all.filter(a=>!kept.has(String(a.id)));
+    course.calculatedGrade=summary(course,assignments);return {...state,courses,assignments,assignmentsOutsideSchedule};
   }
   globalThis.WarriorCourseRules={apply,summary,isChem,examNumber,category,EXAMS,POLICY,GROUP3};
 })();
