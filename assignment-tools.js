@@ -17,7 +17,9 @@
   });
   return result.sort((a,b)=>{const ad=date(a),bd=date(b),due=(ad??Infinity)-(bd??Infinity);let cmp=0;if(sort==='importance')cmp=importance(b).score-importance(a).score;else if(sort==='course')cmp=String(a.courseCode||a.courseName||'').localeCompare(String(b.courseCode||b.courseName||''));else if(sort==='title')cmp=String(a.title||'').localeCompare(String(b.title||''));else if(sort==='newest')cmp=(bd??-Infinity)-(ad??-Infinity);return (Number.isFinite(cmp)&&cmp||Number.isFinite(due)&&due||String(a.id).localeCompare(String(b.id)))});
  }
- const courseKey=value=>{const m=String(value||'').toUpperCase().match(/\b([A-Z]{2,5})[\s_-]*(\d{4})\b/);return m?(m[1]+(m[1]==='CHM'&&m[2]==='1145'?'1140':m[2])):''};
+ // Canvas separates department, number, term and section with underscores.
+ // An underscore is a regex word character, so \b after the number loses these courses.
+ const courseKey=value=>{const m=String(value||'').toUpperCase().match(/(?:^|[^A-Z0-9])([A-Z]{2,5})[\s_-]*(\d{4})(?=$|[^A-Z0-9])/);return m?(m[1]+(m[1]==='CHM'&&m[2]==='1145'?'1140':m[2])):''};
  function forSchedule(rows,schedule=[],courses=[]){const keys=new Set(schedule.map(c=>courseKey(c.code||c.courseCode||c.title)).filter(Boolean));if(!keys.size)return rows.slice();const ids=new Map(courses.map(c=>[String(c.id),courseKey(c.code||c.courseCode||c.name)]));return rows.filter(a=>keys.has(courseKey(a.courseCode||a.courseName)||ids.get(String(a.courseId))))}
  globalThis.WarriorAssignments={importance,query,courseKey,forSchedule};
 })();
