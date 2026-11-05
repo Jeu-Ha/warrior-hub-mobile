@@ -21,7 +21,7 @@ jobs:
           mkdir -p package/Payload
           cp -R build/Build/Products/Release-iphoneos/LifeForge.app package/Payload/
           cd package
-          zip -qry Life-Forge-iPhone-1.11-unsigned.ipa Payload
+          zip -qry Life-Forge-iPhone-1.12-unsigned.ipa Payload
       - name: Verify both bundled widget modules
         run: |
           python3 - <<'PY'
@@ -32,15 +32,15 @@ jobs:
               path = root/"PlugIns"/(name+".appex")
               info = plistlib.load((path/"Info.plist").open("rb"))
               assert info["CFBundleIdentifier"].startswith(app["CFBundleIdentifier"]+".")
-              assert info["CFBundleShortVersionString"] == app["CFBundleShortVersionString"] == "1.11"
+              assert info["CFBundleShortVersionString"] == app["CFBundleShortVersionString"] == "1.12"
               assert info["NSExtension"]["NSExtensionPointIdentifier"] == "com.apple.widgetkit-extension"
               assert (path/info["CFBundleExecutable"]).stat().st_size > 0
           print("Device IPA: both WidgetKit modules validated")
           PY
       - uses: actions/upload-artifact@v4
         with:
-          name: Life-Forge-iPhone-1.11-unsigned
-          path: package/Life-Forge-iPhone-1.11-unsigned.ipa
+          name: Life-Forge-iPhone-1.12-unsigned
+          path: package/Life-Forge-iPhone-1.12-unsigned.ipa
           retention-days: 14
       - name: Build and render native puzzle on iPhone simulator
         timeout-minutes: 6
@@ -57,7 +57,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: Life-Forge-iPhone-1.11-preview
+          name: Life-Forge-iPhone-1.12-preview
           path: |
             widget-preview.png
             simulator-build.log

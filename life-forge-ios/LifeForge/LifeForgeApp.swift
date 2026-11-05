@@ -182,14 +182,27 @@ struct ForgeWebView: UIViewRepresentable {
     }
 }
 
-// iOS supplies location events, not a feed of other applications or phone use.
+// Visit timestamps come from Core Location; a sparse position never becomes an invented stay.
+private struct ForgeVisitEvidence:Codable {
+    let arrivedAtMs:Int64
+    let departedAtMs:Int64?
+    let latitude:Double
+    let longitude:Double
+    let accuracy:Double
+}
 final class ForgeLocation:NSObject,CLLocationManagerDelegate {
     static let shared=ForgeLocation()
     weak var webView:WKWebView?
     private let manager=CLLocationManager()
     private var enabled=UserDefaults.standard.bool(forKey:"forge.location.enabled")
+    private var watching=false
     private var sending=false
     private var lastAt:Date?
+    private var lastFixAt:Date?
+    private var oneShotPending=false
+    private var fixDeadline:DispatchWorkItem?
+    private var pendingVisit:ForgeVisitEvidence?
+    private var visitFixes:[String:ForgeVisitEvidence]=[:]
     private let device:String
     private var queue:[[String:Any]]=[]
     private let queueURL:URL
@@ -200,39 +213,84 @@ final class ForgeLocation:NSObject,CLLocationManagerDelegate {
         super.init()
         try? FileManager.default.createDirectory(at:queueURL.deletingLastPathComponent(),withIntermediateDirectories:true)
         if let data=try? Data(contentsOf:queueURL),let values=try? JSONSerialization.jsonObject(with:data) as? [[String:Any]] { queue=values }
-        manager.delegate=self;manager.desiredAccuracy=kCLLocationAccuracyNearestTenMeters;manager.distanceFilter=kCLDistanceFilterNone
-        manager.allowsBackgroundLocationUpdates=true;manager.showsBackgroundLocationIndicator=true;manager.pausesLocationUpdatesAutomatically=false
-        if enabled { startAuthorized() }
+        if let data=UserDefaults.standard.data(forKey:"forge.location.visit-fixes"),let values=try? JSONDecoder().decode([String:ForgeVisitEvidence].self,from:data) { visitFixes=values }
+        manager.delegate=self;manager.desiredAccuracy=kCLLocationAccuracyNearestTenMeters
+        manager.distanceFilter=100;manager.allowsBackgroundLocationUpdates=false
+        manager.showsBackgroundLocationIndicator=false;manager.pausesLocationUpdatesAutomatically=true
         NotificationCenter.default.addObserver(self,selector:#selector(wake),name:UIApplication.didBecomeActiveNotification,object:nil)
+        if enabled { startAuthorized() }
     }
-    @objc private func wake(){if enabled { startAuthorized() };flush();publish()}
+    @objc private func wake(){if enabled { startAuthorized();if lastFixAt == nil || Date().timeIntervalSince(lastFixAt!)>=300 { requestFix() } };flush();publish()}
     func setEnabled(_ value:Bool){
-        enabled=value;UserDefaults.standard.set(value,forKey:"forge.location.enabled")
-        if value { if manager.authorizationStatus == .notDetermined { manager.requestWhenInUseAuthorization() } else { startAuthorized() } }
-        else { manager.stopUpdatingLocation();manager.stopMonitoringSignificantLocationChanges() }
+        let wasEnabled=enabled;enabled=value;UserDefaults.standard.set(value,forKey:"forge.location.enabled")
+        if value {
+            if manager.authorizationStatus == .notDetermined { manager.requestWhenInUseAuthorization() }
+            else { startAuthorized();if !wasEnabled && UIApplication.shared.applicationState == .active { requestFix() } }
+        } else {
+            manager.stopUpdatingLocation();manager.stopMonitoringSignificantLocationChanges();manager.stopMonitoringVisits()
+            watching=false;finishFix();pendingVisit=nil
+        }
         publish()
     }
     private func startAuthorized(){
-        guard enabled else { return }
-        let status=manager.authorizationStatus
-        guard status == .authorizedAlways || status == .authorizedWhenInUse else { publish();return }
-        manager.startUpdatingLocation();manager.startMonitoringSignificantLocationChanges()
-        if status == .authorizedWhenInUse && !UserDefaults.standard.bool(forKey:"forge.location.always-requested") {
-            UserDefaults.standard.set(true,forKey:"forge.location.always-requested");manager.requestAlwaysAuthorization()
+        guard enabled else { return };let status=manager.authorizationStatus
+        guard status == .authorizedAlways || status == .authorizedWhenInUse else { manager.stopUpdatingLocation();manager.stopMonitoringSignificantLocationChanges();manager.stopMonitoringVisits();watching=false;publish();return }
+        // Never enter a continuous background navigation session.
+        if status == .authorizedAlways {
+            if !watching { manager.stopUpdatingLocation();manager.startMonitoringSignificantLocationChanges();manager.startMonitoringVisits();watching=true }
+        } else {
+            manager.stopMonitoringSignificantLocationChanges();manager.stopMonitoringVisits();watching=false
+            if !UserDefaults.standard.bool(forKey:"forge.location.always-requested") { UserDefaults.standard.set(true,forKey:"forge.location.always-requested");manager.requestAlwaysAuthorization() }
         }
+        if UIApplication.shared.applicationState == .active && lastFixAt == nil { requestFix() }
         flush();publish()
     }
+    private func requestFix(){
+        guard enabled,!oneShotPending,manager.authorizationStatus == .authorizedAlways || manager.authorizationStatus == .authorizedWhenInUse && UIApplication.shared.applicationState == .active else { return }
+        oneShotPending=true;lastFixAt=Date();manager.requestLocation()
+        let deadline=DispatchWorkItem { [weak self] in guard let self,self.oneShotPending else { return };self.manager.stopUpdatingLocation();self.finishFix();self.pendingVisit=nil;self.publish() }
+        fixDeadline=deadline;DispatchQueue.main.asyncAfter(deadline:.now()+25,execute:deadline)
+    }
+    private func finishFix(){fixDeadline?.cancel();fixDeadline=nil;oneShotPending=false}
     func locationManagerDidChangeAuthorization(_ manager:CLLocationManager){startAuthorized()}
+    private func append(_ location:CLLocation,visit:ForgeVisitEvidence? = nil,force:Bool = false){
+        guard location.horizontalAccuracy>=0,location.horizontalAccuracy<=100000,abs(location.timestamp.timeIntervalSinceNow)<300 else { return }
+        guard force || lastAt == nil || location.timestamp.timeIntervalSince(lastAt!)>=60 else { return }
+        let at=Int64(location.timestamp.timeIntervalSince1970*1000)
+        var record:[String:Any]=["id":UUID().uuidString,"deviceId":device,"source":"ios","kind":"location","startedAtMs":at,"endedAtMs":at,"latitude":location.coordinate.latitude,"longitude":location.coordinate.longitude,"accuracy":location.horizontalAccuracy]
+        if let visit { record["visit"]=["arrivedAtMs":visit.arrivedAtMs,"departedAtMs":visit.departedAtMs.map { $0 as Any } ?? NSNull()] }
+        queue.append(record);lastAt=location.timestamp
+    }
     func locationManager(_ manager:CLLocationManager,didUpdateLocations locations:[CLLocation]){
-        guard enabled else { return }
+        guard enabled else { return };let candidate=pendingVisit;pendingVisit=nil
         for l in locations {
-            guard l.horizontalAccuracy>=0,abs(l.timestamp.timeIntervalSinceNow)<300,lastAt == nil || l.timestamp.timeIntervalSince(lastAt!)>=60 else { continue }
-            let at=Int64(l.timestamp.timeIntervalSince1970*1000)
-            queue.append(["id":UUID().uuidString,"deviceId":device,"source":"ios","kind":"location","startedAtMs":at,"endedAtMs":at,"latitude":l.coordinate.latitude,"longitude":l.coordinate.longitude,"accuracy":l.horizontalAccuracy]);lastAt=l.timestamp
+            var evidence:ForgeVisitEvidence?
+            if let v=candidate,l.timestamp.timeIntervalSinceNow > -30,l.horizontalAccuracy>=0,l.horizontalAccuracy<v.accuracy,l.distance(from:CLLocation(latitude:v.latitude,longitude:v.longitude))<=max(150,v.accuracy+l.horizontalAccuracy),Int64(l.timestamp.timeIntervalSince1970*1000)>=v.arrivedAtMs {
+                let refined=ForgeVisitEvidence(arrivedAtMs:v.arrivedAtMs,departedAtMs:nil,latitude:l.coordinate.latitude,longitude:l.coordinate.longitude,accuracy:l.horizontalAccuracy)
+                evidence=refined;visitFixes[String(v.arrivedAtMs)]=refined;saveVisitFixes()
+            }
+            append(l,visit:evidence,force:evidence != nil)
         }
+        finishFix();persist();flush();publish()
+    }
+    func locationManager(_ manager:CLLocationManager,didVisit visit:CLVisit){
+        guard enabled,manager.authorizationStatus == .authorizedAlways else { return }
+        let now=Date(),arrival=visit.arrivalDate,departure=visit.departureDate
+        guard arrival != .distantPast,arrival<=now,now.timeIntervalSince(arrival)<=30*86400 else { return }
+        let arrived=Int64(arrival.timeIntervalSince1970*1000),departed=departure == .distantFuture ? nil : Int64(departure.timeIntervalSince1970*1000)
+        guard departed == nil || departed!>=arrived && departed!<=Int64(now.timeIntervalSince1970*1000) else { return }
+        let cached=visitFixes[String(arrived)]
+        let evidence=ForgeVisitEvidence(arrivedAtMs:arrived,departedAtMs:departed,latitude:cached?.latitude ?? visit.coordinate.latitude,longitude:cached?.longitude ?? visit.coordinate.longitude,accuracy:cached?.accuracy ?? visit.horizontalAccuracy)
+        let location=CLLocation(coordinate:CLLocationCoordinate2D(latitude:evidence.latitude,longitude:evidence.longitude),altitude:0,horizontalAccuracy:evidence.accuracy,verticalAccuracy:-1,timestamp:now)
+        append(location,visit:evidence,force:true)
+        if departed == nil { pendingVisit=evidence;requestFix() } else { visitFixes.removeValue(forKey:String(arrived));saveVisitFixes() }
         persist();flush();publish()
     }
-    func locationManager(_ manager:CLLocationManager,didFailWithError error:Error){publish(error:error.localizedDescription)}
+    private func saveVisitFixes(){
+        if visitFixes.count>16 { let keep=Set(visitFixes.values.sorted{$0.arrivedAtMs>$1.arrivedAtMs}.prefix(16).map{String($0.arrivedAtMs)});visitFixes=visitFixes.filter{keep.contains($0.key)} }
+        if let data=try? JSONEncoder().encode(visitFixes) { UserDefaults.standard.set(data,forKey:"forge.location.visit-fixes") }
+    }
+    func locationManager(_ manager:CLLocationManager,didFailWithError error:Error){finishFix();pendingVisit=nil;publish(error:error.localizedDescription)}
     private func persist(){do { let data=try JSONSerialization.data(withJSONObject:queue);try data.write(to:queueURL,options:[.atomic,.completeFileProtectionUntilFirstUserAuthentication]) } catch { publish(error:"Не вдалося записати геолокацію на телефон. Перевір вільне місце.") }}
     func flush(){
         guard !sending,!queue.isEmpty else { return };sending=true
@@ -244,9 +302,9 @@ final class ForgeLocation:NSObject,CLLocationManagerDelegate {
         }
     }
     func publish(error:String? = nil){
-        let status=manager.authorizationStatus
-        let active=enabled && (status == .authorizedAlways || status == .authorizedWhenInUse)
-        var payload:[String:Any]=["enabled":active,"message":enabled ? (status == .authorizedAlways ? "Геолокація у фоні · черга \(queue.count)" : "Для фону дозволь «Завжди» в налаштуваннях iPhone · черга \(queue.count)") : "Геолокацію зупинено"]
+        let status=manager.authorizationStatus,active=enabled && (manager.authorizationStatus == .authorizedAlways || manager.authorizationStatus == .authorizedWhenInUse)
+        let message=enabled ? (status == .authorizedAlways ? "Пасивна геолокація · системні відвідування · черга \(queue.count)" : "Для пасивного запису у фоні дозволь «Завжди» · черга \(queue.count)") : "Геолокацію зупинено"
+        var payload:[String:Any]=["enabled":active,"mode":"passive","background":status == .authorizedAlways,"message":message]
         if let error { payload["error"]=error }
         guard let data=try? JSONSerialization.data(withJSONObject:payload),let json=String(data:data,encoding:.utf8) else { return }
         webView?.evaluateJavaScript("window.__forgeLocationStatus="+json+";window.dispatchEvent(new CustomEvent('life-forge-location-status',{detail:"+json+"}))",completionHandler:nil)
