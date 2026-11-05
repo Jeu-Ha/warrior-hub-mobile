@@ -50,7 +50,8 @@ assert(app.includes('function predictStudy'));assert(app.includes('function opti
 
 assert(app.includes("STYLUS_TOUCH_KEY='warriorMobileStylusTouchV011'"));
 assert(app.includes("data-tool==='hand'")||app.includes("drawTool==='hand'"));
-assert(app.includes("touchInk=e.pointerType==='touch'&&fingerDraw"));
+// Finger drawing restrictions and finger-driven lasso are exercised with pointer events
+// in notes-input.cjs and subject-workspace.cjs; do not pin the old expression here.
 assert(app.includes("document.body.classList.toggle('notes-workspace-mode'"));
 assert(html.includes('id="exitNotesBtn"'));
 assert(html.includes('data-tool="hand"'));
