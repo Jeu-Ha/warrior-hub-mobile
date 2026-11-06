@@ -20,6 +20,17 @@
  // Canvas separates department, number, term and section with underscores.
  // An underscore is a regex word character, so \b after the number loses these courses.
  const courseKey=value=>{const m=String(value||'').toUpperCase().match(/(?:^|[^A-Z0-9])([A-Z]{2,5})[\s_-]*(\d{4})(?=$|[^A-Z0-9])/);return m?(m[1]+(m[1]==='CHM'&&m[2]==='1145'?'1140':m[2])):''};
- function forSchedule(rows,schedule=[],courses=[]){const keys=new Set(schedule.map(c=>courseKey(c.code||c.courseCode||c.title)).filter(Boolean));if(!keys.size)return rows.slice();const ids=new Map(courses.map(c=>[String(c.id),courseKey(c.code||c.courseCode||c.name)]));return rows.filter(a=>keys.has(courseKey(a.courseCode||a.courseName)||ids.get(String(a.courseId))))}
- globalThis.WarriorAssignments={importance,query,courseKey,forSchedule};
+ function courseTerm(value){const text=String(value||'');let m=text.match(/(?:^|[^0-9])(20\d{2})(01|05|09)(?=$|[^0-9])/);if(m)return m[1]+m[2];m=text.match(/(?:^[A-Z]{2,5}[\s_-]*\d{4}[\s_-]+|^)(\d{2})(01|05|09)(?=$|[^0-9])/i);if(m)return '20'+m[1]+m[2];const year=text.match(/\b(20\d{2})\b/)?.[1],season=/\bfall\b/i.test(text)?'09':/\b(?:winter|spring)\b/i.test(text)?'01':/\bsummer\b/i.test(text)?'05':'';return year&&season?year+season:''}
+ function forSchedule(rows,schedule=[],courses=[],term=''){
+  const keys=new Set(schedule.map(c=>courseKey(c.code||c.courseCode||c.title)).filter(Boolean));if(!keys.size)return rows.slice();
+  const ids=new Map(courses.map(c=>[String(c.id),c])),keyOf=c=>courseKey(c?.code||c?.courseCode||c?.name||c?.courseName),termOf=c=>courseTerm(c?.term)||courseTerm(c?.code||c?.courseCode);
+  const votes=new Map();for(const c of courses)if(keys.has(keyOf(c))&&termOf(c))votes.set(termOf(c),(votes.get(termOf(c))||0)+1);
+  const activeTerm=courseTerm(term)||[...votes].sort((a,b)=>b[1]-a[1]||b[0].localeCompare(a[0]))[0]?.[0]||'';
+  return rows.filter(a=>{const c=ids.get(String(a.courseId)),key=courseKey(a.courseCode||a.courseName)||keyOf(c),itemTerm=termOf(c)||termOf(a);if(activeTerm&&itemTerm&&itemTerm!==activeTerm)return false;if(keys.has(key))return true;
+   // A current academic Canvas class may be online/asynchronous and have no
+   // Registration meeting block. A timetable is not the course roster.
+   return !!(activeTerm&&itemTerm===activeTerm&&key&&!/supplemental|student.*training|orientation|department|dept\./i.test(`${c?.name||a.courseName||''} ${c?.code||a.courseCode||''}`));
+  });
+ }
+ globalThis.WarriorAssignments={importance,query,courseKey,courseTerm,forSchedule};
 })();
