@@ -1,3 +1,4 @@
+import Security
 import SwiftUI
 import WebKit
 import ActivityKit
@@ -96,7 +97,7 @@ struct ForgeWebView: UIViewRepresentable {
         func userContentController(_ userContentController:WKUserContentController,didReceive message:WKScriptMessage) {
             guard message.frameInfo.isMainFrame,message.frameInfo.request.url?.scheme == "https",message.frameInfo.request.url?.host == TimerAccess.site.host,
                   let payload=message.body as? [String:Any] else { return }
-            if message.name=="lifeForgeWidgets" { if (message.body as? [String:Any])?["action"] as? String == "preview" { NotificationCenter.default.post(name:Notification.Name("forge.principles"),object:nil) };WidgetCenter.shared.reloadAllTimelines();publishWidgetStatus();return }
+            if message.name=="lifeForgeWidgets" { if let todos=payload["todos"] as? [[String:Any]],let data=try? JSONSerialization.data(withJSONObject:["todos":Array(todos.prefix(30)),"updatedAt":Date().timeIntervalSince1970]) { let q:[String:Any]=[kSecClass as String:kSecClassGenericPassword,kSecAttrAccount as String:"life-forge.todo-snapshot"];SecItemDelete(q as CFDictionary);var item=q;item[kSecValueData as String]=data;item[kSecAttrAccessible as String]=kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly;SecItemAdd(item as CFDictionary,nil) }; if (message.body as? [String:Any])?["action"] as? String == "preview" { NotificationCenter.default.post(name:Notification.Name("forge.principles"),object:nil) };WidgetCenter.shared.reloadAllTimelines();publishWidgetStatus();return }
             if message.name=="lifeForgeSleep" { ForgeSleep.shared.schedule(payload);return }
             if message.name=="lifeForgeReminders" { ForgeSleep.shared.scheduleReminders(payload);return }
             if message.name=="lifeForgeLocation" {
