@@ -393,7 +393,7 @@ private func scheduleSigningExpiry() {
    let date=expires.addingTimeInterval(-Double(days)*86400);guard date>Date() else { continue }
    let content=UNMutableNotificationContent();content.title="Понови Life Forge";content.body="До завершення підпису близько \(days) дн. Підключи й розблокуй iPhone біля ПК із Sideloadly.";content.sound = .default
    let parts=Calendar.current.dateComponents([.year,.month,.day,.hour,.minute],from:date)
-   center.add(UNNotificationRequest(identifier:"forge.signing.\(days)",content:content,trigger:UNNotificationCalendarTrigger(dateMatching:parts,repeats:false)))
+   center.add(UNNotificationRequest(identifier:"forge.signing.\(days)",content:content,trigger:UNCalendarNotificationTrigger(dateMatching:parts,repeats:false)))
   }
  }
 }
