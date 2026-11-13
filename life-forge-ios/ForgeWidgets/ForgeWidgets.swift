@@ -59,7 +59,7 @@ struct ForgeTodoWidget:Widget {
   VStack(alignment:.leading,spacing:9) { Text("ТВІЙ НАСТУПНИЙ ХІД").font(.caption2.bold()).foregroundStyle(.red)
    if entry.updatedAt == nil { Text("Відкрий Life Forge для синхронізації").font(.caption) }
    else if entry.titles.isEmpty { Text("Усе зроблено").font(.headline) }
-   else { ForEach(Array(entry.titles.prefix(5).enumerated()),id:\.offset) { _,title in HStack(alignment:.top) { Text("○").foregroundStyle(.red);Text(title).font(.caption.bold()).lineLimit(2) } } }
+   else { ForEach(Array(entry.titles.prefix(3).enumerated()),id:\.offset) { _,title in HStack(alignment:.top) { Text("○").foregroundStyle(.red);Text(title).font(.caption.bold()).lineLimit(1) } } }
    if let date=entry.updatedAt { Text(date,style:.time).font(.caption2).foregroundStyle(.secondary) }
   }.frame(maxWidth:.infinity,alignment:.leading).containerBackground(for:.widget){Color(red:0.08,green:0.06,blue:0.1)}.widgetURL(URL(string:"lifeforge://day"))
  }.configurationDisplayName("Завдання").description("Наступні завдання. Оновлюються після відкриття Life Forge; спільний доступ Keychain залежить від підпису.").supportedFamilies([.systemSmall,.systemMedium,.systemLarge]) }
