@@ -318,7 +318,7 @@ final class ForgeSleep:NSObject,UNUserNotificationCenterDelegate {
     private var signature=""
     private var reminderSignature=""
     override init() {
-        super.init();let center=UNUserNotificationCenter.current();center.delegate=self
+        super.init();let center=UNUserNotificationCenter.current();center.delegate=self;scheduleSigningExpiry()
         let yes=UNNotificationAction(identifier:"forge.sleep.yes",title:"Так, спати",options:[.foreground])
         let later=UNNotificationAction(identifier:"forge.sleep.later",title:"Пізніше",options:[])
         let reflect=UNNotificationAction(identifier:"forge.reflection.open",title:"Записати враження",options:[.foreground])
@@ -383,3 +383,18 @@ final class ForgeSleep:NSObject,UNUserNotificationCenterDelegate {
         Task { @MainActor in do { try await TimerAccess.shared.confirmSleep() } catch { } ;completionHandler() }
     }
 }
+
+private func scheduleSigningExpiry() {
+ guard let url=Bundle.main.url(forResource:"embedded",withExtension:"mobileprovision"),let data=try? Data(contentsOf:url),let first=data.range(of:Data("<?xml".utf8)),let last=data.range(of:Data("</plist>".utf8)),first.lowerBound<last.upperBound,let profile=try? PropertyListSerialization.propertyList(from:data.subdata(in:first.lowerBound..<last.upperBound),options:[],format:nil) as? [String:Any],let expires=profile["ExpirationDate"] as? Date else { return }
+ let center=UNUserNotificationCenter.current();center.removePendingNotificationRequests(withIdentifiers:["forge.signing.2","forge.signing.1"])
+ center.getNotificationSettings { settings in
+  guard settings.authorizationStatus == .authorized || settings.authorizationStatus == .provisional else { return }
+  for days in [2,1] {
+   let date=expires.addingTimeInterval(-Double(days)*86400);guard date>Date() else { continue }
+   let content=UNMutableNotificationContent();content.title="Понови Life Forge";content.body="До завершення підпису близько \(days) дн. Підключи й розблокуй iPhone біля ПК із Sideloadly.";content.sound = .default
+   let parts=Calendar.current.dateComponents([.year,.month,.day,.hour,.minute],from:date)
+   center.add(UNNotificationRequest(identifier:"forge.signing.\(days)",content:content,trigger:UNNotificationCalendarTrigger(dateMatching:parts,repeats:false)))
+  }
+ }
+}
+
