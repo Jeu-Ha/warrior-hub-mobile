@@ -55,13 +55,19 @@ struct ForgeTodoProvider:TimelineProvider {
  }
 }
 struct ForgeTodoWidget:Widget {
- var body:some WidgetConfiguration { StaticConfiguration(kind:"LifeForge.Todos",provider:ForgeTodoProvider()) { entry in
-  VStack(alignment:.leading,spacing:9) { Text("ТВІЙ НАСТУПНИЙ ХІД").font(.caption2.bold()).foregroundStyle(.red)
-   if entry.updatedAt == nil { Text("Відкрий Life Forge для синхронізації").font(.caption) }
-   else if entry.titles.isEmpty { Text("Усе зроблено").font(.headline) }
-   else { ForEach(Array(entry.titles.prefix(3).enumerated()),id:\.offset) { _,title in HStack(alignment:.top) { Text("○").foregroundStyle(.red);Text(title).font(.caption.bold()).lineLimit(1) } } }
-   if let date=entry.updatedAt { Text(date,style:.time).font(.caption2).foregroundStyle(.secondary) }
-  }.frame(maxWidth:.infinity,alignment:.leading).containerBackground(for:.widget){Color(red:0.08,green:0.06,blue:0.1)}.widgetURL(URL(string:"lifeforge://day"))
- }.configurationDisplayName("Завдання").description("Наступні завдання. Оновлюються після відкриття Life Forge; спільний доступ Keychain залежить від підпису.").supportedFamilies([.systemSmall,.systemMedium,.systemLarge]) }
+ var body:some WidgetConfiguration { StaticConfiguration(kind:"LifeForge.Todos",provider:ForgeTodoProvider()) { entry in ForgeTodoText(entry:entry) }.configurationDisplayName("Завдання · текст").description("Короткий список завдань без зайвих елементів.").supportedFamilies([.systemSmall,.systemMedium,.systemLarge,.accessoryRectangular,.accessoryInline]) }
 }
-
+struct ForgeTodoText:View {
+ let entry:ForgeTodoEntry
+ @Environment(\.widgetFamily) var family
+ var body:some View {
+  Group {
+   if family == .accessoryInline { Text(entry.titles.first ?? "Завдання").lineLimit(1) }
+   else { VStack(alignment:.leading,spacing:5) {
+    if entry.updatedAt == nil { Text("Відкрий Life Forge").font(.caption) }
+    else if entry.titles.isEmpty { Text("Усе зроблено").font(.caption) }
+    else { ForEach(Array(entry.titles.prefix(family == .accessoryRectangular ? 2:4).enumerated()),id:\.offset) { _,title in Text(title).font(.system(size:family == .accessoryRectangular ? 13:14,weight:.medium)).lineLimit(1) } }
+   }.frame(maxWidth:.infinity,maxHeight:.infinity,alignment:.leading) }
+  }.containerBackground(for:.widget){Color.clear}.widgetURL(URL(string:"lifeforge://tasks"))
+ }
+}

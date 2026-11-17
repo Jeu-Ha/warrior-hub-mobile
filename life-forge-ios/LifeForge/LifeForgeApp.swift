@@ -7,7 +7,7 @@ import AVFoundation
 import UserNotifications
 import WidgetKit
 
-enum ForgeRoute: String { case day,now,principles,reflection,tomorrow }
+enum ForgeRoute: String { case day,now,add,tasks,principles,reflection,tomorrow }
 struct ForgeRouteRequest { let id=UUID();let route:ForgeRoute }
 @main struct LifeForgeApp: App {
     init() { _ = ForgeLocation.shared;_ = ForgeSleep.shared;WidgetCenter.shared.reloadAllTimelines() }
@@ -397,4 +397,3 @@ private func scheduleSigningExpiry() {
   }
  }
 }
-
